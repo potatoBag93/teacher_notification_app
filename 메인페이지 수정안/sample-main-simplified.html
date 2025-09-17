@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선생님 알림장 도우미 - 메인</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        /* Header */
+        .app-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-link {
+            color: #4b5563;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 200ms ease;
+        }
+
+        .nav-link:hover {
+            color: #667eea;
+        }
+
+        .header-search {
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            background: white;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background 200ms ease;
+        }
+
+        .notification-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Main Content */
+        .app-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .hero-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+            font-weight: 400;
+            color: #6b7280;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 200ms ease;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Notice Section Header */
+        .notices-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .notices-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .change-list-btn {
+            padding: 0.5rem 1rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+        }
+
+        .change-list-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        /* Grid Layout */
+        .recommended-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .notices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Notice Sets */
+        .notice-set {
+            display: none;
+            grid-column: 1 / -1;
+            grid-template-columns: inherit;
+            gap: inherit;
+        }
+
+        .notice-set.active {
+            display: grid;
+        }
+
+        /* Notice Card */
+        .notice-card {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 200ms ease;
+            cursor: pointer;
+            position: relative;
+            padding: 1rem;
+        }
+
+        .notice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .notice-card.recommended {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);
+        }
+
+        .notice-card.used {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+            border-color: #16a34a;
+        }
+
+        .notice-card.used::before {
+            content: '✓ 사용함';
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: #16a34a;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        .notice-card.recommended::before {
+            content: '⭐ 추천';
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: #f59e0b;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            z-index: 1;
+        }
+
+        .card-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-content {
+            color: #4b5563;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .sub-items {
+            margin-top: 0.5rem;
+        }
+
+        .sub-item {
+            position: relative;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+            padding-left: 1rem;
+        }
+
+        .sub-item::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #9ca3af;
+        }
+
+        /* Category Tags */
+        .category-tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .category-tag.학습 { background: #3b82f6; }
+        .category-tag.숙제 { background: #8b5cf6; }
+        .category-tag.안전 { background: #ef4444; }
+        .category-tag.건강 { background: #10b981; }
+        .category-tag.소통 { background: #f59e0b; }
+        .category-tag.행사 { background: #ec4899; }
+        .category-tag.일반 { background: #6b7280; }
+        .category-tag.가정통신 { background: #06b6d4; }
+        .category-tag.특별활동 { background: #84cc16; }
+        .category-tag.방학 { background: #f97316; }
+        .category-tag.시험 { background: #dc2626; }
+        .category-tag.준비물 { background: #7c3aed; }
+        .category-tag.날씨 { background: #0ea5e9; }
+
+        /* Filter Section */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .filter-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .filter-clear {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 0.875rem;
+            text-decoration: underline;
+        }
+
+        .filter-clear:hover {
+            color: #374151;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-tag {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 200ms ease;
+        }
+
+        .filter-tag:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .filter-tag.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        /* Selected Notice Panel */
+        .selected-notice-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 420px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border-left: 2px solid #667eea;
+            box-shadow: -10px 0 40px rgba(102, 126, 234, 0.3);
+            transition: all 300ms ease;
+            z-index: 200;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+
+        .selected-notice-panel.show {
+            right: 0;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6b7280;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 200ms ease;
+        }
+
+        .panel-close:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .selected-content {
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #667eea;
+            transition: all 300ms ease;
+            position: relative;
+            cursor: move;
+            user-select: none;
+            transform: translateY(0);
+        }
+
+        .selected-content:hover {
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .selected-content.dragging {
+            opacity: 0.8;
+            transform: rotate(3deg) scale(1.05) translateY(-10px);
+            z-index: 1000;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+            transition: none;
+        }
+
+        .selected-content.shifting {
+            transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* 드롭 영역 표시 */
+        .drop-zone {
+            height: 2px;
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
+            border-radius: 1px;
+            margin: 0.5rem 0;
+            opacity: 0;
+            transform: scaleX(0);
+            transition: all 300ms ease;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-zone::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 300ms ease;
+        }
+
+        .drop-zone::after {
+            content: '';
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(118, 75, 162, 0.3);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 300ms ease;
+        }
+
+        .drop-zone.active {
+            opacity: 1;
+            transform: scaleX(1);
+            height: 20px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+
+        .drop-zone.active::before {
+            width: 24px;
+            height: 24px;
+            background: #667eea;
+            border: 3px solid white;
+            left: -12px;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .drop-zone.active::after {
+            width: 24px;
+            height: 24px;
+            background: #764ba2;
+            border: 3px solid white;
+            right: -12px;
+            box-shadow: 0 2px 8px rgba(118, 75, 162, 0.4);
+        }
+
+        .drop-zone.highlight {
+            background: linear-gradient(90deg, #10b981, #059669);
+            animation: pulse 1s ease-in-out infinite alternate;
+            height: 30px;
+            margin: 2rem 0;
+        }
+
+        .drop-zone.highlight::before {
+            background: #10b981;
+            width: 28px;
+            height: 28px;
+            left: -14px;
+        }
+
+        .drop-zone.highlight::after {
+            background: #059669;
+            width: 28px;
+            height: 28px;
+            right: -14px;
+        }
+
+        @keyframes pulse {
+            from { 
+                box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+                transform: scaleX(1);
+            }
+            to { 
+                box-shadow: 0 0 25px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.3);
+                transform: scaleX(1.02);
+            }
+        }
+
+        .selected-content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .selected-content-left {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .drag-handle {
+            font-size: 1rem;
+            color: #9ca3af;
+            cursor: grab;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 200ms ease;
+        }
+
+        .drag-handle:hover {
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .selected-content-number {
+            font-size: 0.75rem;
+            color: #667eea;
+            font-weight: 600;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            min-width: fit-content;
+        }
+
+        .selected-content-remove {
+            background: none;
+            border: none;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 0.25rem;
+            border-radius: 0.25rem;
+            transition: all 200ms ease;
+            opacity: 0.7;
+        }
+
+        .selected-content-remove:hover {
+            background: rgba(220, 38, 38, 0.1);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .selected-content-tags {
+            display: flex;
+            gap: 0.375rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.75rem;
+        }
+
+        .selected-content-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.3rem;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: white;
+            opacity: 0.9;
+        }
+
+        .selected-text {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #374151;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .selected-items {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .selected-items .item {
+            margin-bottom: 0.375rem;
+            padding-left: 1rem;
+            position: relative;
+            line-height: 1.4;
+        }
+
+        .selected-content-tag.학습 { background: #3b82f6; }
+        .selected-content-tag.숙제 { background: #8b5cf6; }
+        .selected-content-tag.안전 { background: #ef4444; }
+        .selected-content-tag.건강 { background: #10b981; }
+        .selected-content-tag.소통 { background: #f59e0b; }
+        .selected-content-tag.행사 { background: #ec4899; }
+        .selected-content-tag.일반 { background: #6b7280; }
+        .selected-content-tag.가정통신 { background: #06b6d4; }
+        .selected-content-tag.특별활동 { background: #84cc16; }
+        .selected-content-tag.방학 { background: #f97316; }
+        .selected-content-tag.시험 { background: #dc2626; }
+        .selected-content-tag.준비물 { background: #7c3aed; }
+        .selected-content-tag.날씨 { background: #0ea5e9; }
+
+        .panel-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: sticky;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 0;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .panel-btn {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 200ms ease;
+            border: none;
+            width: 100%;
+        }
+
+        .panel-btn.primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .panel-btn.primary:hover {
+            background: #5a67d8;
+        }
+
+        .panel-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .panel-btn.secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .panel-btn.clear {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .panel-btn.clear:hover {
+            background: #fee2e2;
+        }
+
+        /* 선택된 카드 스타일 */
+        .notice-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+        }
+
+        /* 다중 선택 카운터 */
+        .selection-counter {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* 메인 컨텐츠 조정 - 오버레이 방식으로 변경 */
+        .app-main {
+            transition: opacity 300ms ease;
+        }
+
+        .app-main.panel-open {
+            opacity: 0.9;
+        }
+
+        /* 헤더도 함께 조정 - 오버레이 방식으로 변경 */
+        .app-header {
+            transition: opacity 300ms ease;
+        }
+
+        .app-header.panel-open {
+            opacity: 0.9;
+        }
+
+        /* 패널 오버레이 배경 - 클릭 방지용 */
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: calc(100% - 420px);
+            height: 100%;
+            background: transparent;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 300ms ease;
+            z-index: 190;
+            pointer-events: none;
+        }
+
+        .panel-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3.5rem;
+            height: 3.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            transition: all 200ms ease;
+            z-index: 100;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .nav-menu {
+                order: 3;
+                width: 100%;
+                margin-top: 1rem;
+                justify-content: center;
+            }
+
+            .app-main {
+                padding: 1rem;
+            }
+
+            .app-main.panel-open {
+                opacity: 1;
+            }
+
+            .app-header.panel-open {
+                opacity: 1;
+            }
+
+            .panel-overlay {
+                display: none;
+            }
+
+            .hero-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .recommended-grid, .notices-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .selected-notice-panel {
+                width: 100%;
+                right: -100%;
+            }
+
+            .filter-tags {
+                justify-content: center;
+            }
+
+            .fab {
+                bottom: 1rem;
+                right: 1rem;
+                width: 3rem;
+                height: 3rem;
+                font-size: 1.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-content">
+            <!-- Logo -->
+            <a href="#" class="logo">📚 알림장 도우미</a>
+            
+            <!-- Navigation -->
+            <nav class="nav-menu">
+                <a href="#" class="nav-link">메인</a>
+                <a href="#" class="nav-link">작성하기</a>
+                <a href="#" class="nav-link">내 컬렉션</a>
+                <a href="#" class="nav-link">통계</a>
+                <a href="#" class="nav-link">피드백</a>
+            </nav>
+            
+            <!-- Search Bar -->
+            <div class="header-search">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="키워드로 문구 검색..."
+                    onkeyup="searchNotices(this.value)"
+                />
+            </div>
+            
+            <!-- User Menu -->
+            <div class="user-menu">
+                <button class="notification-btn">🔔</button>
+                <div class="user-avatar">김</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+        <!-- Hero Section - 오늘 추천 문구 -->
+        <section class="hero-section">
+            <div class="hero-header">
+                <h2 class="hero-title">
+                    📅 오늘 추천 문구 
+                    <span class="hero-subtitle">(2025년 8월)</span>
+                </h2>
+                <button class="btn btn-outline">전체 보기</button>
+            </div>
+            
+            <div class="recommended-grid">
+                <!-- 추천 문구 카드 1 -->
+                <div class="notice-card recommended" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 소통">소통</div>
+                    </div>
+                    <div class="card-content">
+                        안녕하세요, 새로운 학기가 시작되었습니다!
+                        <div class="sub-items">
+                            <div class="sub-item">새로운 마음으로 시작해요</div>
+                            <div class="sub-item">궁금한 것이 있으면 언제든 물어보세요</div>
+                            <div class="sub-item">함께 즐거운 한 해를 만들어가요</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 추천 문구 카드 2 -->
+                <div class="notice-card recommended" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 숙제">숙제</div>
+                    </div>
+                    <div class="card-content">
+                        알찬 여름방학을 위해서 독서 계획을 세워보아요
+                        <div class="sub-items">
+                            <div class="sub-item">매일 30분 이상 독서하기</div>
+                            <div class="sub-item">독서 감상문 쓰기</div>
+                            <div class="sub-item">다양한 장르의 책 읽기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 추천 문구 카드 3 -->
+                <div class="notice-card recommended" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 건강">건강</div>
+                        <div class="category-tag 안전">안전</div>
+                    </div>
+                    <div class="card-content">
+                        추운 겨울, 건강하게 지내는 방법을 알려드려요
+                        <div class="sub-items">
+                            <div class="sub-item">따뜻한 옷차림으로 체온 유지</div>
+                            <div class="sub-item">손 씻기와 개인위생 철저히</div>
+                            <div class="sub-item">충분한 수면과 규칙적인 생활</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filter Section -->
+        <section class="filter-section">
+            <div class="filter-header">
+                <h3 class="filter-title">카테고리별 문구 찾기</h3>
+                <button class="filter-clear" onclick="clearFilters()">전체 보기</button>
+            </div>
+            <div class="filter-tags">
+                <div class="filter-tag" data-category="전체" onclick="filterNotices('전체')">전체</div>
+                <div class="filter-tag" data-category="학습" onclick="filterNotices('학습')">학습</div>
+                <div class="filter-tag" data-category="숙제" onclick="filterNotices('숙제')">숙제</div>
+                <div class="filter-tag" data-category="안전" onclick="filterNotices('안전')">안전</div>
+                <div class="filter-tag" data-category="건강" onclick="filterNotices('건강')">건강</div>
+                <div class="filter-tag" data-category="소통" onclick="filterNotices('소통')">소통</div>
+                <div class="filter-tag" data-category="행사" onclick="filterNotices('행사')">행사</div>
+                <div class="filter-tag" data-category="일반" onclick="filterNotices('일반')">일반</div>
+                <div class="filter-tag" data-category="가정통신" onclick="filterNotices('가정통신')">가정통신</div>
+                <div class="filter-tag" data-category="특별활동" onclick="filterNotices('특별활동')">특별활동</div>
+                <div class="filter-tag" data-category="방학" onclick="filterNotices('방학')">방학</div>
+                <div class="filter-tag" data-category="시험" onclick="filterNotices('시험')">시험</div>
+                <div class="filter-tag" data-category="준비물" onclick="filterNotices('준비물')">준비물</div>
+                <div class="filter-tag" data-category="날씨" onclick="filterNotices('날씨')">날씨</div>
+            </div>
+        </section>
+
+        <!-- Notice Cards Grid -->
+        <section class="notices-section">
+            <div class="notices-header">
+                <h3 class="notices-title">전체 문구 목록</h3>
+                <button class="change-list-btn" onclick="changeNoticeList()">다른 문구 보기</button>
+            </div>
+            <div class="notices-grid" id="notices-grid">
+                <!-- 첫 번째 세트: 기본 문구들 -->
+                <div class="notice-set active" data-set="1">
+                <!-- 문구 카드 1 -->
+                <div class="notice-card" data-categories="학습,숙제" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 숙제">숙제</div>
+                    </div>
+                    <div class="card-content">
+                        오늘 배운 내용을 복습해보세요
+                        <div class="sub-items">
+                            <div class="sub-item">교과서 46~48페이지 문제 풀기</div>
+                            <div class="sub-item">틀린 문제는 다시 한 번 풀어보기</div>
+                            <div class="sub-item">모르는 부분은 내일 질문하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 2 (사용한 문구) -->
+                <div class="notice-card used" data-categories="안전,건강" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 안전">안전</div>
+                        <div class="category-tag 건강">건강</div>
+                    </div>
+                    <div class="card-content">
+                        모두의 건강을 위해 방역수칙을 지켜주세요
+                        <div class="sub-items">
+                            <div class="sub-item">마스크 착용하기</div>
+                            <div class="sub-item">손 자주 씻기</div>
+                            <div class="sub-item">거리두기 실천하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 3 -->
+                <div class="notice-card" data-categories="행사,소통" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 행사">행사</div>
+                        <div class="category-tag 소통">소통</div>
+                    </div>
+                    <div class="card-content">
+                        1학기 학부모 상담주간이 시작됩니다
+                        <div class="sub-items">
+                            <div class="sub-item">상담 신청서 작성 후 제출</div>
+                            <div class="sub-item">상담 시간은 20분 내외</div>
+                            <div class="sub-item">궁금한 사항 미리 정리해 주세요</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 4 -->
+                <div class="notice-card" data-categories="준비물,학습" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 준비물">준비물</div>
+                        <div class="category-tag 학습">학습</div>
+                    </div>
+                    <div class="card-content">
+                        내일 과학 실험을 위한 준비물을 챙겨주세요
+                        <div class="sub-items">
+                            <div class="sub-item">투명한 플라스틱 컵 2개</div>
+                            <div class="sub-item">색소 (빨강, 파랑 중 하나)</div>
+                            <div class="sub-item">실험 관찰 일지</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 5 -->
+                <div class="notice-card" data-categories="특별활동,행사" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 특별활동">특별활동</div>
+                        <div class="category-tag 행사">행사</div>
+                    </div>
+                    <div class="card-content">
+                        다음 주 체육대회를 위한 연습을 시작합니다
+                        <div class="sub-items">
+                            <div class="sub-item">운동화와 체육복 준비</div>
+                            <div class="sub-item">충분한 수분 섭취</div>
+                            <div class="sub-item">팀워크를 발휘해 보세요</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 6 -->
+                <div class="notice-card" data-categories="날씨,건강" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 날씨">날씨</div>
+                        <div class="category-tag 건강">건강</div>
+                    </div>
+                    <div class="card-content">
+                        무더운 날씨가 계속됩니다. 건강 관리에 유의하세요
+                        <div class="sub-items">
+                            <div class="sub-item">물을 자주 마시기</div>
+                            <div class="sub-item">그늘에서 쉬기</div>
+                            <div class="sub-item">모자나 양산 활용하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 7 -->
+                <div class="notice-card" data-categories="가정통신,소통" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 가정통신">가정통신</div>
+                        <div class="category-tag 소통">소통</div>
+                    </div>
+                    <div class="card-content">
+                        가정에서도 함께 독서 습관을 만들어 주세요
+                        <div class="sub-items">
+                            <div class="sub-item">매일 정해진 시간에 독서</div>
+                            <div class="sub-item">읽은 책에 대해 대화하기</div>
+                            <div class="sub-item">도서관 함께 방문하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 8 -->
+                <div class="notice-card" data-categories="시험,학습" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 시험">시험</div>
+                        <div class="category-tag 학습">학습</div>
+                    </div>
+                    <div class="card-content">
+                        중간고사가 2주 남았습니다. 계획적으로 준비하세요
+                        <div class="sub-items">
+                            <div class="sub-item">시험 범위 확인하기</div>
+                            <div class="sub-item">복습 계획표 만들기</div>
+                            <div class="sub-item">모르는 부분 질문하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 9 -->
+                <div class="notice-card" data-categories="방학,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 방학">방학</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        알찬 여름방학을 보내기 위한 계획을 세워보세요
+                        <div class="sub-items">
+                            <div class="sub-item">방학 숙제 계획 세우기</div>
+                            <div class="sub-item">새로운 취미 시작하기</div>
+                            <div class="sub-item">가족과 함께하는 시간 갖기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 10 -->
+                <div class="notice-card" data-categories="건강,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 건강">건강</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        건강한 생활을 위해 규칙적인 습관을 만들어보세요
+                        <div class="sub-items">
+                            <div class="sub-item">일찍 자고 일찍 일어나기</div>
+                            <div class="sub-item">세 끼 식사 규칙적으로 하기</div>
+                            <div class="sub-item">매일 운동하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 11 -->
+                <div class="notice-card" data-categories="소통,학습" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 소통">소통</div>
+                        <div class="category-tag 학습">학습</div>
+                    </div>
+                    <div class="card-content">
+                        친구들과 함께 공부하면 더욱 재미있어요
+                        <div class="sub-items">
+                            <div class="sub-item">스터디 그룹 만들기</div>
+                            <div class="sub-item">서로 질문하고 답하기</div>
+                            <div class="sub-item">함께 문제 풀어보기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 12 -->
+                <div class="notice-card" data-categories="안전,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 안전">안전</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        안전한 등하교를 위해 다음 사항을 지켜주세요
+                        <div class="sub-items">
+                            <div class="sub-item">횡단보도에서 좌우 확인하기</div>
+                            <div class="sub-item">친구들과 함께 다니기</div>
+                            <div class="sub-item">낯선 사람 따라가지 않기</div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- 두 번째 세트: 계절/행사 관련 문구들 -->
+                <div class="notice-set" data-set="2">
+                <!-- 문구 카드 13 -->
+                <div class="notice-card" data-categories="행사,특별활동" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 행사">행사</div>
+                        <div class="category-tag 특별활동">특별활동</div>
+                    </div>
+                    <div class="card-content">
+                        학교 축제 준비가 시작됩니다
+                        <div class="sub-items">
+                            <div class="sub-item">각 반별 공연 준비하기</div>
+                            <div class="sub-item">전시할 작품 선정하기</div>
+                            <div class="sub-item">축제 당일 역할 분담하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 14 -->
+                <div class="notice-card used" data-categories="날씨,안전" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 날씨">날씨</div>
+                        <div class="category-tag 안전">안전</div>
+                    </div>
+                    <div class="card-content">
+                        장마철 우산 사용법과 안전수칙
+                        <div class="sub-items">
+                            <div class="sub-item">우산을 바르게 들고 다니기</div>
+                            <div class="sub-item">젖은 복도에서 조심히 걷기</div>
+                            <div class="sub-item">우의나 장화 준비하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 15 -->
+                <div class="notice-card" data-categories="학습,시험" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 시험">시험</div>
+                    </div>
+                    <div class="card-content">
+                        기말고사 준비 요령을 알려드릴게요
+                        <div class="sub-items">
+                            <div class="sub-item">과목별 공부 시간 배분하기</div>
+                            <div class="sub-item">오답노트 정리하기</div>
+                            <div class="sub-item">충분한 휴식 취하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 16 -->
+                <div class="notice-card" data-categories="가정통신,행사" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 가정통신">가정통신</div>
+                        <div class="category-tag 행사">행사</div>
+                    </div>
+                    <div class="card-content">
+                        학부모 참관수업 안내드립니다
+                        <div class="sub-items">
+                            <div class="sub-item">참관 신청서 제출 바랍니다</div>
+                            <div class="sub-item">수업 중 정숙히 참관해 주세요</div>
+                            <div class="sub-item">질문은 수업 후에 해주세요</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 17 -->
+                <div class="notice-card" data-categories="건강,특별활동" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 건강">건강</div>
+                        <div class="category-tag 특별활동">특별활동</div>
+                    </div>
+                    <div class="card-content">
+                        건강한 몸을 위한 운동 시간
+                        <div class="sub-items">
+                            <div class="sub-item">매일 30분 이상 운동하기</div>
+                            <div class="sub-item">스트레칭으로 몸 풀기</div>
+                            <div class="sub-item">친구들과 함께 놀이하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 18 -->
+                <div class="notice-card" data-categories="준비물,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 준비물">준비물</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        내일 현장학습 준비물 안내
+                        <div class="sub-items">
+                            <div class="sub-item">도시락과 물병 준비</div>
+                            <div class="sub-item">편한 운동화 착용</div>
+                            <div class="sub-item">필기구와 메모장 챙기기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 19 -->
+                <div class="notice-card" data-categories="소통,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 소통">소통</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        서로를 배려하는 마음을 가져요
+                        <div class="sub-items">
+                            <div class="sub-item">친구의 말을 끝까지 들어주기</div>
+                            <div class="sub-item">도움이 필요한 친구 돕기</div>
+                            <div class="sub-item">고마운 마음 표현하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 20 -->
+                <div class="notice-card" data-categories="방학,학습" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 방학">방학</div>
+                        <div class="category-tag 학습">학습</div>
+                    </div>
+                    <div class="card-content">
+                        겨울방학 알찬 보내기 프로젝트
+                        <div class="sub-items">
+                            <div class="sub-item">독서 목표 세우기</div>
+                            <div class="sub-item">새로운 기술 배워보기</div>
+                            <div class="sub-item">가족과 소중한 시간 갖기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 21 -->
+                <div class="notice-card" data-categories="학습,준비물" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 준비물">준비물</div>
+                    </div>
+                    <div class="card-content">
+                        미술 시간 준비물 안내
+                        <div class="sub-items">
+                            <div class="sub-item">수채화 물감과 붓 준비</div>
+                            <div class="sub-item">도화지와 팔레트 챙기기</div>
+                            <div class="sub-item">물통과 휴지 준비</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 22 -->
+                <div class="notice-card" data-categories="안전,날씨" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 안전">안전</div>
+                        <div class="category-tag 날씨">날씨</div>
+                    </div>
+                    <div class="card-content">
+                        눈 오는 날 안전하게 지내기
+                        <div class="sub-items">
+                            <div class="sub-item">미끄러지지 않게 천천히 걷기</div>
+                            <div class="sub-item">눈싸움할 때 얼굴 피하기</div>
+                            <div class="sub-item">따뜻하게 옷 입고 다니기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 23 -->
+                <div class="notice-card" data-categories="건강,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 건강">건강</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        올바른 자세로 공부하기
+                        <div class="sub-items">
+                            <div class="sub-item">등을 곧게 펴고 앉기</div>
+                            <div class="sub-item">책과 적당한 거리 유지하기</div>
+                            <div class="sub-item">중간중간 스트레칭하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 24 -->
+                <div class="notice-card" data-categories="소통,학습" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 소통">소통</div>
+                        <div class="category-tag 학습">학습</div>
+                    </div>
+                    <div class="card-content">
+                        발표할 때 자신감 있게 말하기
+                        <div class="sub-items">
+                            <div class="sub-item">큰 소리로 또박또박 말하기</div>
+                            <div class="sub-item">친구들을 바라보며 발표하기</div>
+                            <div class="sub-item">준비한 내용 차근차근 설명하기</div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <!-- 세 번째 세트: 생활 습관 관련 문구들 -->
+                <div class="notice-set" data-set="3">
+                <!-- 문구 카드 25 -->
+                <div class="notice-card" data-categories="건강,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 건강">건강</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        아침 식사의 중요성을 알아봐요
+                        <div class="sub-items">
+                            <div class="sub-item">하루를 시작하는 에너지 충전</div>
+                            <div class="sub-item">집중력 향상에 도움</div>
+                            <div class="sub-item">골고루 영양소 섭취하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 26 -->
+                <div class="notice-card used" data-categories="학습,숙제" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 숙제">숙제</div>
+                    </div>
+                    <div class="card-content">
+                        효과적인 복습 방법을 소개합니다
+                        <div class="sub-items">
+                            <div class="sub-item">그날 배운 내용 정리하기</div>
+                            <div class="sub-item">중요한 부분 표시하기</div>
+                            <div class="sub-item">문제 풀이로 확인하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 27 -->
+                <div class="notice-card" data-categories="소통,행사" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 소통">소통</div>
+                        <div class="category-tag 행사">행사</div>
+                    </div>
+                    <div class="card-content">
+                        졸업식 준비와 마음가짐
+                        <div class="sub-items">
+                            <div class="sub-item">감사한 마음 표현하기</div>
+                            <div class="sub-item">추억 정리하고 나누기</div>
+                            <div class="sub-item">새로운 시작 다짐하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 28 -->
+                <div class="notice-card" data-categories="특별활동,소통" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 특별활동">특별활동</div>
+                        <div class="category-tag 소통">소통</div>
+                    </div>
+                    <div class="card-content">
+                        동아리 활동을 통한 새로운 경험
+                        <div class="sub-items">
+                            <div class="sub-item">관심 분야 동아리 찾기</div>
+                            <div class="sub-item">적극적으로 참여하기</div>
+                            <div class="sub-item">새로운 친구들과 교류하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 29 -->
+                <div class="notice-card" data-categories="가정통신,건강" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 가정통신">가정통신</div>
+                        <div class="category-tag 건강">건강</div>
+                    </div>
+                    <div class="card-content">
+                        가정에서의 스마트폰 사용 지도
+                        <div class="sub-items">
+                            <div class="sub-item">적절한 사용 시간 정하기</div>
+                            <div class="sub-item">공부 시간에는 멀리 두기</div>
+                            <div class="sub-item">올바른 자세로 사용하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 30 -->
+                <div class="notice-card" data-categories="환경,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 일반">일반</div>
+                        <div class="category-tag 특별활동">특별활동</div>
+                    </div>
+                    <div class="card-content">
+                        환경 보호 실천하기
+                        <div class="sub-items">
+                            <div class="sub-item">분리수거 정확히 하기</div>
+                            <div class="sub-item">일회용품 사용 줄이기</div>
+                            <div class="sub-item">물과 전기 아껴 쓰기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 31 -->
+                <div class="notice-card" data-categories="학습,시험" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 시험">시험</div>
+                    </div>
+                    <div class="card-content">
+                        시험 후 올바른 마음가짐
+                        <div class="sub-items">
+                            <div class="sub-item">결과에 너무 일희일비하지 않기</div>
+                            <div class="sub-item">틀린 부분 다시 공부하기</div>
+                            <div class="sub-item">다음을 위한 계획 세우기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 32 -->
+                <div class="notice-card" data-categories="안전,준비물" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 안전">안전</div>
+                        <div class="category-tag 준비물">준비물</div>
+                    </div>
+                    <div class="card-content">
+                        실험실 안전 수칙과 준비물
+                        <div class="sub-items">
+                            <div class="sub-item">실험복과 보안경 착용</div>
+                            <div class="sub-item">실험 기구 조심히 다루기</div>
+                            <div class="sub-item">선생님 지시 잘 따르기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 33 -->
+                <div class="notice-card" data-categories="방학,가정통신" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 방학">방학</div>
+                        <div class="category-tag 가정통신">가정통신</div>
+                    </div>
+                    <div class="card-content">
+                        방학 중 생활 리듬 관리하기
+                        <div class="sub-items">
+                            <div class="sub-item">규칙적인 기상 시간 유지</div>
+                            <div class="sub-item">계획적인 하루 보내기</div>
+                            <div class="sub-item">적절한 휴식과 활동 병행</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 34 -->
+                <div class="notice-card" data-categories="소통,건강" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 소통">소통</div>
+                        <div class="category-tag 건강">건강</div>
+                    </div>
+                    <div class="card-content">
+                        스트레스 관리와 마음 건강
+                        <div class="sub-items">
+                            <div class="sub-item">힘든 일이 있으면 이야기하기</div>
+                            <div class="sub-item">좋아하는 취미 활동하기</div>
+                            <div class="sub-item">충분한 수면과 휴식 취하기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 35 -->
+                <div class="notice-card" data-categories="학습,일반" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 학습">학습</div>
+                        <div class="category-tag 일반">일반</div>
+                    </div>
+                    <div class="card-content">
+                        새 학년 준비하기
+                        <div class="sub-items">
+                            <div class="sub-item">지난 학년 정리하기</div>
+                            <div class="sub-item">새로운 목표 세우기</div>
+                            <div class="sub-item">필요한 준비물 챙기기</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 문구 카드 36 -->
+                <div class="notice-card" data-categories="특별활동,행사" onclick="selectNotice(this)">
+                    <div class="card-tags">
+                        <div class="category-tag 특별활동">특별활동</div>
+                        <div class="category-tag 행사">행사</div>
+                    </div>
+                    <div class="card-content">
+                        문화예술 관람 예절
+                        <div class="sub-items">
+                            <div class="sub-item">공연 중에는 조용히 감상하기</div>
+                            <div class="sub-item">휴대폰 사용하지 않기</div>
+                            <div class="sub-item">박수로 감사 표현하기</div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Button -->
+    <button class="fab" onclick="createNewNotice()" title="새 문구 작성">✏️</button>
+
+    <!-- Panel Overlay -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+
+    <!-- Selected Notice Panel -->
+    <div class="selected-notice-panel" id="selectedPanel">
+        <div class="panel-header">
+            <div class="panel-title">
+                ✅ 선택한 문구 <span class="selection-counter" id="selectionCounter">0</span>
+            </div>
+            <button class="panel-close" onclick="closeSelectedPanel()">×</button>
+        </div>
+        <div id="selectedNoticesList">
+            <!-- 선택된 문구들이 여기에 표시됩니다 -->
+        </div>
+        <div class="panel-actions">
+            <button class="panel-btn clear" onclick="clearAllSelections()">모두 해제</button>
+            <button class="panel-btn secondary" onclick="closeSelectedPanel()">닫기</button>
+            <button class="panel-btn primary" onclick="copyAllToClipboard()">전체 복사</button>
+            <button class="panel-btn primary" onclick="useAllInEditor()">작성하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 현재 활성화된 세트 번호
+        let currentSet = 1;
+        const totalSets = 3;
+        
+        // 선택된 문구들을 저장하는 배열
+        let selectedNotices = [];
+        let draggedElement = null;
+        let draggedIndex = null;
+
+        // 문구 세트 변경 함수
+        function changeNoticeList() {
+            // 현재 세트 숨기기
+            document.querySelector(`.notice-set[data-set="${currentSet}"]`).classList.remove('active');
+            
+            // 다음 세트로 이동 (순환)
+            currentSet = currentSet >= totalSets ? 1 : currentSet + 1;
+            
+            // 새 세트 보이기
+            document.querySelector(`.notice-set[data-set="${currentSet}"]`).classList.add('active');
+            
+            // 버튼 텍스트 업데이트
+            const btn = document.querySelector('.change-list-btn');
+            btn.textContent = `다른 문구 보기 (${currentSet}/${totalSets})`;
+            
+            // 부드러운 전환 효과
+            const noticesGrid = document.getElementById('notices-grid');
+            noticesGrid.style.opacity = '0.7';
+            setTimeout(() => {
+                noticesGrid.style.opacity = '1';
+            }, 200);
+        }
+
+        // 문구 선택/해제 함수 (다중 선택 지원)
+        function selectNotice(card) {
+            const isSelected = card.classList.contains('selected');
+            
+            if (isSelected) {
+                // 선택 해제
+                card.classList.remove('selected');
+                removeFromSelection(card);
+            } else {
+                // 선택 추가
+                card.classList.add('selected');
+                addToSelection(card);
+            }
+            
+            // 선택 상태에 따라 패널 표시/숨김
+            if (selectedNotices.length > 0) {
+                document.getElementById('selectedPanel').classList.add('show');
+                document.getElementById('panelOverlay').classList.add('show');
+                document.querySelector('.app-main').classList.add('panel-open');
+                document.querySelector('.app-header').classList.add('panel-open');
+            } else {
+                document.getElementById('selectedPanel').classList.remove('show');
+                document.getElementById('panelOverlay').classList.remove('show');
+                document.querySelector('.app-main').classList.remove('panel-open');
+                document.querySelector('.app-header').classList.remove('panel-open');
+            }
+            
+            updateSelectionPanel();
+        }
+
+        // 선택에 추가
+        function addToSelection(card) {
+            const contentElement = card.querySelector('.card-content');
+            const contentText = contentElement.firstChild.textContent.trim();
+            const subItems = Array.from(card.querySelectorAll('.sub-item')).map(item => item.textContent);
+            const tags = Array.from(card.querySelectorAll('.category-tag')).map(tag => tag.textContent);
+            
+            const noticeData = {
+                id: Date.now() + Math.random(), // 고유 ID
+                element: card,
+                main: contentText,
+                items: subItems,
+                tags: tags
+            };
+            
+            selectedNotices.push(noticeData);
+        }
+
+        // 선택에서 제거
+        function removeFromSelection(card) {
+            selectedNotices = selectedNotices.filter(notice => notice.element !== card);
+        }
+
+        // 선택 패널 업데이트
+        function updateSelectionPanel() {
+            const counter = document.getElementById('selectionCounter');
+            const noticesList = document.getElementById('selectedNoticesList');
+            
+            // 카운터 업데이트
+            counter.textContent = selectedNotices.length;
+            
+            // 선택된 문구들 표시
+            noticesList.innerHTML = '';
+            selectedNotices.forEach((notice, index) => {
+                // 드롭 영역 추가 (첫 번째 카드 위에)
+                if (index === 0) {
+                    const topDropZone = document.createElement('div');
+                    topDropZone.className = 'drop-zone';
+                    topDropZone.dataset.position = 'before';
+                    topDropZone.dataset.index = '0';
+                    addDropZoneEvents(topDropZone);
+                    noticesList.appendChild(topDropZone);
+                }
+                
+                const noticeDiv = document.createElement('div');
+                noticeDiv.className = 'selected-content';
+                noticeDiv.draggable = true;
+                noticeDiv.dataset.index = index;
+                noticeDiv.dataset.id = notice.id;
+                
+                // 태그 HTML 생성
+                const tagsHtml = notice.tags.map(tag => {
+                    let tagClass = 'selected-content-tag';
+                    if (tag === '학습') tagClass += ' 학습';
+                    else if (tag === '숙제') tagClass += ' 숙제';
+                    else if (tag === '안전') tagClass += ' 안전';
+                    else if (tag === '건강') tagClass += ' 건강';
+                    else if (tag === '소통') tagClass += ' 소통';
+                    else if (tag === '행사') tagClass += ' 행사';
+                    else if (tag === '일반') tagClass += ' 일반';
+                    else if (tag === '가정통신') tagClass += ' 가정통신';
+                    else if (tag === '특별활동') tagClass += ' 특별활동';
+                    else if (tag === '방학') tagClass += ' 방학';
+                    else if (tag === '시험') tagClass += ' 시험';
+                    else if (tag === '준비물') tagClass += ' 준비물';
+                    else if (tag === '날씨') tagClass += ' 날씨';
+                    
+                    return `<span class="${tagClass}">${tag}</span>`;
+                }).join('');
+                
+                noticeDiv.innerHTML = `
+                    <div class="selected-content-header">
+                        <div class="selected-content-left">
+                            <div class="drag-handle">⋮⋮</div>
+                            <div class="selected-content-number">#${index + 1}</div>
+                        </div>
+                        <button class="selected-content-remove" onclick="removeSelection(${notice.id})">×</button>
+                    </div>
+                    <div class="selected-content-tags">
+                        ${tagsHtml}
+                    </div>
+                    <div class="selected-text">${notice.main}</div>
+                    <div class="selected-items">
+                        ${notice.items.map(item => `<div class="item">${item}</div>`).join('')}
+                    </div>
+                `;
+                
+                // 드래그 이벤트 리스너 추가
+                noticeDiv.addEventListener('dragstart', handleDragStart);
+                noticeDiv.addEventListener('dragend', handleDragEnd);
+                
+                noticesList.appendChild(noticeDiv);
+                
+                // 각 카드 아래에 드롭 영역 추가
+                const bottomDropZone = document.createElement('div');
+                bottomDropZone.className = 'drop-zone';
+                bottomDropZone.dataset.position = 'after';
+                bottomDropZone.dataset.index = (index + 1).toString();
+                addDropZoneEvents(bottomDropZone);
+                noticesList.appendChild(bottomDropZone);
+            });
+        }
+
+        // 드롭 영역 이벤트 추가
+        function addDropZoneEvents(dropZone) {
+            dropZone.addEventListener('dragover', handleDropZoneDragOver);
+            dropZone.addEventListener('dragenter', handleDropZoneDragEnter);
+            dropZone.addEventListener('dragleave', handleDropZoneDragLeave);
+            dropZone.addEventListener('drop', handleDropZoneDrop);
+        }
+
+        // 드래그 시작
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            draggedIndex = parseInt(e.target.dataset.index);
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', draggedIndex);
+            
+            // 모든 드롭 영역 활성화
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.add('active');
+            });
+        }
+
+        // 드롭 영역 드래그 오버
+        function handleDropZoneDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        // 드롭 영역 드래그 엔터
+        function handleDropZoneDragEnter(e) {
+            e.preventDefault();
+            
+            // 모든 드롭 영역 하이라이트 제거
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('highlight');
+            });
+            
+            // 현재 드롭 영역 하이라이트
+            e.target.classList.add('highlight');
+        }
+
+        // 드롭 영역 드래그 리브
+        function handleDropZoneDragLeave(e) {
+            // 완전히 벗어났을 때만 하이라이트 제거
+            if (!e.target.contains(e.relatedTarget)) {
+                e.target.classList.remove('highlight');
+            }
+        }
+
+        // 드롭 영역 드롭
+        function handleDropZoneDrop(e) {
+            e.preventDefault();
+            
+            const newIndex = parseInt(e.target.dataset.index);
+            
+            // 배열에서 요소 이동
+            const draggedNotice = selectedNotices.splice(draggedIndex, 1)[0];
+            
+            // 새 위치에 삽입
+            let insertIndex = newIndex;
+            if (newIndex > draggedIndex) {
+                insertIndex = newIndex - 1;
+            }
+            
+            selectedNotices.splice(insertIndex, 0, draggedNotice);
+            
+            // 패널 업데이트
+            updateSelectionPanel();
+            
+            // 성공 피드백
+            showDragFeedback('순서가 변경되었습니다!');
+        }
+
+        // 드래그 종료
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            
+            // 모든 드롭 영역 비활성화
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('active', 'highlight');
+            });
+            
+            draggedElement = null;
+            draggedIndex = null;
+        }
+
+        // 기존 함수들 제거 (더 이상 사용하지 않음)
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+        }
+
+        function handleDragLeave(e) {
+            // 더 이상 사용하지 않음
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+        }
+
+        function shiftCards() {
+            // 더 이상 사용하지 않음
+        }
+
+        function clearAllDragEffects() {
+            // 더 이상 사용하지 않음
+        }
+
+        // 드래그 피드백 표시
+        function showDragFeedback(message) {
+            const feedback = document.createElement('div');
+            feedback.style.cssText = `
+                position: fixed;
+                top: 50%;
+                right: 210px;
+                transform: translateY(-50%);
+                background: #10b981;
+                color: white;
+                padding: 0.75rem 1rem;
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                font-weight: 500;
+                z-index: 1000;
+                opacity: 0;
+                transition: all 300ms ease;
+            `;
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+            
+            // 애니메이션
+            setTimeout(() => feedback.style.opacity = '1', 100);
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+                setTimeout(() => document.body.removeChild(feedback), 300);
+            }, 2000);
+        }
+
+        // 개별 선택 제거
+        function removeSelection(id) {
+            const notice = selectedNotices.find(n => n.id === id);
+            if (notice) {
+                notice.element.classList.remove('selected');
+                selectedNotices = selectedNotices.filter(n => n.id !== id);
+                updateSelectionPanel();
+                
+                if (selectedNotices.length === 0) {
+                    closeSelectedPanel();
+                }
+            }
+        }
+
+        // 모든 선택 해제
+        function clearAllSelections() {
+            selectedNotices.forEach(notice => {
+                notice.element.classList.remove('selected');
+            });
+            selectedNotices = [];
+            closeSelectedPanel();
+        }
+
+        // 선택 패널 닫기
+        function closeSelectedPanel() {
+            document.getElementById('selectedPanel').classList.remove('show');
+            document.getElementById('panelOverlay').classList.remove('show');
+            document.querySelector('.app-main').classList.remove('panel-open');
+            document.querySelector('.app-header').classList.remove('panel-open');
+        }
+
+        // 전체 클립보드 복사
+        function copyAllToClipboard() {
+            if (selectedNotices.length === 0) return;
+            
+            let allText = selectedNotices.map((notice, index) => {
+                let text = `${index + 1}. ${notice.main}`;
+                if (notice.items.length > 0) {
+                    text += '\n' + notice.items.map(item => '   • ' + item).join('\n');
+                }
+                return text;
+            }).join('\n\n');
+            
+            navigator.clipboard.writeText(allText).then(() => {
+                // 성공 메시지
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '✅ 복사됨!';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '#667eea';
+                }, 2000);
+            }).catch(() => {
+                alert('복사에 실패했습니다. 브라우저가 클립보드를 지원하지 않을 수 있습니다.');
+            });
+        }
+
+        // 에디터에서 모두 사용
+        function useAllInEditor() {
+            if (selectedNotices.length === 0) return;
+            
+            let summary = `${selectedNotices.length}개의 문구가 선택되었습니다:\n\n`;
+            selectedNotices.forEach((notice, index) => {
+                summary += `${index + 1}. ${notice.main}\n`;
+            });
+            
+            alert('작성하기 페이지로 이동합니다.\n\n' + summary);
+            closeSelectedPanel();
+        }
+
+        // 카테고리 필터링
+        function filterNotices(category) {
+            const filterTags = document.querySelectorAll('.filter-tag');
+            const currentNoticeSet = document.querySelector('.notice-set.active');
+            const noticeCards = currentNoticeSet.querySelectorAll('.notice-card');
+            
+            // 필터 태그 활성화 상태 업데이트
+            filterTags.forEach(tag => {
+                tag.classList.remove('active');
+                if (tag.dataset.category === category) {
+                    tag.classList.add('active');
+                }
+            });
+            
+            // 카드 필터링 (현재 활성화된 세트만)
+            noticeCards.forEach(card => {
+                if (category === '전체') {
+                    card.style.display = 'block';
+                } else {
+                    const categories = card.dataset.categories;
+                    if (categories && categories.includes(category)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        // 필터 초기화
+        function clearFilters() {
+            const filterTags = document.querySelectorAll('.filter-tag');
+            const currentNoticeSet = document.querySelector('.notice-set.active');
+            const noticeCards = currentNoticeSet.querySelectorAll('.notice-card');
+            
+            filterTags.forEach(tag => tag.classList.remove('active'));
+            noticeCards.forEach(card => card.style.display = 'block');
+        }
+
+        // 검색 기능
+        function searchNotices(searchTerm) {
+            const currentNoticeSet = document.querySelector('.notice-set.active');
+            const noticeCards = currentNoticeSet.querySelectorAll('.notice-card');
+            const term = searchTerm.toLowerCase().trim();
+            
+            noticeCards.forEach(card => {
+                const content = card.querySelector('.card-content').textContent.toLowerCase();
+                const categories = card.dataset.categories.toLowerCase();
+                
+                if (term === '' || content.includes(term) || categories.includes(term)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // 새 문구 작성
+        function createNewNotice() {
+            // 실제 시스템에서는 작성 페이지로 이동
+            alert('새 문구 작성 페이지로 이동합니다.');
+        }
+
+        // 초기 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 전체 필터 활성화
+            document.querySelector('.filter-tag[data-category="전체"]').classList.add('active');
+            
+            // 버튼 초기 텍스트 설정
+            const btn = document.querySelector('.change-list-btn');
+            btn.textContent = `다른 문구 보기 (${currentSet}/${totalSets})`;
+        });
+    </script>
+</body>
+</html>

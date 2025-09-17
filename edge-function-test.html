@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Edge Functions 테스트</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .h {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            background: white;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .test-section h2 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .response-area {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .success {
+            border-left: 4px solid #4CAF50;
+            background-color: #f1f8e9;
+        }
+        
+        .error {
+            border-left: 4px solid #f44336;
+            background-color: #ffebee;
+        }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        
+        .tag-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .tag-input input {
+            flex: 1;
+        }
+        
+        .tags-display {
+            margin-top: 5px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            background-color: #e3f2fd;
+            color: #1976d2;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .sub-items-container {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #fafafa;
+        }
+        
+        .sub-item-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .sub-item-row input {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .sub-item-row button {
+            margin: 0;
+            padding: 8px 12px;
+            font-size: 14px;
+            background-color: #f44336;
+        }
+        
+        .sub-item-row button:hover {
+            background-color: #da190b;
+        }
+        
+        .add-sub-item-btn {
+            background-color: #2196F3 !important;
+            margin-top: 10px;
+        }
+        
+        .add-sub-item-btn:hover {
+            background-color: #1976D2 !important;
+        }
+        
+        .news-item {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .news-item:hover {
+            border-color: #FF9800;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+        }
+        
+        .news-item.selected {
+            border-color: #FF9800;
+            background-color: #fff3e0;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
+        
+        .news-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .news-description {
+            color: #666;
+            font-size: 12px;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+        
+        .news-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .news-source {
+            font-weight: bold;
+        }
+        
+        .news-date {
+            font-style: italic;
+        }
+        
+        .news-selection-info {
+            background: #e3f2fd;
+            border: 1px solid #2196F3;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #1976D2;
+        }
+        
+        .weather-info-card {
+            background: white;
+            border: 1px solid #2196F3;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.1);
+        }
+        
+        .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .weather-icon {
+            font-size: 48px;
+            line-height: 1;
+        }
+        
+        .weather-temp {
+            font-size: 36px;
+            font-weight: bold;
+            color: #1976D2;
+        }
+        
+        .weather-desc {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .weather-location {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .weather-detail-item {
+            background: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 12px;
+        }
+        
+        .weather-detail-label {
+            color: #666;
+            margin-bottom: 3px;
+        }
+        
+        .weather-detail-value {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .weather-alert {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 Supabase Edge Functions 테스트 도구</h1>
+        <p>각 엣지 함수들을 직접 테스트할 수 있는 페이지입니다</p>
+    </div>
+
+    <!-- AI Notice Generator 테스트 -->
+    <div class="test-section">
+        <h2>🤖 AI Notice Generator - AI 문구 생성</h2>
+        
+        <div class="form-group">
+            <label for="ai-topic">주제:</label>
+            <input type="text" id="ai-topic" placeholder="예: 겨울철 감기 예방, 교실 정리정돈, 독서 습관">
+        </div>
+        
+        <div class="form-group">
+            <label for="ai-grade">학년 (선택사항):</label>
+            <select id="ai-grade">
+                <option value="">선택 안함</option>
+                <option value="초등 저학년">초등 저학년 (1-2학년)</option>
+                <option value="초등 고학년">초등 고학년 (3-6학년)</option>
+                <option value="중학생">중학생</option>
+                <option value="고등학생">고등학생</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="ai-style">문체 스타일:</label>
+            <select id="ai-style">
+                <option value="normal">자연스럽게</option>
+                <option value="friendly">친근하고 따뜻하게</option>
+                <option value="formal">정중하고 격식있게</option>
+                <option value="simple">쉽고 간단하게</option>
+            </select>
+        </div>
+        
+        <button onclick="generateNotice()">🤖 AI 문구 생성</button>
+        <button onclick="clearAIForm()">🗑️ 폼 초기화</button>
+        
+        <div id="ai-response" class="response-area" style="display: none;"></div>
+        
+        <!-- 생성된 문구 편집 영역 -->
+        <div id="generated-notice-section" style="display: none; margin-top: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 10px; background-color: #f8f9fa;">
+            <h3>✨ 생성된 문구 (편집 가능)</h3>
+            
+            <div class="form-group">
+                <label for="generated-title">제목:</label>
+                <input type="text" id="generated-title">
+            </div>
+            
+            <div class="form-group">
+                <label for="generated-content">메인 내용:</label>
+                <textarea id="generated-content" style="height: 80px;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="generated-sub-items">세부 항목:</label>
+                <div id="generated-sub-items-container" class="sub-items-container">
+                    <div class="sub-item-row">
+                        <input type="text" placeholder="세부 항목을 입력하세요">
+                        <button type="button" onclick="removeSubItem(this)">삭제</button>
+                    </div>
+                    <button type="button" class="add-sub-item-btn" onclick="addSubItem('generated-sub-items-container')">+ 세부 항목 추가</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="generated-tags">태그:</label>
+                <div class="tag-input">
+                    <input type="text" id="generated-tag-input" placeholder="태그 입력 후 Enter">
+                    <button type="button" onclick="addGeneratedTag()">태그 추가</button>
+                </div>
+                <div id="generated-tags-display" class="tags-display"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="generated-author">작성자:</label>
+                <input type="text" id="generated-author" placeholder="작성자 ID (선택사항)" value="ai-generated">
+            </div>
+            
+            <button onclick="saveGeneratedNotice()" style="background-color: #2196F3;">💾 수정된 문구 저장</button>
+            <button onclick="hideGeneratedSection()">❌ 취소</button>
+            
+            <div id="save-generated-response" class="response-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Add Notice 테스트 -->
+    <div class="test-section">
+        <h2>📝 Add Notice - 알림장 문구 추가</h2>
+        
+        <div class="form-group">
+            <label for="notice-title">제목:</label>
+            <input type="text" id="notice-title" placeholder="예: 여름철 물놀이 안전수칙">
+        </div>
+        
+        <div class="form-group">
+            <label for="notice-content">메인 내용:</label>
+            <textarea id="notice-content" placeholder="메인 알림장 내용을 입력하세요..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="notice-sub-items">세부 항목:</label>
+            <div id="notice-sub-items-container" class="sub-items-container">
+                <div class="sub-item-row">
+                    <input type="text" placeholder="세부 항목을 입력하세요">
+                    <button type="button" onclick="removeSubItem(this)">삭제</button>
+                </div>
+                <button type="button" class="add-sub-item-btn" onclick="addSubItem('notice-sub-items-container')">+ 세부 항목 추가</button>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="notice-tags">태그:</label>
+            <div class="tag-input">
+                <input type="text" id="notice-tag-input" placeholder="태그 입력 후 Enter">
+                <button type="button" onclick="addTag()">태그 추가</button>
+            </div>
+            <div id="notice-tags-display" class="tags-display"></div>
+        </div>
+        
+        <div class="form-group">
+            <label for="notice-author">작성자:</label>
+            <input type="text" id="notice-author" placeholder="작성자 ID (선택사항)">
+        </div>
+        
+        <button onclick="testAddNotice()">🚀 Notice 추가 테스트</button>
+        <button onclick="clearAddNoticeForm()">🗑️ 폼 초기화</button>
+        
+        <div id="add-notice-response" class="response-area" style="display: none;"></div>
+    </div>
+
+    <!-- 향후 확장을 위한 플레이스홀더 -->
+    <div class="test-section">
+        <h2>📰 News-based Notice Generator - 뉴스 기반 문구 생성</h2>
+        
+        <div class="form-group">
+            <label for="news-search-keyword">뉴스 검색 키워드:</label>
+            <input type="text" id="news-search-keyword" placeholder="예: 교육, 안전, 환경, 건강">
+        </div>
+        
+        <div class="form-group">
+            <label for="news-display-count">검색할 뉴스 개수:</label>
+            <select id="news-display-count">
+                <option value="5">5개</option>
+                <option value="10" selected>10개</option>
+                <option value="20">20개</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="news-grade">대상 학년 (선택사항):</label>
+            <select id="news-grade">
+                <option value="">선택 안함</option>
+                <option value="초등 저학년">초등 저학년 (1-2학년)</option>
+                <option value="초등 고학년">초등 고학년 (3-6학년)</option>
+                <option value="중학생">중학생</option>
+                <option value="고등학생">고등학생</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="news-style">문체 스타일:</label>
+            <select id="news-style">
+                <option value="normal">자연스럽게</option>
+                <option value="friendly">친근하고 따뜻하게</option>
+                <option value="formal">정중하고 격식있게</option>
+                <option value="simple">쉽고 간단하게</option>
+            </select>
+        </div>
+        
+        <button onclick="searchNews()">📰 뉴스 검색</button>
+        <button onclick="generateNewsBasedNotice()" id="generate-news-notice-btn" disabled>🤖 뉴스 기반 문구 생성</button>
+        <button onclick="clearNewsForm()">🗑️ 폼 초기화</button>
+        
+        <div id="news-search-response" class="response-area" style="display: none;"></div>
+        
+        <!-- 검색된 뉴스 목록 -->
+        <div id="news-list-section" style="display: none; margin-top: 20px; padding: 20px; border: 2px solid #FF9800; border-radius: 10px; background-color: #fff3e0;">
+            <h3>📄 검색된 뉴스 (선택해주세요)</h3>
+            <div id="news-items-container"></div>
+        </div>
+        
+        <!-- 뉴스 기반 생성된 문구 편집 영역 -->
+        <div id="news-generated-notice-section" style="display: none; margin-top: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 10px; background-color: #f8f9fa;">
+            <h3>✨ 뉴스 기반 생성된 문구 (편집 가능)</h3>
+            
+            <div class="form-group">
+                <label for="news-generated-title">제목:</label>
+                <input type="text" id="news-generated-title">
+            </div>
+            
+            <div class="form-group">
+                <label for="news-generated-content">메인 내용:</label>
+                <textarea id="news-generated-content" style="height: 80px;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="news-generated-sub-items">세부 항목:</label>
+                <div id="news-generated-sub-items-container" class="sub-items-container">
+                    <div class="sub-item-row">
+                        <input type="text" placeholder="세부 항목을 입력하세요">
+                        <button type="button" onclick="removeSubItem(this)">삭제</button>
+                    </div>
+                    <button type="button" class="add-sub-item-btn" onclick="addSubItem('news-generated-sub-items-container')">+ 세부 항목 추가</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="news-generated-tags">태그:</label>
+                <div class="tag-input">
+                    <input type="text" id="news-generated-tag-input" placeholder="태그 입력 후 Enter">
+                    <button type="button" onclick="addNewsGeneratedTag()">태그 추가</button>
+                </div>
+                <div id="news-generated-tags-display" class="tags-display"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="news-generated-author">작성자:</label>
+                <input type="text" id="news-generated-author" placeholder="작성자 ID (선택사항)" value="news-ai-generated">
+            </div>
+            
+            <div class="form-group">
+                <label>참조한 뉴스:</label>
+                <div id="news-source-info" style="font-size: 12px; color: #666; padding: 10px; background: #f0f0f0; border-radius: 5px;"></div>
+            </div>
+            
+            <button onclick="saveNewsGeneratedNotice()" style="background-color: #2196F3;">💾 뉴스 기반 문구 저장</button>
+            <button onclick="hideNewsGeneratedSection()">❌ 취소</button>
+            
+            <div id="save-news-generated-response" class="response-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌤️ Weather-based Notice Generator - 날씨 기반 문구 생성</h2>
+        
+        <div class="form-group">
+            <label for="weather-location">지역 선택:</label>
+            <select id="weather-location">
+                <option value="">지역을 선택하세요</option>
+                <option value="서울">서울</option>
+                <option value="인천">인천</option>
+                <option value="경기">경기</option>
+                <option value="강원">강원</option>
+                <option value="충북">충북</option>
+                <option value="충남">충남</option>
+                <option value="대전">대전</option>
+                <option value="세종">세종</option>
+                <option value="전북">전북</option>
+                <option value="전남">전남</option>
+                <option value="광주">광주</option>
+                <option value="경북">경북</option>
+                <option value="경남">경남</option>
+                <option value="대구">대구</option>
+                <option value="울산">울산</option>
+                <option value="부산">부산</option>
+                <option value="제주">제주</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="weather-detail-location">상세 지역 (선택사항):</label>
+            <input type="text" id="weather-detail-location" placeholder="예: 강남구, 해운대구, 중구">
+        </div>
+        
+        <div class="form-group">
+            <label for="weather-grade">대상 학년 (선택사항):</label>
+            <select id="weather-grade">
+                <option value="">선택 안함</option>
+                <option value="초등 저학년">초등 저학년 (1-2학년)</option>
+                <option value="초등 고학년">초등 고학년 (3-6학년)</option>
+                <option value="중학생">중학생</option>
+                <option value="고등학생">고등학생</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="weather-style">문체 스타일:</label>
+            <select id="weather-style">
+                <option value="normal">자연스럽게</option>
+                <option value="friendly">친근하고 따뜻하게</option>
+                <option value="formal">정중하고 격식있게</option>
+                <option value="simple">쉽고 간단하게</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="weather-focus">초점 영역:</label>
+            <select id="weather-focus">
+                <option value="safety">안전 (우산, 미끄럼 주의 등)</option>
+                <option value="health">건강 (옷차림, 수분섭취 등)</option>
+                <option value="activity">활동 (실내외 활동 조정)</option>
+                <option value="general">종합 (전반적인 날씨 대응)</option>
+            </select>
+        </div>
+        
+        <button onclick="getWeatherInfo()">🌤️ 날씨 정보 조회</button>
+        <button onclick="generateWeatherBasedNotice()" id="generate-weather-notice-btn" disabled>🤖 날씨 기반 문구 생성</button>
+        <button onclick="clearWeatherForm()">🗑️ 폼 초기화</button>
+        
+        <div id="weather-info-response" class="response-area" style="display: none;"></div>
+        
+        <!-- 날씨 정보 표시 -->
+        <div id="weather-info-section" style="display: none; margin-top: 20px; padding: 20px; border: 2px solid #2196F3; border-radius: 10px; background-color: #e3f2fd;">
+            <h3>🌡️ 현재 날씨 정보</h3>
+            <div id="weather-display-container"></div>
+        </div>
+        
+        <!-- 날씨 기반 생성된 문구 편집 영역 -->
+        <div id="weather-generated-notice-section" style="display: none; margin-top: 20px; padding: 20px; border: 2px solid #4CAF50; border-radius: 10px; background-color: #f8f9fa;">
+            <h3>✨ 날씨 기반 생성된 문구 (편집 가능)</h3>
+            
+            <div class="form-group">
+                <label for="weather-generated-title">제목:</label>
+                <input type="text" id="weather-generated-title">
+            </div>
+            
+            <div class="form-group">
+                <label for="weather-generated-content">메인 내용:</label>
+                <textarea id="weather-generated-content" style="height: 80px;"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="weather-generated-sub-items">세부 항목:</label>
+                <div id="weather-generated-sub-items-container" class="sub-items-container">
+                    <div class="sub-item-row">
+                        <input type="text" placeholder="세부 항목을 입력하세요">
+                        <button type="button" onclick="removeSubItem(this)">삭제</button>
+                    </div>
+                    <button type="button" class="add-sub-item-btn" onclick="addSubItem('weather-generated-sub-items-container')">+ 세부 항목 추가</button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="weather-generated-tags">태그:</label>
+                <div class="tag-input">
+                    <input type="text" id="weather-generated-tag-input" placeholder="태그 입력 후 Enter">
+                    <button type="button" onclick="addWeatherGeneratedTag()">태그 추가</button>
+                </div>
+                <div id="weather-generated-tags-display" class="tags-display"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="weather-generated-author">작성자:</label>
+                <input type="text" id="weather-generated-author" placeholder="작성자 ID (선택사항)" value="weather-ai-generated">
+            </div>
+            
+            <div class="form-group">
+                <label>참조한 날씨 정보:</label>
+                <div id="weather-source-info" style="font-size: 12px; color: #666; padding: 10px; background: #f0f0f0; border-radius: 5px;"></div>
+            </div>
+            
+            <button onclick="saveWeatherGeneratedNotice()" style="background-color: #2196F3;">� 날씨 기반 문구 저장</button>
+            <button onclick="hideWeatherGeneratedSection()">❌ 취소</button>
+            
+            <div id="save-weather-generated-response" class="response-area" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🏫 School Search + Weather Notice Generator - 학교별 날씨 기반 문구 생성</h2>
+        
+        <!-- 단계별 진행 표시 -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <div class="workflow-step" id="school-step-1" style="flex: 1; text-align: center; padding: 10px; border-radius: 5px; background: #e3f2fd; margin: 0 5px;">
+                <div style="font-weight: bold; color: #1976d2;">1단계</div>
+                <div style="font-size: 12px;">학교 검색</div>
+            </div>
+            <div class="workflow-step" id="school-step-2" style="flex: 1; text-align: center; padding: 10px; border-radius: 5px; background: #f5f5f5; margin: 0 5px;">
+                <div style="font-weight: bold; color: #666;">2단계</div>
+                <div style="font-size: 12px;">위치 변환</div>
+            </div>
+            <div class="workflow-step" id="school-step-3" style="flex: 1; text-align: center; padding: 10px; border-radius: 5px; background: #f5f5f5; margin: 0 5px;">
+                <div style="font-weight: bold; color: #666;">3단계</div>
+                <div style="font-size: 12px;">날씨 조회</div>
+            </div>
+            <div class="workflow-step" id="school-step-4" style="flex: 1; text-align: center; padding: 10px; border-radius: 5px; background: #f5f5f5; margin: 0 5px;">
+                <div style="font-weight: bold; color: #666;">4단계</div>
+                <div style="font-size: 12px;">문구 생성</div>
+            </div>
+        </div>
+        
+        <!-- 1단계: 학교 검색 -->
+        <div class="form-group">
+            <label for="school-search-input">학교명 검색 (자동완성):</label>
+            <div style="position: relative;">
+                <input type="text" id="school-search-input" placeholder="학교명을 입력하세요 (예: 서울초등학교)" autocomplete="off">
+                <div id="school-suggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; border-top: none; border-radius: 0 0 5px 5px; max-height: 200px; overflow-y: auto; z-index: 1000; display: none;">
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #666; margin-top: 5px;">2글자 이상 입력하면 자동으로 검색됩니다.</div>
+        </div>
+        
+        <!-- 선택된 학교 정보 표시 -->
+        <div id="selected-school-display" style="display: none; background: #e8f5e8; border: 1px solid #4caf50; border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+            <h4 style="color: #2e7d32; margin: 0 0 10px 0;">✅ 선택된 학교</h4>
+            <div id="selected-school-details"></div>
+        </div>
+        
+        <!-- 2단계: 위치 정보 표시 -->
+        <div id="location-info-display" style="display: none; background: #e3f2fd; border: 1px solid #2196f3; border-radius: 5px; padding: 15px; margin-bottom: 15px;">
+            <h4 style="color: #1976d2; margin: 0 0 10px 0;">📍 위치 정보</h4>
+            <div id="location-details"></div>
+        </div>
+        
+        <!-- 3단계: 날씨 정보 표시 -->
+        <div id="school-weather-info-display" style="display: none; background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%); border-radius: 8px; padding: 20px; margin-bottom: 15px; color: white;">
+            <h4 style="color: white; margin: 0 0 15px 0;">🌤️ 현재 날씨</h4>
+            <div id="school-weather-details"></div>
+        </div>
+        
+        <!-- 4단계: 생성된 공지사항 표시 -->
+        <div id="school-notices-display" style="display: none; margin-bottom: 15px;">
+            <h4 style="color: #333; margin: 0 0 15px 0;">📋 날씨 기반 생성된 공지사항</h4>
+            <div id="school-notices-container"></div>
+        </div>
+        
+        <!-- 컨트롤 버튼들 -->
+        <div style="margin-top: 20px;">
+            <button onclick="runSchoolWeatherWorkflow()" id="run-school-workflow-btn" disabled>🚀 전체 프로세스 실행</button>
+            <button onclick="clearSchoolWorkflow()">🗑️ 초기화</button>
+        </div>
+        
+        <div id="school-workflow-response" class="response-area" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🏫 School Search (독립 테스트)</h2>
+    <div class="test-section">
+        <h2>🏫 School Search (독립 테스트)</h2>
+        
+        <div class="form-group">
+            <label for="school-name-search">학교명:</label>
+            <input type="text" id="school-name-search" placeholder="검색할 학교명을 입력하세요">
+        </div>
+        
+        <div class="form-group">
+            <label for="school-search-limit">검색 결과 수:</label>
+            <select id="school-search-limit">
+                <option value="5">5개</option>
+                <option value="10" selected>10개</option>
+                <option value="20">20개</option>
+                <option value="50">50개</option>
+            </select>
+        </div>
+        
+        <button onclick="testSchoolSearch()">🔍 학교 검색 테스트</button>
+        <button onclick="clearSchoolSearchForm()">�️ 폼 초기화</button>
+        
+        <div id="school-search-response" class="response-area" style="display: none;"></div>
+    </div>
+    </div>
+
+    <script>
+        // 설정
+        const SUPABASE_URL = 'https://unjxokjoytbwkqmqidni.supabase.co'; // 로컬 개발용
+        const currentTags = [];
+
+        // === 날씨 기반 공지사항 생성 함수 ===
+        function generateWeatherNoticesFromData(weatherData) {
+            const notices = [];
+            const today = new Date();
+            const dateString = today.toISOString().split('T')[0];
+            
+            // 온도 기반 공지사항
+            if (weatherData.temperature >= 33) {
+                notices.push({
+                    title: "폭염 특보 - 학생 안전 관리 강화",
+                    content: `기온이 ${weatherData.temperature}°C로 매우 높습니다. 교실 에어컨을 가동하고 학생들의 충분한 수분 섭취를 독려해 주세요. 야외활동은 금지하고 실내에서만 활동하도록 지도바랍니다.`,
+                    date: dateString,
+                    category: "안전",
+                    priority: 1,
+                    icon: "🌡️"
+                });
+            } else if (weatherData.temperature >= 28) {
+                notices.push({
+                    title: "무더위 주의 - 교실 환기 및 온도 관리",
+                    content: `기온이 ${weatherData.temperature}°C로 높습니다. 정기적인 환기를 실시하고 학생들이 더위를 느끼지 않도록 교실 온도를 적절히 조절해 주세요.`,
+                    date: dateString,
+                    category: "건강",
+                    priority: 2,
+                    icon: "☀️"
+                });
+            } else if (weatherData.temperature <= 0) {
+                notices.push({
+                    title: "혹한기 특보 - 동상 및 저체온증 주의",
+                    content: `기온이 ${weatherData.temperature}°C로 매우 낮습니다. 학생들의 방한복 착용을 확인하고 손발 시림이나 떨림 증상을 보이는 학생은 즉시 따뜻한 곳으로 이동시켜 주세요.`,
+                    date: dateString,
+                    category: "안전",
+                    priority: 1,
+                    icon: "🥶"
+                });
+            } else if (weatherData.temperature <= 5) {
+                notices.push({
+                    title: "한파 주의 - 방한용품 착용 지도",
+                    content: `기온이 ${weatherData.temperature}°C로 춥습니다. 학생들이 충분한 방한복을 착용했는지 확인하고, 교실 난방을 적절히 조절해 주세요.`,
+                    date: dateString,
+                    category: "건강",
+                    priority: 2,
+                    icon: "❄️"
+                });
+            }
+            
+            // 강수량 기반 공지사항
+            if (weatherData.precipitation >= 20) {
+                notices.push({
+                    title: "폭우 경보 - 등하교 안전 관리",
+                    content: `시간당 ${weatherData.precipitation}mm의 폭우가 내리고 있습니다. 학생들의 안전한 등하교를 위해 우산 지참을 확인하고, 침수 위험 지역 우회를 안내해 주세요.`,
+                    date: dateString,
+                    category: "안전",
+                    priority: 1,
+                    icon: "🌊"
+                });
+            } else if (weatherData.precipitation > 0) {
+                if (weatherData.precipitationDescription === '눈' || weatherData.precipitationDescription.includes('눈')) {
+                    notices.push({
+                        title: "적설 주의 - 빙판길 안전사고 예방",
+                        content: `눈이 내려 교내에 빙판길이 형성될 수 있습니다. 학생들에게 천천히 걷기를 지도하고, 계단이나 경사로에서는 특히 주의하도록 안내해 주세요.`,
+                        date: dateString,
+                        category: "안전",
+                        priority: 1,
+                        icon: "⛄"
+                    });
+                } else {
+                    notices.push({
+                        title: "우천 시 안전 귀가 지도",
+                        content: "비가 내리고 있습니다. 학생들이 우산을 준비했는지 확인하고, 미끄러운 길면에서의 안전사고 예방을 위한 주의사항을 당부해 주세요.",
+                        date: dateString,
+                        category: "안전",
+                        priority: 2,
+                        icon: "☔"
+                    });
+                }
+            }
+            
+            // 풍속 기반 공지사항
+            if (weatherData.windSpeed >= 14) {
+                notices.push({
+                    title: "강풍 경보 - 야외활동 전면 금지",
+                    content: `풍속 ${weatherData.windSpeed}m/s의 강풍이 불고 있습니다. 모든 야외활동을 중단하고 실내로 대피시켜 주세요. 창문 점검을 실시하여 파손 위험을 차단해 주세요.`,
+                    date: dateString,
+                    category: "안전",
+                    priority: 1,
+                    icon: "💨"
+                });
+            } else if (weatherData.windSpeed >= 10) {
+                notices.push({
+                    title: "강풍 주의 - 야외활동 제한",
+                    content: `풍속 ${weatherData.windSpeed}m/s의 바람이 불고 있습니다. 야외활동 시 주의를 기울이고, 날아갈 수 있는 물건들을 안전한 곳에 보관해 주세요.`,
+                    date: dateString,
+                    category: "안전",
+                    priority: 2,
+                    icon: "🌬️"
+                });
+            }
+            
+            // 습도 기반 공지사항
+            if (weatherData.humidity >= 85) {
+                notices.push({
+                    title: "고습도 주의 - 교실 제습 및 환기",
+                    content: `습도가 ${weatherData.humidity}%로 매우 높습니다. 제습기를 가동하고 자주 환기를 실시해 주세요. 곰팡이 및 세균 번식을 예방하기 위해 교실 구석구석 점검해 주세요.`,
+                    date: dateString,
+                    category: "건강",
+                    priority: 2,
+                    icon: "💧"
+                });
+            }
+            
+            // 특별한 조건이 없으면 일반 날씨 공지사항
+            if (notices.length === 0) {
+                notices.push({
+                    title: "쾌적한 날씨 - 야외 교육활동 추천",
+                    content: `기온 ${weatherData.temperature}°C의 쾌적한 날씨입니다. 자연 관찰, 운동장 체육활동 등을 통해 학생들이 자연과 함께할 수 있는 시간을 가져보시기 바랍니다.`,
+                    date: dateString,
+                    category: "학교활동",
+                    priority: 3,
+                    icon: "🌤️"
+                });
+            }
+            
+            // 우선순위에 따라 정렬하고 최대 3개까지만 반환
+            return notices.sort((a, b) => a.priority - b.priority).slice(0, 3);
+        }
+
+        // === 세부 항목 관리 함수들 ===
+        function addSubItem(containerId) {
+            const container = document.getElementById(containerId);
+            const addButton = container.querySelector('.add-sub-item-btn');
+            
+            const newRow = document.createElement('div');
+            newRow.className = 'sub-item-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="세부 항목을 입력하세요">
+                <button type="button" onclick="removeSubItem(this)">삭제</button>
+            `;
+            
+            // 추가 버튼 앞에 새 행 추가
+            container.insertBefore(newRow, addButton);
+        }
+
+        function removeSubItem(button) {
+            const row = button.parentElement;
+            const container = row.parentElement;
+            
+            // 최소 1개는 유지
+            const remainingRows = container.querySelectorAll('.sub-item-row').length;
+            if (remainingRows > 1) {
+                row.remove();
+            } else {
+                // 마지막 항목이면 내용만 비우기
+                const input = row.querySelector('input');
+                input.value = '';
+            }
+        }
+
+        function getSubItemsFromContainer(containerId) {
+            const container = document.getElementById(containerId);
+            const inputs = container.querySelectorAll('.sub-item-row input');
+            const subItems = [];
+            
+            inputs.forEach(input => {
+                const value = input.value.trim();
+                if (value) {
+                    subItems.push(value);
+                }
+            });
+            
+            return subItems;
+        }
+
+        function setSubItemsToContainer(containerId, subItems) {
+            const container = document.getElementById(containerId);
+            
+            // 기존 항목들 모두 제거 (추가 버튼 제외)
+            const existingRows = container.querySelectorAll('.sub-item-row');
+            existingRows.forEach(row => row.remove());
+            
+            // 새 항목들 추가
+            const addButton = container.querySelector('.add-sub-item-btn');
+            
+            if (subItems.length === 0) {
+                // 빈 항목 하나 추가
+                const newRow = document.createElement('div');
+                newRow.className = 'sub-item-row';
+                newRow.innerHTML = `
+                    <input type="text" placeholder="세부 항목을 입력하세요">
+                    <button type="button" onclick="removeSubItem(this)">삭제</button>
+                `;
+                container.insertBefore(newRow, addButton);
+            } else {
+                subItems.forEach(item => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'sub-item-row';
+                    newRow.innerHTML = `
+                        <input type="text" value="${item.replace(/"/g, '&quot;')}" placeholder="세부 항목을 입력하세요">
+                        <button type="button" onclick="removeSubItem(this)">삭제</button>
+                    `;
+                    container.insertBefore(newRow, addButton);
+                });
+            }
+        }
+
+        // 태그 관리
+        function addTag() {
+            const input = document.getElementById('notice-tag-input');
+            const tag = input.value.trim();
+            
+            if (tag && !currentTags.includes(tag)) {
+                currentTags.push(tag);
+                updateTagsDisplay();
+                input.value = '';
+            }
+        }
+
+        function removeTag(tagToRemove) {
+            const index = currentTags.indexOf(tagToRemove);
+            if (index > -1) {
+                currentTags.splice(index, 1);
+                updateTagsDisplay();
+            }
+        }
+
+        function updateTagsDisplay() {
+            const display = document.getElementById('notice-tags-display');
+            display.innerHTML = currentTags.map(tag => 
+                `<span class="tag" onclick="removeTag('${tag}')">${tag} ×</span>`
+            ).join('');
+        }
+
+        // Enter 키로 태그 추가
+        document.getElementById('notice-tag-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag();
+            }
+        });
+
+        // Add Notice 테스트 함수
+        async function testAddNotice() {
+            const title = document.getElementById('notice-title').value;
+            const content = document.getElementById('notice-content').value;
+            const subItems = getSubItemsFromContainer('notice-sub-items-container');
+            const author = document.getElementById('notice-author').value;
+            const responseArea = document.getElementById('add-notice-response');
+            
+            // 입력 검증
+            if (!title || (!content && subItems.length === 0)) {
+                showResponse(responseArea, '제목과 메인 내용(또는 세부 항목)은 필수입니다!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '요청 중...', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/add-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        subItems: subItems,
+                        tags: currentTags,
+                        author: author || 'test-user'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse(responseArea, `✅ 성공!\n\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResponse(responseArea, `❌ 오류!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+
+        // 폼 초기화
+        function clearAddNoticeForm() {
+            document.getElementById('notice-title').value = '';
+            document.getElementById('notice-content').value = '';
+            setSubItemsToContainer('notice-sub-items-container', []);
+            document.getElementById('notice-author').value = '';
+            currentTags.length = 0;
+            updateTagsDisplay();
+            
+            const responseArea = document.getElementById('add-notice-response');
+            responseArea.style.display = 'none';
+        }
+
+        // 응답 표시 함수
+        function showResponse(element, message, type) {
+            const timestamp = new Date().toLocaleString('ko-KR', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            const messageWithTimestamp = `[${timestamp}] ${message}`;
+            element.textContent = messageWithTimestamp;
+            element.style.display = 'block';
+            element.className = `response-area ${type}`;
+        }
+
+        // 샘플 데이터 자동 입력 (개발 편의용)
+        function loadSampleData() {
+            document.getElementById('notice-title').value = '여름철 물놀이 안전수칙';
+            document.getElementById('notice-content').value = '무더운 여름, 물놀이 안전에 각별히 주의해주세요.';
+            setSubItemsToContainer('notice-sub-items-container', [
+                '깊은 물에는 절대 들어가지 마세요',
+                '혼자서 물놀이 하지 마세요',
+                '물에 들어가기 전 준비운동을 꼭 하세요'
+            ]);
+            currentTags.push('안전', '여름활동', '물놀이');
+            updateTagsDisplay();
+        }
+
+        // 페이지 로드 시 샘플 데이터 로드 (개발 편의용)
+        window.addEventListener('load', () => {
+            loadSampleData();
+        });
+
+        // === AI 문구 생성 관련 함수들 ===
+        const generatedTags = []; // AI 생성 문구용 태그
+        const newsGeneratedTags = []; // 뉴스 기반 AI 생성 문구용 태그
+        const weatherGeneratedTags = []; // 날씨 기반 AI 생성 문구용 태그
+        let selectedNewsItems = []; // 선택된 뉴스 아이템들
+        let currentWeatherData = null; // 현재 날씨 데이터
+        let selectedSchoolData = null; // 선택된 학교 데이터
+        let currentLocationData = null; // 현재 위치 데이터
+        let schoolSearchTimeout; // 학교 검색 타이머
+
+        // AI 문구 생성
+        async function generateNotice() {
+            const topic = document.getElementById('ai-topic').value;
+            const grade = document.getElementById('ai-grade').value;
+            const style = document.getElementById('ai-style').value;
+            const responseArea = document.getElementById('ai-response');
+            
+            // 입력 검증
+            if (!topic.trim()) {
+                showResponse(responseArea, '주제를 입력해주세요!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, 'AI가 문구를 생성 중입니다... 잠시만 기다려주세요.', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic: topic.trim(),
+                        grade: grade || null,
+                        style: style || 'normal'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResponse(responseArea, `✅ AI 문구 생성 완료!\n\n원본 응답:\n${result.generated.raw}`, 'success');
+                    
+                    // 생성된 문구를 편집 가능한 폼에 표시
+                    displayGeneratedNotice(result.generated);
+                } else {
+                    showResponse(responseArea, `❌ 생성 실패!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+
+        // 생성된 문구를 편집 폼에 표시
+        function displayGeneratedNotice(generated) {
+            document.getElementById('generated-title').value = generated.title;
+            document.getElementById('generated-content').value = generated.content || '';
+            setSubItemsToContainer('generated-sub-items-container', generated.subItems || []);
+            
+            // 생성된 태그 설정
+            generatedTags.length = 0;
+            generatedTags.push(...generated.tags);
+            updateGeneratedTagsDisplay();
+            
+            // 편집 섹션 표시
+            document.getElementById('generated-notice-section').style.display = 'block';
+        }
+
+        // 생성된 문구의 태그 관리
+        function addGeneratedTag() {
+            const input = document.getElementById('generated-tag-input');
+            const tag = input.value.trim();
+            
+            if (tag && !generatedTags.includes(tag)) {
+                generatedTags.push(tag);
+                updateGeneratedTagsDisplay();
+                input.value = '';
+            }
+        }
+
+        function removeGeneratedTag(tagToRemove) {
+            const index = generatedTags.indexOf(tagToRemove);
+            if (index > -1) {
+                generatedTags.splice(index, 1);
+                updateGeneratedTagsDisplay();
+            }
+        }
+
+        function updateGeneratedTagsDisplay() {
+            const display = document.getElementById('generated-tags-display');
+            display.innerHTML = generatedTags.map(tag => 
+                `<span class="tag" onclick="removeGeneratedTag('${tag}')">${tag} ×</span>`
+            ).join('');
+        }
+
+        // Enter 키로 생성된 문구 태그 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const generatedTagInput = document.getElementById('generated-tag-input');
+            if (generatedTagInput) {
+                generatedTagInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addGeneratedTag();
+                    }
+                });
+            }
+        });
+
+        // 수정된 문구 저장
+        async function saveGeneratedNotice() {
+            const title = document.getElementById('generated-title').value;
+            const content = document.getElementById('generated-content').value;
+            const subItems = getSubItemsFromContainer('generated-sub-items-container');
+            const author = document.getElementById('generated-author').value;
+            const responseArea = document.getElementById('save-generated-response');
+            
+            if (!title || (!content && subItems.length === 0)) {
+                showResponse(responseArea, '제목과 메인 내용(또는 세부 항목)은 필수입니다!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '요청 중...', 'loading');
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/add-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        subItems: subItems,
+                        tags: generatedTags,
+                        author: author || 'ai-generated'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse(responseArea, `✅ 성공!\n\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResponse(responseArea, `❌ 오류!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+
+        // 생성된 문구 섹션 숨기기
+        function hideGeneratedSection() {
+            document.getElementById('generated-notice-section').style.display = 'none';
+            generatedTags.length = 0;
+            updateGeneratedTagsDisplay();
+            
+            // 응답 영역도 숨기기
+            const responseArea = document.getElementById('save-generated-response');
+            responseArea.style.display = 'none';
+        }
+
+        // AI 폼 초기화
+        function clearAIForm() {
+            document.getElementById('ai-topic').value = '';
+            document.getElementById('ai-grade').value = '';
+            document.getElementById('ai-style').value = 'normal';
+            
+            const responseArea = document.getElementById('ai-response');
+            responseArea.style.display = 'none';
+            
+            hideGeneratedSection();
+        }
+
+        // === 뉴스 기반 문구 생성 관련 함수들 ===
+        
+        // 뉴스 검색
+        async function searchNews() {
+            const keyword = document.getElementById('news-search-keyword').value;
+            const displayCount = document.getElementById('news-display-count').value;
+            const responseArea = document.getElementById('news-search-response');
+            
+            // 입력 검증
+            if (!keyword.trim()) {
+                showResponse(responseArea, '검색 키워드를 입력해주세요!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '뉴스를 검색 중입니다... 잠시만 기다려주세요.', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/search-news`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: keyword.trim(),
+                        display: parseInt(displayCount) || 10
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResponse(responseArea, `✅ 뉴스 검색 완료! ${result.items.length}개의 기사를 찾았습니다.`, 'success');
+                    
+                    // 뉴스 목록 표시
+                    displayNewsList(result.items);
+                } else {
+                    showResponse(responseArea, `❌ 뉴스 검색 실패!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 뉴스 목록 표시
+        function displayNewsList(newsItems) {
+            const container = document.getElementById('news-items-container');
+            const section = document.getElementById('news-list-section');
+            
+            container.innerHTML = '';
+            selectedNewsItems = [];
+            
+            if (newsItems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">검색된 뉴스가 없습니다.</p>';
+                section.style.display = 'block';
+                return;
+            }
+            
+            // 선택 안내 메시지
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'news-selection-info';
+            infoDiv.innerHTML = '💡 알림장 문구 생성에 사용할 뉴스를 클릭하여 선택하세요. (복수 선택 가능)';
+            container.appendChild(infoDiv);
+            
+            newsItems.forEach((item, index) => {
+                const newsDiv = document.createElement('div');
+                newsDiv.className = 'news-item';
+                newsDiv.dataset.index = index;
+                
+                // HTML 태그 제거 함수
+                const stripHtml = (html) => {
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+                    return tmp.textContent || tmp.innerText || '';
+                };
+                
+                newsDiv.innerHTML = `
+                    <div class="news-title">${stripHtml(item.title)}</div>
+                    <div class="news-description">${stripHtml(item.description)}</div>
+                    <div class="news-meta">
+                        <span class="news-source">📰 네이버뉴스</span>
+                        <span class="news-date">📅 ${item.postdate}</span>
+                    </div>
+                `;
+                
+                newsDiv.addEventListener('click', () => toggleNewsSelection(index, item, newsDiv));
+                container.appendChild(newsDiv);
+            });
+            
+            section.style.display = 'block';
+            updateGenerateButton();
+        }
+        
+        // 뉴스 선택 토글
+        function toggleNewsSelection(index, item, element) {
+            const existingIndex = selectedNewsItems.findIndex(selected => selected.index === index);
+            
+            if (existingIndex > -1) {
+                // 선택 해제
+                selectedNewsItems.splice(existingIndex, 1);
+                element.classList.remove('selected');
+            } else {
+                // 선택 추가 (최대 3개까지)
+                if (selectedNewsItems.length < 3) {
+                    selectedNewsItems.push({ index, item });
+                    element.classList.add('selected');
+                } else {
+                    alert('최대 3개의 뉴스까지 선택할 수 있습니다.');
+                }
+            }
+            
+            updateGenerateButton();
+        }
+        
+        // 생성 버튼 상태 업데이트
+        function updateGenerateButton() {
+            const button = document.getElementById('generate-news-notice-btn');
+            button.disabled = selectedNewsItems.length === 0;
+            button.textContent = selectedNewsItems.length > 0 
+                ? `🤖 선택된 뉴스(${selectedNewsItems.length}개) 기반 문구 생성` 
+                : '🤖 뉴스 기반 문구 생성';
+        }
+        
+        // 뉴스 기반 문구 생성
+        async function generateNewsBasedNotice() {
+            if (selectedNewsItems.length === 0) {
+                alert('뉴스를 선택해주세요!');
+                return;
+            }
+            
+            const grade = document.getElementById('news-grade').value;
+            const style = document.getElementById('news-style').value;
+            const responseArea = document.getElementById('news-search-response');
+            
+            // 선택된 뉴스 내용을 컨텍스트로 변환
+            const newsContext = selectedNewsItems.map(selected => 
+                `제목: ${selected.item.title}\n내용: ${selected.item.description}`
+            ).join('\n\n');
+            
+            // 로딩 표시
+            showResponse(responseArea, '선택된 뉴스를 분석하여 AI가 문구를 생성 중입니다... 잠시만 기다려주세요.', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic: '뉴스 기반 교육 안내',  // 기본 주제
+                        context: newsContext,          // 뉴스 내용을 컨텍스트로
+                        grade: grade || null,
+                        style: style || 'normal'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResponse(responseArea, `✅ 뉴스 기반 AI 문구 생성 완료!`, 'success');
+                    
+                    // 생성된 문구를 편집 가능한 폼에 표시
+                    displayNewsGeneratedNotice(result.generated, selectedNewsItems);
+                } else {
+                    showResponse(responseArea, `❌ 생성 실패!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 뉴스 기반 생성된 문구를 편집 폼에 표시
+        function displayNewsGeneratedNotice(generated, newsSourceItems) {
+            document.getElementById('news-generated-title').value = generated.title;
+            document.getElementById('news-generated-content').value = generated.content || '';
+            setSubItemsToContainer('news-generated-sub-items-container', generated.subItems || []);
+            
+            // 생성된 태그 설정
+            newsGeneratedTags.length = 0;
+            newsGeneratedTags.push(...generated.tags);
+            updateNewsGeneratedTagsDisplay();
+            
+            // 뉴스 소스 정보 표시
+            const sourceInfo = document.getElementById('news-source-info');
+            const stripHtml = (html) => {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                return tmp.textContent || tmp.innerText || '';
+            };
+            
+            sourceInfo.innerHTML = newsSourceItems.map(source => 
+                `📰 ${stripHtml(source.item.title)} (네이버뉴스)`
+            ).join('<br>');
+            
+            // 편집 섹션 표시
+            document.getElementById('news-generated-notice-section').style.display = 'block';
+        }
+        
+        // 뉴스 기반 생성된 문구의 태그 관리
+        function addNewsGeneratedTag() {
+            const input = document.getElementById('news-generated-tag-input');
+            const tag = input.value.trim();
+            
+            if (tag && !newsGeneratedTags.includes(tag)) {
+                newsGeneratedTags.push(tag);
+                updateNewsGeneratedTagsDisplay();
+                input.value = '';
+            }
+        }
+
+        function removeNewsGeneratedTag(tagToRemove) {
+            const index = newsGeneratedTags.indexOf(tagToRemove);
+            if (index > -1) {
+                newsGeneratedTags.splice(index, 1);
+                updateNewsGeneratedTagsDisplay();
+            }
+        }
+
+        function updateNewsGeneratedTagsDisplay() {
+            const display = document.getElementById('news-generated-tags-display');
+            display.innerHTML = newsGeneratedTags.map(tag => 
+                `<span class="tag" onclick="removeNewsGeneratedTag('${tag}')">${tag} ×</span>`
+            ).join('');
+        }
+        
+        // 뉴스 기반 수정된 문구 저장
+        async function saveNewsGeneratedNotice() {
+            const title = document.getElementById('news-generated-title').value;
+            const content = document.getElementById('news-generated-content').value;
+            const subItems = getSubItemsFromContainer('news-generated-sub-items-container');
+            const author = document.getElementById('news-generated-author').value;
+            const responseArea = document.getElementById('save-news-generated-response');
+            
+            if (!title || (!content && subItems.length === 0)) {
+                showResponse(responseArea, '제목과 메인 내용(또는 세부 항목)은 필수입니다!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '요청 중...', 'loading');
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/add-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        subItems: subItems,
+                        tags: newsGeneratedTags,
+                        author: author || 'news-ai-generated'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse(responseArea, `✅ 성공!\n\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResponse(responseArea, `❌ 오류!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 뉴스 기반 생성된 문구 섹션 숨기기
+        function hideNewsGeneratedSection() {
+            document.getElementById('news-generated-notice-section').style.display = 'none';
+            newsGeneratedTags.length = 0;
+            updateNewsGeneratedTagsDisplay();
+            
+            // 응답 영역도 숨기기
+            const responseArea = document.getElementById('save-news-generated-response');
+            responseArea.style.display = 'none';
+        }
+        
+        // 뉴스 폼 초기화
+        function clearNewsForm() {
+            document.getElementById('news-search-keyword').value = '';
+            document.getElementById('news-display-count').value = '10';
+            document.getElementById('news-grade').value = '';
+            document.getElementById('news-style').value = 'normal';
+            
+            // 뉴스 목록 숨기기
+            document.getElementById('news-list-section').style.display = 'none';
+            selectedNewsItems = [];
+            updateGenerateButton();
+            
+            // 응답 영역 숨기기
+            const responseArea = document.getElementById('news-search-response');
+            responseArea.style.display = 'none';
+            
+            hideNewsGeneratedSection();
+        }
+        
+        // Enter 키로 뉴스 기반 생성된 문구 태그 추가
+        document.addEventListener('DOMContentLoaded', function() {
+            const newsGeneratedTagInput = document.getElementById('news-generated-tag-input');
+            if (newsGeneratedTagInput) {
+                newsGeneratedTagInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addNewsGeneratedTag();
+                    }
+                });
+            }
+            
+            const weatherGeneratedTagInput = document.getElementById('weather-generated-tag-input');
+            if (weatherGeneratedTagInput) {
+                weatherGeneratedTagInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addWeatherGeneratedTag();
+                    }
+                });
+            }
+        });
+
+        // === 날씨 기반 문구 생성 관련 함수들 ===
+        
+        // 날씨 정보 조회
+        async function getWeatherInfo() {
+            const location = document.getElementById('weather-location').value;
+            const detailLocation = document.getElementById('weather-detail-location').value;
+            const responseArea = document.getElementById('weather-info-response');
+            
+            // 입력 검증
+            if (!location) {
+                showResponse(responseArea, '지역을 선택해주세요!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '날씨 정보를 조회 중입니다... 잠시만 기다려주세요.', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/get-weather`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        location: location,
+                        detailLocation: detailLocation || null
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResponse(responseArea, `✅ 날씨 정보 조회 완료!`, 'success');
+                    currentWeatherData = result.weather;
+                    
+                    // 날씨 정보 표시
+                    displayWeatherInfo(result.weather);
+                } else {
+                    showResponse(responseArea, `❌ 날씨 조회 실패!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 날씨 정보 표시
+        function displayWeatherInfo(weather) {
+            const container = document.getElementById('weather-display-container');
+            const section = document.getElementById('weather-info-section');
+            
+            container.innerHTML = '';
+            
+            // 날씨 아이콘 매핑
+            const getWeatherIcon = (condition) => {
+                const iconMap = {
+                    '맑음': '☀️',
+                    '구름많음': '⛅',
+                    '흐림': '☁️',
+                    '비': '🌧️',
+                    '눈': '❄️',
+                    '뇌우': '⛈️',
+                    '안개': '🌫️'
+                };
+                return iconMap[condition] || '🌤️';
+            };
+            
+            const weatherCard = document.createElement('div');
+            weatherCard.className = 'weather-info-card';
+            
+            weatherCard.innerHTML = `
+                <div class="weather-main">
+                    <div class="weather-icon">${getWeatherIcon(weather.condition)}</div>
+                    <div>
+                        <div class="weather-temp">${weather.temperature}°C</div>
+                        <div class="weather-desc">${weather.condition}</div>
+                        <div class="weather-location">📍 ${weather.location}</div>
+                    </div>
+                </div>
+                
+                <div class="weather-details">
+                    <div class="weather-detail-item">
+                        <div class="weather-detail-label">체감온도</div>
+                        <div class="weather-detail-value">${weather.feelsLike || weather.temperature}°C</div>
+                    </div>
+                    <div class="weather-detail-item">
+                        <div class="weather-detail-label">습도</div>
+                        <div class="weather-detail-value">${weather.humidity || 'N/A'}%</div>
+                    </div>
+                    <div class="weather-detail-item">
+                        <div class="weather-detail-label">풍속</div>
+                        <div class="weather-detail-value">${weather.windSpeed || 'N/A'}m/s</div>
+                    </div>
+                    <div class="weather-detail-item">
+                        <div class="weather-detail-label">강수확률</div>
+                        <div class="weather-detail-value">${weather.rainProbability || 'N/A'}%</div>
+                    </div>
+                </div>
+                
+                ${weather.alerts ? `<div class="weather-alert">⚠️ 기상특보: ${weather.alerts}</div>` : ''}
+            `;
+            
+            container.appendChild(weatherCard);
+            section.style.display = 'block';
+            updateWeatherGenerateButton();
+        }
+        
+        // 날씨 기반 문구 생성 버튼 상태 업데이트
+        function updateWeatherGenerateButton() {
+            const button = document.getElementById('generate-weather-notice-btn');
+            button.disabled = !currentWeatherData;
+            button.textContent = currentWeatherData 
+                ? `🤖 현재 날씨 기반 문구 생성` 
+                : '🤖 날씨 기반 문구 생성';
+        }
+        
+        // 날씨 기반 문구 생성
+        async function generateWeatherBasedNotice() {
+            if (!currentWeatherData) {
+                alert('먼저 날씨 정보를 조회해주세요!');
+                return;
+            }
+            
+            const grade = document.getElementById('weather-grade').value;
+            const style = document.getElementById('weather-style').value;
+            const focus = document.getElementById('weather-focus').value;
+            const responseArea = document.getElementById('weather-info-response');
+            
+            // 날씨 정보를 컨텍스트로 변환
+            const weatherContext = formatWeatherContext(currentWeatherData, focus);
+            
+            // 로딩 표시
+            showResponse(responseArea, '날씨 정보를 분석하여 AI가 문구를 생성 중입니다... 잠시만 기다려주세요.', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        topic: getFocusBasedTopic(focus),
+                        context: weatherContext,
+                        grade: grade || null,
+                        style: style || 'normal'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResponse(responseArea, `✅ 날씨 기반 AI 문구 생성 완료!`, 'success');
+                    
+                    // 생성된 문구를 편집 가능한 폼에 표시
+                    displayWeatherGeneratedNotice(result.generated, currentWeatherData);
+                } else {
+                    showResponse(responseArea, `❌ 생성 실패!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 날씨 정보를 컨텍스트 문자열로 변환
+        function formatWeatherContext(weather, focus) {
+            let context = `현재 날씨 정보:
+지역: ${weather.location}
+날씨: ${weather.condition}
+기온: ${weather.temperature}°C
+체감온도: ${weather.feelsLike || weather.temperature}°C`;
+
+            if (weather.humidity) context += `\n습도: ${weather.humidity}%`;
+            if (weather.windSpeed) context += `\n풍속: ${weather.windSpeed}m/s`;
+            if (weather.rainProbability) context += `\n강수확률: ${weather.rainProbability}%`;
+            if (weather.alerts) context += `\n기상특보: ${weather.alerts}`;
+            
+            // 초점 영역에 따른 추가 컨텍스트
+            switch (focus) {
+                case 'safety':
+                    context += '\n\n안전 관련 주의사항에 중점을 두어 알림장 문구를 작성해주세요.';
+                    break;
+                case 'health':
+                    context += '\n\n건강 관리 및 적절한 옷차림에 중점을 두어 알림장 문구를 작성해주세요.';
+                    break;
+                case 'activity':
+                    context += '\n\n실내외 활동 조정 및 권장사항에 중점을 두어 알림장 문구를 작성해주세요.';
+                    break;
+                default:
+                    context += '\n\n종합적인 날씨 대응 방안을 포함한 알림장 문구를 작성해주세요.';
+            }
+            
+            return context;
+        }
+        
+        // 초점 영역에 따른 주제 생성
+        function getFocusBasedTopic(focus) {
+            switch (focus) {
+                case 'safety': return '날씨 안전 수칙';
+                case 'health': return '날씨별 건강 관리';
+                case 'activity': return '날씨에 맞는 활동 안내';
+                default: return '오늘의 날씨 안내';
+            }
+        }
+        
+        // 날씨 기반 생성된 문구를 편집 폼에 표시
+        function displayWeatherGeneratedNotice(generated, weatherData) {
+            document.getElementById('weather-generated-title').value = generated.title;
+            document.getElementById('weather-generated-content').value = generated.content || '';
+            setSubItemsToContainer('weather-generated-sub-items-container', generated.subItems || []);
+            
+            // 생성된 태그 설정
+            weatherGeneratedTags.length = 0;
+            weatherGeneratedTags.push(...generated.tags);
+            updateWeatherGeneratedTagsDisplay();
+            
+            // 날씨 소스 정보 표시
+            const sourceInfo = document.getElementById('weather-source-info');
+            sourceInfo.innerHTML = `🌤️ ${weatherData.location} - ${weatherData.condition}, ${weatherData.temperature}°C`;
+            
+            // 편집 섹션 표시
+            document.getElementById('weather-generated-notice-section').style.display = 'block';
+        }
+        
+        // 날씨 기반 생성된 문구의 태그 관리
+        function addWeatherGeneratedTag() {
+            const input = document.getElementById('weather-generated-tag-input');
+            const tag = input.value.trim();
+            
+            if (tag && !weatherGeneratedTags.includes(tag)) {
+                weatherGeneratedTags.push(tag);
+                updateWeatherGeneratedTagsDisplay();
+                input.value = '';
+            }
+        }
+
+        function removeWeatherGeneratedTag(tagToRemove) {
+            const index = weatherGeneratedTags.indexOf(tagToRemove);
+            if (index > -1) {
+                weatherGeneratedTags.splice(index, 1);
+                updateWeatherGeneratedTagsDisplay();
+            }
+        }
+
+        function updateWeatherGeneratedTagsDisplay() {
+            const display = document.getElementById('weather-generated-tags-display');
+            display.innerHTML = weatherGeneratedTags.map(tag => 
+                `<span class="tag" onclick="removeWeatherGeneratedTag('${tag}')">${tag} ×</span>`
+            ).join('');
+        }
+        
+        // 날씨 기반 수정된 문구 저장
+        async function saveWeatherGeneratedNotice() {
+            const title = document.getElementById('weather-generated-title').value;
+            const content = document.getElementById('weather-generated-content').value;
+            const subItems = getSubItemsFromContainer('weather-generated-sub-items-container');
+            const author = document.getElementById('weather-generated-author').value;
+            const responseArea = document.getElementById('save-weather-generated-response');
+            
+            if (!title || (!content && subItems.length === 0)) {
+                showResponse(responseArea, '제목과 메인 내용(또는 세부 항목)은 필수입니다!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '요청 중...', 'loading');
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/add-notice`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        content: content,
+                        subItems: subItems,
+                        tags: weatherGeneratedTags,
+                        author: author || 'weather-ai-generated'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showResponse(responseArea, `✅ 성공!\n\n${JSON.stringify(result, null, 2)}`, 'success');
+                } else {
+                    showResponse(responseArea, `❌ 오류!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 날씨 기반 생성된 문구 섹션 숨기기
+        function hideWeatherGeneratedSection() {
+            document.getElementById('weather-generated-notice-section').style.display = 'none';
+            weatherGeneratedTags.length = 0;
+            updateWeatherGeneratedTagsDisplay();
+            
+            // 응답 영역도 숨기기
+            const responseArea = document.getElementById('save-weather-generated-response');
+            responseArea.style.display = 'none';
+        }
+        
+        // 날씨 폼 초기화
+        function clearWeatherForm() {
+            document.getElementById('weather-location').value = '';
+            document.getElementById('weather-detail-location').value = '';
+            document.getElementById('weather-grade').value = '';
+            document.getElementById('weather-style').value = 'normal';
+            document.getElementById('weather-focus').value = 'safety';
+            
+            // 날씨 정보 숨기기
+            document.getElementById('weather-info-section').style.display = 'none';
+            currentWeatherData = null;
+            updateWeatherGenerateButton();
+            
+            // 응답 영역 숨기기
+            const responseArea = document.getElementById('weather-info-response');
+            responseArea.style.display = 'none';
+            
+            hideWeatherGeneratedSection();
+        }
+
+        // === 학교 검색 + 날씨 워크플로우 관련 함수들 ===
+        
+        // 학교 검색 자동완성 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            const schoolSearchInput = document.getElementById('school-search-input');
+            if (schoolSearchInput) {
+                schoolSearchInput.addEventListener('input', function(e) {
+                    const query = e.target.value.trim();
+                    
+                    clearTimeout(schoolSearchTimeout);
+                    
+                    if (query.length >= 2) {
+                        schoolSearchTimeout = setTimeout(() => {
+                            searchSchoolsAutocomplete(query);
+                        }, 500);
+                    } else {
+                        hideSchoolSuggestions();
+                    }
+                });
+            }
+            
+            // 외부 클릭 시 자동완성 숨기기
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#school-search-input') && !e.target.closest('#school-suggestions')) {
+                    hideSchoolSuggestions();
+                }
+            });
+        });
+        
+        // 학교 자동완성 검색
+        async function searchSchoolsAutocomplete(query) {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/search-schools`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        schoolName: query,
+                        limit: 10
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    displaySchoolSuggestions(result.schools);
+                } else {
+                    hideSchoolSuggestions();
+                }
+                
+            } catch (error) {
+                console.error('학교 검색 오류:', error);
+                hideSchoolSuggestions();
+            }
+        }
+        
+        // 학교 자동완성 제안 표시
+        function displaySchoolSuggestions(schools) {
+            const suggestionsContainer = document.getElementById('school-suggestions');
+            
+            if (schools.length === 0) {
+                hideSchoolSuggestions();
+                return;
+            }
+            
+            suggestionsContainer.innerHTML = '';
+            
+            schools.forEach(school => {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.style.cssText = `
+                    padding: 10px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                    transition: background-color 0.2s;
+                `;
+                
+                suggestionItem.innerHTML = `
+                    <div style="font-weight: bold; color: #333; margin-bottom: 3px;">${school.SCHUL_NM}</div>
+                    <div style="font-size: 12px; color: #666;">${school.SCHUL_KND_SC_NM} | ${school.LCTN_SC_NM} | ${school.ORG_RDNMA || '주소 정보 없음'}</div>
+                `;
+                
+                suggestionItem.addEventListener('mouseenter', () => {
+                    suggestionItem.style.backgroundColor = '#f5f5f5';
+                });
+                
+                suggestionItem.addEventListener('mouseleave', () => {
+                    suggestionItem.style.backgroundColor = 'white';
+                });
+                
+                suggestionItem.addEventListener('click', () => {
+                    selectSchool(school);
+                });
+                
+                suggestionsContainer.appendChild(suggestionItem);
+            });
+            
+            suggestionsContainer.style.display = 'block';
+        }
+        
+        // 학교 선택
+        function selectSchool(school) {
+            document.getElementById('school-search-input').value = school.SCHUL_NM;
+            hideSchoolSuggestions();
+            
+            selectedSchoolData = school;
+            displaySelectedSchool(school);
+            updateWorkflowStep(1, 'completed');
+            updateWorkflowStep(2, 'active');
+            
+            // 전체 프로세스 버튼 활성화
+            document.getElementById('run-school-workflow-btn').disabled = false;
+        }
+        
+        // 선택된 학교 정보 표시
+        function displaySelectedSchool(school) {
+            const container = document.getElementById('selected-school-display');
+            const details = document.getElementById('selected-school-details');
+            
+            details.innerHTML = `
+                <div style="margin-bottom: 5px;"><strong>🏫 학교명:</strong> ${school.SCHUL_NM}</div>
+                <div style="margin-bottom: 5px;"><strong>📍 주소:</strong> ${school.ORG_RDNMA || '주소 정보 없음'}</div>
+                <div style="margin-bottom: 5px;"><strong>🎓 유형:</strong> ${school.SCHUL_KND_SC_NM}</div>
+                <div><strong>🗺️ 지역:</strong> ${school.LCTN_SC_NM} (코드: ${school.ATPT_OFCDC_SC_CODE})</div>
+            `;
+            
+            container.style.display = 'block';
+        }
+        
+        // 자동완성 숨기기
+        function hideSchoolSuggestions() {
+            document.getElementById('school-suggestions').style.display = 'none';
+        }
+        
+        // 워크플로우 단계 업데이트
+        function updateWorkflowStep(stepNumber, status) {
+            const step = document.getElementById(`school-step-${stepNumber}`);
+            if (!step) return;
+            
+            // 모든 단계 초기화
+            for (let i = 1; i <= 4; i++) {
+                const s = document.getElementById(`school-step-${i}`);
+                if (s) {
+                    s.style.background = '#f5f5f5';
+                    s.querySelector('div').style.color = '#666';
+                }
+            }
+            
+            // 완료된 단계들 표시
+            for (let i = 1; i < stepNumber; i++) {
+                const s = document.getElementById(`school-step-${i}`);
+                if (s) {
+                    s.style.background = '#c8e6c9';
+                    s.querySelector('div').style.color = '#2e7d32';
+                }
+            }
+            
+            // 현재 단계 표시
+            if (status === 'active') {
+                step.style.background = '#e3f2fd';
+                step.querySelector('div').style.color = '#1976d2';
+            } else if (status === 'completed') {
+                step.style.background = '#c8e6c9';
+                step.querySelector('div').style.color = '#2e7d32';
+            } else if (status === 'processing') {
+                step.style.background = '#fff3e0';
+                step.querySelector('div').style.color = '#f57c00';
+            }
+        }
+        
+        // 전체 워크플로우 실행
+        async function runSchoolWeatherWorkflow() {
+            if (!selectedSchoolData?.ORG_RDNMA) {
+                alert('먼저 학교를 선택해주세요!');
+                return;
+            }
+            
+            const responseArea = document.getElementById('school-workflow-response');
+            showResponse(responseArea, '학교 → 위치 → 날씨 → 공지사항 생성 프로세스를 시작합니다...', 'loading');
+            
+            try {
+                // 2단계: 위치 정보 조회
+                updateWorkflowStep(2, 'processing');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const locationResponse = await fetch(`${SUPABASE_URL}/functions/v1/geocode-address`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        address: selectedSchoolData.ORG_RDNMA
+                    })
+                });
+
+                const locationResult = await locationResponse.json();
+                
+                if (!locationResponse.ok || !locationResult.success) {
+                    throw new Error('위치 정보 조회 실패: ' + (locationResult.error || '알 수 없는 오류'));
+                }
+                
+                currentLocationData = locationResult.location;
+                displayLocationInfo(currentLocationData);
+                updateWorkflowStep(2, 'completed');
+                updateWorkflowStep(3, 'active');
+                
+                // 3단계: 날씨 정보 조회
+                updateWorkflowStep(3, 'processing');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const weatherResponse = await fetch(`${SUPABASE_URL}/functions/v1/get-weather-by-grid`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        lat: currentLocationData.latitude,
+                        lng: currentLocationData.longitude,
+                        address: selectedSchoolData.SCHUL_NM
+                    })
+                });
+
+                const weatherResult = await weatherResponse.json();
+                
+                if (!weatherResponse.ok || !weatherResult.success) {
+                    throw new Error('날씨 정보 조회 실패: ' + (weatherResult.error || '알 수 없는 오류'));
+                }
+                
+                currentWeatherData = weatherResult.weather;
+                displaySchoolWeatherInfo(currentWeatherData);
+                updateWorkflowStep(3, 'completed');
+                updateWorkflowStep(4, 'active');
+                
+                // 4단계: 날씨 기반 공지사항 표시
+                updateWorkflowStep(4, 'processing');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // 프론트엔드에서 날씨 기반 공지사항 생성
+                console.log('[학교 워크플로우] 4단계: 날씨 기반 공지사항 생성 시작', currentWeatherData);
+                
+                const generatedNotices = generateWeatherNoticesFromData(currentWeatherData);
+                console.log('[학교 워크플로우] 4단계: 생성된 공지사항', generatedNotices);
+
+                if (generatedNotices && generatedNotices.length > 0) {
+                    displaySchoolNotices(generatedNotices);
+                    updateWorkflowStep(4, 'completed');
+                    showResponse(responseArea, '✅ 전체 프로세스 완료!\n학교 → 위치 → 날씨 → 공지사항 생성이 모두 완료되었습니다.', 'success');
+                } else {
+                    throw new Error('날씨 기반 공지사항이 생성되지 않았습니다.');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 프로세스 실행 중 오류!\n\n${error.message}`, 'error');
+                console.error('School workflow error:', error);
+            }
+        }
+        
+        // 위치 정보 표시
+        function displayLocationInfo(location) {
+            const container = document.getElementById('location-info-display');
+            const details = document.getElementById('location-details');
+            
+            details.innerHTML = `
+                <div style="margin-bottom: 5px;"><strong>📍 주소:</strong> ${location.address}</div>
+                <div style="margin-bottom: 5px;"><strong>🌍 좌표:</strong> ${location.latitude}, ${location.longitude}</div>
+                <div><strong>📐 기상청 격자:</strong> nx=${location.gridX}, ny=${location.gridY}</div>
+            `;
+            
+            container.style.display = 'block';
+        }
+        
+        // 학교 날씨 정보 표시
+        function displaySchoolWeatherInfo(weather) {
+            const container = document.getElementById('school-weather-info-display');
+            const details = document.getElementById('school-weather-details');
+            
+            // 날씨 아이콘 매핑
+            const getWeatherIcon = (condition) => {
+                const iconMap = {
+                    '맑음': '☀️',
+                    '구름많음': '⛅',
+                    '흐림': '☁️',
+                    '비': '🌧️',
+                    '눈': '❄️',
+                    'clear': '☀️',
+                    'partly_cloudy': '⛅',
+                    'cloudy': '☁️',
+                    'rainy': '🌧️',
+                    'snowy': '❄️'
+                };
+                return iconMap[condition] || '🌤️';
+            };
+            
+            details.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 15px;">
+                    <div style="font-size: 48px;">${getWeatherIcon(weather.skyCondition || weather.skyDescription)}</div>
+                    <div>
+                        <div style="font-size: 36px; font-weight: bold; margin-bottom: 5px;">${weather.temperature}°C</div>
+                        <div style="font-size: 18px; margin-bottom: 5px;">${weather.skyDescription}</div>
+                        <div style="font-size: 14px; opacity: 0.9;">📍 ${weather.address || '현재 위치'}</div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.8;">습도</div>
+                        <div style="font-weight: bold; font-size: 16px;">${weather.humidity || 'N/A'}%</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.8;">풍속</div>
+                        <div style="font-weight: bold; font-size: 16px;">${weather.windSpeed || 'N/A'}m/s</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.8;">강수량</div>
+                        <div style="font-weight: bold; font-size: 16px;">${weather.precipitation || 'N/A'}mm</div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 12px; opacity: 0.8;">강수형태</div>
+                        <div style="font-weight: bold; font-size: 16px;">${weather.precipitationDescription}</div>
+                    </div>
+                </div>
+            `;
+            
+            container.style.display = 'block';
+        }
+        
+        // 학교 공지사항 표시
+        function displaySchoolNotices(notices) {
+            const container = document.getElementById('school-notices-display');
+            const noticesContainer = document.getElementById('school-notices-container');
+            
+            noticesContainer.innerHTML = '';
+            
+            const priorityText = {
+                1: '긴급',
+                2: '주의', 
+                3: '정보'
+            };
+            
+            const priorityColors = {
+                1: '#f44336',
+                2: '#ff9800',
+                3: '#4caf50'
+            };
+            
+            notices.forEach(notice => {
+                const noticeCard = document.createElement('div');
+                noticeCard.style.cssText = `
+                    background: white;
+                    border: 1px solid ${priorityColors[notice.priority]};
+                    border-left: 4px solid ${priorityColors[notice.priority]};
+                    border-radius: 8px;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                `;
+                
+                noticeCard.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                        <span style="font-size: 24px;">${notice.icon}</span>
+                        <h4 style="margin: 0; color: #333; flex: 1;">${notice.title}</h4>
+                        <span style="background: ${priorityColors[notice.priority]}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold;">
+                            ${priorityText[notice.priority]}
+                        </span>
+                    </div>
+                    <div style="color: #555; line-height: 1.6; margin-bottom: 10px;">
+                        ${notice.content}
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #888;">
+                        <span>카테고리: ${notice.category}</span>
+                        <span>날짜: ${notice.date}</span>
+                    </div>
+                `;
+                
+                noticesContainer.appendChild(noticeCard);
+            });
+            
+            container.style.display = 'block';
+        }
+        
+        // 학교 워크플로우 초기화
+        function clearSchoolWorkflow() {
+            // 입력 필드 초기화
+            document.getElementById('school-search-input').value = '';
+            hideSchoolSuggestions();
+            
+            // 데이터 초기화
+            selectedSchoolData = null;
+            currentLocationData = null;
+            currentWeatherData = null;
+            
+            // 표시 영역 숨기기
+            document.getElementById('selected-school-display').style.display = 'none';
+            document.getElementById('location-info-display').style.display = 'none';
+            document.getElementById('school-weather-info-display').style.display = 'none';
+            document.getElementById('school-notices-display').style.display = 'none';
+            
+            // 버튼 비활성화
+            document.getElementById('run-school-workflow-btn').disabled = true;
+            
+            // 워크플로우 단계 초기화
+            updateWorkflowStep(1, 'active');
+            
+            // 응답 영역 숨기기
+            const responseArea = document.getElementById('school-workflow-response');
+            responseArea.style.display = 'none';
+        }
+
+        // === 독립적인 학교 검색 테스트 함수들 ===
+        
+        // 학교 검색 테스트
+        async function testSchoolSearch() {
+            const schoolName = document.getElementById('school-name-search').value;
+            const limit = parseInt(document.getElementById('school-search-limit').value);
+            const responseArea = document.getElementById('school-search-response');
+            
+            // 입력 검증
+            if (!schoolName.trim()) {
+                showResponse(responseArea, '학교명을 입력해주세요!', 'error');
+                return;
+            }
+
+            // 로딩 표시
+            showResponse(responseArea, '학교를 검색 중입니다...', 'loading');
+            
+            try {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/search-schools`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        schoolName: schoolName,
+                        limit: limit
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const detailedResults = result.schools.map(school => ({
+                        학교명: school.SCHUL_NM,
+                        주소: school.ORG_RDNMA || '주소 정보 없음',
+                        학교종류: school.SCHUL_KND_SC_NM,
+                        지역: school.LCTN_SC_NM,
+                        교육청코드: school.ATPT_OFCDC_SC_CODE,
+                        학교코드: school.SD_SCHUL_CODE
+                    }));
+                    
+                    showResponse(responseArea, `✅ 성공! ${result.schools.length}개 학교 검색 완료\n\n${JSON.stringify(detailedResults, null, 2)}`, 'success');
+                } else {
+                    showResponse(responseArea, `❌ 오류!\n\n${JSON.stringify(result, null, 2)}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(responseArea, `❌ 네트워크 오류!\n\n${error.message}`, 'error');
+            }
+        }
+        
+        // 학교 검색 폼 초기화
+        function clearSchoolSearchForm() {
+            document.getElementById('school-name-search').value = '';
+            document.getElementById('school-search-limit').value = '10';
+            
+            const responseArea = document.getElementById('school-search-response');
+            responseArea.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

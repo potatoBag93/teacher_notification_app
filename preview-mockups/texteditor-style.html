@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>텍스트 편집기 스타일 - 알림장 미리보기</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Malgun Gothic', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .editor-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .editor-header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            border-bottom: 1px solid #34495e;
+        }
+        
+        .editor-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .editor-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .toolbar {
+            background: #ecf0f1;
+            padding: 0.75rem 2rem;
+            border-bottom: 1px solid #d5dbdb;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 1rem;
+            border-right: 1px solid #bdc3c7;
+        }
+        
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+        
+        .toolbar-button {
+            background: white;
+            border: 1px solid #bdc3c7;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .toolbar-button:hover {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .toolbar-button.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .document-area {
+            background: white;
+            padding: 3rem;
+            font-family: 'Times New Roman', serif;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            min-height: 800px;
+        }
+        
+        .document-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .document-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+        }
+        
+        .document-subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-bottom: 1rem;
+        }
+        
+        .document-date {
+            background: #3498db;
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .section {
+            margin-bottom: 3rem;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .section-number {
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .content-block {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .content-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .content-text {
+            color: #34495e;
+            margin-bottom: 1rem;
+        }
+        
+        .content-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .content-list li {
+            padding: 0.5rem 0;
+            padding-left: 2rem;
+            position: relative;
+            color: #34495e;
+        }
+        
+        .content-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0.5rem;
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #f39c12;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .highlight-box::before {
+            content: "💡";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #f39c12;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .highlight-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #e67e22;
+            margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .urgent-box {
+            background: linear-gradient(135deg, #ffe5e5 0%, #ffcccb 100%);
+            border: 1px solid #e74c3c;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .urgent-box::before {
+            content: "⚠️";
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            background: #e74c3c;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .urgent-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #c0392b;
+            margin-bottom: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .info-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            color: #3498db;
+        }
+        
+        .info-card-icon {
+            font-size: 1.5rem;
+        }
+        
+        .info-card-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .info-card-content {
+            color: #34495e;
+            font-size: 0.95rem;
+        }
+        
+        .footer-section {
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 2px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+        }
+        
+        .signature {
+            margin-top: 2rem;
+            font-style: italic;
+        }
+        
+        .word-count {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #34495e;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        
+        .back-button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(41, 128, 185, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .document-area {
+                padding: 1.5rem;
+            }
+            
+            .document-title {
+                font-size: 2rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.5rem;
+            }
+            
+            .toolbar-group {
+                border-right: none;
+                border-bottom: 1px solid #bdc3c7;
+                padding: 0.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button">← 목록으로</a>
+    
+    <div class="editor-container">
+        <div class="editor-header">
+            <div class="editor-title">📝 알림장 문서 편집기</div>
+            <div class="editor-info">
+                <span>📄 문서 1</span>
+                <span>🔄 자동 저장됨</span>
+                <span>👤 담임선생님</span>
+            </div>
+        </div>
+        
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button class="toolbar-button">📁 파일</button>
+                <button class="toolbar-button">✏️ 편집</button>
+                <button class="toolbar-button">👁️ 보기</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-button active">B</button>
+                <button class="toolbar-button">I</button>
+                <button class="toolbar-button">U</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-button">📏 정렬</button>
+                <button class="toolbar-button">🎨 색상</button>
+                <button class="toolbar-button">📊 표</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="toolbar-button">💾 저장</button>
+                <button class="toolbar-button">🖨️ 인쇄</button>
+            </div>
+        </div>
+        
+        <div class="document-area">
+            <div class="document-header">
+                <div class="document-title">🏫 일일 알림장</div>
+                <div class="document-subtitle">2학년 3반 생활 안내</div>
+                <div class="document-date">2024년 9월 17일 화요일</div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">1</div>
+                    <div class="section-title">긴급 공지사항</div>
+                </div>
+                
+                <div class="urgent-box">
+                    <div class="urgent-title">체육복 준비 필수</div>
+                    <div class="content-text">
+                        내일 체육 시간(2교시)이 있으니 꼭 체육복을 준비해 주시기 바랍니다. 
+                        실내화도 함께 가져와야 합니다.
+                    </div>
+                </div>
+                
+                <div class="content-block">
+                    <div class="content-title">📋 급식비 납부 안내</div>
+                    <div class="content-text">
+                        9월 급식비 납부 기한이 9월 20일까지입니다.
+                    </div>
+                    <ul class="content-list">
+                        <li>납부 금액: 80,000원</li>
+                        <li>납부 방법: 학교 앱 또는 계좌이체</li>
+                        <li>문의사항: 급식실 (내선 123)</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">2</div>
+                    <div class="section-title">학습 안내</div>
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <div class="info-card-icon">📊</div>
+                            <div class="info-card-title">수학 7단원 평가</div>
+                        </div>
+                        <div class="info-card-content">
+                            <p><strong>일시:</strong> 9월 21일(목) 2교시</p>
+                            <p><strong>범위:</strong> 교과서 p.98~124</p>
+                            <p><strong>준비물:</strong> 연필, 지우개, 자</p>
+                            <p><strong>복습:</strong> 문제집 p.45~67</p>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <div class="info-card-icon">🔬</div>
+                            <div class="info-card-title">과학 실험 수업</div>
+                        </div>
+                        <div class="info-card-content">
+                            <p><strong>주제:</strong> 물의 상태 변화</p>
+                            <p><strong>준비물:</strong> 실험 관찰 일지</p>
+                            <p><strong>복장:</strong> 흰 실험복 착용</p>
+                            <p><strong>주의사항:</strong> 안전 수칙 준수</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <div class="highlight-title">📚 독서 발표 대회 안내</div>
+                    <div class="content-text">
+                        10월 독서의 달을 맞아 독서 발표 대회를 개최합니다.
+                    </div>
+                    <ul class="content-list">
+                        <li>신청 기한: 9월 30일까지</li>
+                        <li>발표 시간: 3~5분</li>
+                        <li>시상 내용: 최우수상, 우수상, 장려상</li>
+                        <li>참가 혜택: 독서 포인트 2배 적립</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">3</div>
+                    <div class="section-title">건강 및 안전</div>
+                </div>
+                
+                <div class="content-block">
+                    <div class="content-title">💉 독감 예방접종 실시</div>
+                    <div class="content-text">
+                        독감 예방접종이 9월 26일에 실시됩니다.
+                    </div>
+                    <ul class="content-list">
+                        <li>대상자: 희망하는 학생 전체</li>
+                        <li>동의서 제출: 9월 24일까지</li>
+                        <li>접종 비용: 무료</li>
+                        <li>접종 후 주의사항: 충분한 수분 섭취 및 휴식</li>
+                    </ul>
+                </div>
+                
+                <div class="content-block">
+                    <div class="content-title">👁️ 시력 검사 안내</div>
+                    <div class="content-text">
+                        2학기 정기 시력 검사를 실시합니다.
+                    </div>
+                    <ul class="content-list">
+                        <li>일시: 9월 19일~20일</li>
+                        <li>장소: 보건실</li>
+                        <li>검사 결과: 가정통신문으로 발송</li>
+                        <li>이상 소견 시: 안과 검진 권유</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">4</div>
+                    <div class="section-title">특별 활동 및 행사</div>
+                </div>
+                
+                <div class="highlight-box">
+                    <div class="highlight-title">🍂 가을 소풍 안내</div>
+                    <div class="content-text">
+                        10월 12일 가을 소풍을 실시합니다.
+                    </div>
+                    <ul class="content-list">
+                        <li>목적지: 올림픽공원</li>
+                        <li>준비물: 도시락, 돗자리, 물통</li>
+                        <li>복장: 체육복 또는 편한 복장</li>
+                        <li>우천 시: 실내 활동으로 대체</li>
+                        <li>참가비: 교통비 5,000원</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <p><strong>🌤️ 오늘의 날씨:</strong> 맑음, 기온 23°C, 습도 60%</p>
+                <p><strong>💡 오늘의 팁:</strong> 일교차가 클 수 있으니 얇은 겉옷을 준비하세요.</p>
+                
+                <div class="signature">
+                    <p>항상 건강하고 즐거운 학교생활이 되기를 바랍니다.</p>
+                    <p><strong>2학년 3반 담임 김선생님</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="word-count">
+        📊 문자 수: 1,247자 | 단어 수: 89개
+    </div>
+</body>
+</html>

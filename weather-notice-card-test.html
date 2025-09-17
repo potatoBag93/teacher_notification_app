@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>날씨 공지사항 - NoticeCard 형태</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f8f9fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .header p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        
+        .test-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+        
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        
+        .notices-area {
+            margin-top: 20px;
+        }
+        
+        .notice-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .notice-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .notice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 8px;
+        }
+        
+        .notice-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        
+        .category-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .tag-안전 { background: #ef4444; }
+        .tag-건강 { background: #10b981; }
+        .tag-알림 { background: #3b82f6; }
+        .tag-생활지도 { background: #8b5cf6; }
+        .tag-주의 { background: #f59e0b; }
+        .tag-날씨 { background: #06b6d4; }
+        
+        .notice-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .recommended-badge {
+            background: #3b82f6;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .popular-badge {
+            background: #f59e0b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .like-count {
+            color: #ef4444;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .notice-content {
+            margin-bottom: 16px;
+        }
+        
+        .notice-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .notice-text {
+            color: #4b5563;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+        
+        .notice-sub-items {
+            margin-top: 8px;
+            padding-left: 16px;
+            list-style: disc;
+        }
+        
+        .notice-sub-items li {
+            margin-bottom: 4px;
+        }
+        
+        .notice-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+            gap: 16px;
+        }
+        
+        .notice-author {
+            color: #6b7280;
+            font-size: 14px;
+            flex: 1;
+        }
+        
+        .notice-date {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+        
+        .notice-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            background: transparent;
+            border: 1px solid #d1d5db;
+            color: #374151;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .action-btn:hover {
+            background: #f3f4f6;
+        }
+        
+        .response-area {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏫 날씨 공지사항 - NoticeCard 형태</h1>
+            <p>notices.ts 인터페이스 형태로 생성된 공지사항을 NoticeCard 컴포넌트처럼 표시</p>
+        </div>
+        
+        <div class="test-buttons">
+            <button class="test-btn" onclick="testWeatherScenario('극한 폭염', { temperature: 38, humidity: 75, windSpeed: 5, precipitation: 0 })">극한 폭염 (38°C)</button>
+            <button class="test-btn" onclick="testWeatherScenario('한파', { temperature: -12, humidity: 45, windSpeed: 15, precipitation: 0 })">한파 (-12°C)</button>
+            <button class="test-btn" onclick="testWeatherScenario('폭우', { temperature: 25, humidity: 95, windSpeed: 20, precipitation: 50 })">폭우 (50mm)</button>
+            <button class="test-btn" onclick="testWeatherScenario('폭설', { temperature: -3, humidity: 85, windSpeed: 25, precipitation: 15 })">폭설 (15cm)</button>
+            <button class="test-btn" onclick="testWeatherScenario('강풍', { temperature: 18, humidity: 60, windSpeed: 45, precipitation: 0 })">강풍 (45m/s)</button>
+            <button class="test-btn" onclick="testWeatherScenario('습한 날씨', { temperature: 28, humidity: 90, windSpeed: 3, precipitation: 0 })">습한 날씨 (90%)</button>
+            <button class="test-btn" onclick="testWeatherScenario('일반 날씨', { temperature: 22, humidity: 55, windSpeed: 8, precipitation: 0 })">일반 날씨</button>
+        </div>
+        
+        <div class="notices-area" id="notices-area">
+            <div class="response-area">
+                위의 날씨 시나리오 버튼을 클릭하면 해당 날씨에 맞는 공지사항이 notices.ts 형태로 생성되어 NoticeCard처럼 표시됩니다.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // notices.ts의 Notice 인터페이스 정의
+        /*
+        export interface Notice {
+          id: string
+          title: string
+          content: string
+          tags: Category[]
+          author: string
+          likeCount: number
+          subItems: string[]
+          createdAt: Date
+          isRecommended?: boolean
+          isPopular?: boolean
+          usageCount?: number
+        }
+        */
+
+        // notices.ts 형태의 공지사항 생성 함수
+        function createNoticeFromTemplate(templateData) {
+            return {
+                id: templateData.id || `weather-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                title: templateData.title,
+                content: templateData.content,
+                tags: templateData.tags || ['날씨', '알림'],
+                author: templateData.author || 'AI 날씨 알림',
+                likeCount: templateData.likeCount || 0,
+                subItems: templateData.subItems || [],
+                createdAt: templateData.createdAt || new Date(),
+                isRecommended: templateData.isRecommended || false,
+                isPopular: templateData.isPopular || false,
+                usageCount: templateData.usageCount || 0
+            };
+        }
+
+        // NoticeCard 컴포넌트 형태로 HTML 생성
+        function createNoticeCardHTML(notice) {
+            const formatDate = (date) => {
+                const now = new Date();
+                const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+                
+                if (diffInHours < 1) {
+                    return '방금 전';
+                } else if (diffInHours < 24) {
+                    return `${diffInHours}시간 전`;
+                } else {
+                    const diffInDays = Math.floor(diffInHours / 24);
+                    return `${diffInDays}일 전`;
+                }
+            };
+
+            const tagsHTML = notice.tags.map(tag => 
+                `<span class="category-tag tag-${tag}">${tag}</span>`
+            ).join('');
+
+            const subItemsHTML = notice.subItems.map(item => 
+                `<li>${item}</li>`
+            ).join('');
+
+            const badgesHTML = `
+                ${notice.isRecommended ? '<span class="recommended-badge">오늘 추천</span>' : ''}
+                ${notice.isPopular ? '<span class="popular-badge">인기</span>' : ''}
+            `;
+
+            return `
+                <div class="notice-card">
+                    <div class="notice-header">
+                        <div class="notice-tags">
+                            ${tagsHTML}
+                        </div>
+                        <div class="notice-meta">
+                            ${badgesHTML}
+                            <span class="like-count">❤️ ${notice.likeCount}</span>
+                        </div>
+                    </div>
+
+                    <div class="notice-content">
+                        <h3 class="notice-title">${notice.title}</h3>
+                        <div class="notice-text">
+                            ${notice.content}
+                            ${notice.subItems.length > 0 ? `
+                                <ul class="notice-sub-items">
+                                    ${subItemsHTML}
+                                </ul>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="notice-footer">
+                        <span class="notice-author">👤 ${notice.author}</span>
+                        <span class="notice-date">• ${formatDate(notice.createdAt)}</span>
+                        
+                        <div class="notice-actions">
+                            <button class="action-btn" onclick="copyNotice('${notice.id}')">📋 복사</button>
+                            <button class="action-btn" onclick="saveNotice('${notice.id}')">⭐ 저장</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 날씨 기반 공지사항 생성 (notices.ts 형태)
+        function generateWeatherNotices(weatherData) {
+            const notices = [];
+            
+            // notices.ts 형태의 다양한 문구 템플릿
+            const noticeTemplates = {
+                heatwave: [
+                    {
+                        id: 'weather-heatwave-1',
+                        title: "🌡️ 폭염 주의보 발령",
+                        content: `오늘 기온이 ${weatherData.temperature}°C까지 올라갈 예정입니다. 물을 자주 마시고, 야외활동 시에는 그늘에서 충분히 휴식을 취하세요.`,
+                        tags: ['안전', '건강'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 30),
+                        subItems: [
+                            '물을 자주 마시기',
+                            '야외활동 시 그늘에서 휴식',
+                            '어지럽거나 메스꺼우면 즉시 선생님께 알리기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    },
+                    {
+                        id: 'weather-heatwave-2',
+                        title: "🔥 무더위 특보 - 건강 관리 필수",
+                        content: `오늘 최고기온이 ${weatherData.temperature}°C로 매우 높습니다. 시원한 물을 충분히 마시고, 모자나 양산을 꼭 챙기세요.`,
+                        tags: ['건강', '안전'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 25),
+                        subItems: [
+                            '시원한 물 충분히 마시기',
+                            '모자나 양산 챙기기',
+                            '체육시간에 무리하지 않기',
+                            '몸이 이상하면 바로 쉬기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    },
+                    {
+                        id: 'weather-heatwave-3',
+                        title: "☀️ 극심한 더위 주의",
+                        content: `기온이 ${weatherData.temperature}°C까지 치솟을 예정입니다. 냉수를 자주 마시고, 실내에서 주로 활동하세요.`,
+                        tags: ['안전', '알림'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 20),
+                        subItems: [
+                            '냉수 자주 마시기',
+                            '실내에서 주로 활동하기',
+                            '땀을 많이 흘리면 소금물 마시기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    }
+                ],
+                cold: [
+                    {
+                        id: 'weather-cold-1',
+                        title: "🥶 혹독한 추위 주의",
+                        content: `오늘 기온이 ${weatherData.temperature}°C로 매우 춥습니다. 따뜻한 외투와 장갑, 목도리를 꼭 착용하고 등교하세요.`,
+                        tags: ['안전', '건강'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 28),
+                        subItems: [
+                            '따뜻한 외투 착용하기',
+                            '장갑과 목도리 꼭 착용하기',
+                            '손발이 너무 차가우면 따뜻한 곳으로 들어가기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    },
+                    {
+                        id: 'weather-cold-2',
+                        title: "❄️ 한파 특보 - 동상 주의",
+                        content: `기온이 ${weatherData.temperature}°C까지 떨어집니다. 귀마개와 장갑을 꼭 착용하고, 입김이 하얗게 나올 정도로 춥습니다.`,
+                        tags: ['안전', '주의'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 22),
+                        subItems: [
+                            '귀마개와 장갑 꼭 착용하기',
+                            '몸이 떨리면 즉시 실내로 들어가기',
+                            '따뜻하게 몸 데우기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    }
+                ],
+                rain: [
+                    {
+                        id: 'weather-rain-1',
+                        title: "☔ 폭우 주의보 - 안전사고 주의",
+                        content: `오늘 ${weatherData.precipitation}mm의 많은 비가 예상됩니다. 우산을 꼭 챙기고, 물이 고인 곳은 피해서 다니세요.`,
+                        tags: ['안전', '알림'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 18),
+                        subItems: [
+                            '우산 꼭 챙기기',
+                            '물이 고인 곳 피해서 다니기',
+                            '미끄러지지 않도록 조심하기',
+                            '번개가 칠 때는 실내로 대피하기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    },
+                    {
+                        id: 'weather-rain-2',
+                        title: "🌧️ 비 오는 날 안전수칙",
+                        content: `${weatherData.precipitation}mm의 비가 내립니다. 장화나 미끄럼 방지 신발을 신고, 천천히 걸어주세요.`,
+                        tags: ['안전', '생활지도'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 15),
+                        subItems: [
+                            '장화나 미끄럼 방지 신발 신기',
+                            '천천히 걸어다니기',
+                            '우산 사용 시 앞을 잘 보고 다니기'
+                        ],
+                        createdAt: new Date()
+                    }
+                ],
+                snow: [
+                    {
+                        id: 'weather-snow-1',
+                        title: "⛄ 대설 주의보 - 눈길 조심",
+                        content: `오늘 ${weatherData.precipitation}cm의 많은 눈이 예상됩니다. 미끄러지지 않도록 조심하고, 따뜻하게 입고 등교하세요.`,
+                        tags: ['안전', '건강'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 24),
+                        subItems: [
+                            '미끄럼 방지 신발 착용하기',
+                            '따뜻하게 옷 입기',
+                            '눈길에서 천천히 걸어다니기',
+                            '눈싸움 시 얼굴 맞지 않도록 주의하기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    }
+                ],
+                wind: [
+                    {
+                        id: 'weather-wind-1',
+                        title: "💨 강풍 주의보 - 외출 시 주의",
+                        content: `오늘 풍속이 ${weatherData.windSpeed}m/s의 강한 바람이 불 예정입니다. 우산 사용에 주의하고, 간판이나 건물 근처는 피해주세요.`,
+                        tags: ['안전', '주의'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 16),
+                        subItems: [
+                            '우산 사용 시 주의하기',
+                            '간판이나 건물 근처 피하기',
+                            '모자나 가벼운 물건 날아가지 않도록 주의하기',
+                            '강풍 시 실내로 대피하기'
+                        ],
+                        createdAt: new Date(),
+                        isRecommended: true
+                    }
+                ],
+                humid: [
+                    {
+                        id: 'weather-humid-1',
+                        title: "💧 습한 날씨 건강 관리",
+                        content: `오늘 습도가 ${weatherData.humidity}%로 매우 높습니다. 땀을 자주 닦아주고, 환기가 잘 되는 곳에서 활동하세요.`,
+                        tags: ['건강', '생활지도'],
+                        author: 'AI 날씨 알림',
+                        likeCount: Math.floor(Math.random() * 12),
+                        subItems: [
+                            '땀을 자주 닦아주기',
+                            '환기가 잘 되는 곳에서 활동하기',
+                            '가벼운 옷 입기',
+                            '충분한 수분 섭취하기'
+                        ],
+                        createdAt: new Date()
+                    }
+                ]
+            };
+
+            // 날씨 조건에 따른 공지사항 선택
+            if (weatherData.temperature >= 35) {
+                const templates = noticeTemplates.heatwave;
+                const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                notices.push(createNoticeFromTemplate(randomTemplate));
+            } else if (weatherData.temperature <= -5) {
+                const templates = noticeTemplates.cold;
+                const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                notices.push(createNoticeFromTemplate(randomTemplate));
+            }
+
+            // 강수량 체크
+            if (weatherData.precipitation > 20) {
+                if (weatherData.temperature < 0) {
+                    // 눈
+                    const templates = noticeTemplates.snow;
+                    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                    notices.push(createNoticeFromTemplate(randomTemplate));
+                } else {
+                    // 비
+                    const templates = noticeTemplates.rain;
+                    const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                    notices.push(createNoticeFromTemplate(randomTemplate));
+                }
+            }
+
+            // 강풍 체크
+            if (weatherData.windSpeed > 30) {
+                const templates = noticeTemplates.wind;
+                const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                notices.push(createNoticeFromTemplate(randomTemplate));
+            }
+
+            // 습도 체크
+            if (weatherData.humidity > 85) {
+                const templates = noticeTemplates.humid;
+                const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
+                notices.push(createNoticeFromTemplate(randomTemplate));
+            }
+
+            // 공지사항이 없으면 일반 날씨 안내
+            if (notices.length === 0) {
+                notices.push(createNoticeFromTemplate({
+                    id: 'weather-normal-1',
+                    title: "🌤️ 오늘의 날씨 안내",
+                    content: `오늘은 기온 ${weatherData.temperature}°C, 습도 ${weatherData.humidity}%의 쾌적한 날씨입니다.`,
+                    tags: ['날씨', '알림'],
+                    author: 'AI 날씨 알림',
+                    likeCount: Math.floor(Math.random() * 10),
+                    subItems: [
+                        '적당한 옷차림으로 등교하기',
+                        '야외활동하기 좋은 날씨',
+                        '건강한 하루 보내기'
+                    ],
+                    createdAt: new Date()
+                }));
+            }
+
+            return notices;
+        }
+
+        // 날씨 시나리오 테스트
+        function testWeatherScenario(scenarioName, weatherData) {
+            const notices = generateWeatherNotices(weatherData);
+            
+            let html = `<div class="response-area">
+                <strong>${scenarioName} 시나리오 결과:</strong><br>
+                기온: ${weatherData.temperature}°C, 습도: ${weatherData.humidity}%, 풍속: ${weatherData.windSpeed}m/s, 강수량: ${weatherData.precipitation}mm<br><br>
+                생성된 공지사항 개수: ${notices.length}개
+            </div>`;
+            
+            notices.forEach(notice => {
+                html += createNoticeCardHTML(notice);
+            });
+            
+            document.getElementById('notices-area').innerHTML = html;
+        }
+
+        // 복사 기능
+        function copyNotice(noticeId) {
+            alert(`공지사항 ID: ${noticeId}가 복사되었습니다.`);
+        }
+
+        // 저장 기능
+        function saveNotice(noticeId) {
+            alert(`공지사항 ID: ${noticeId}가 저장되었습니다.`);
+        }
+    </script>
+</body>
+</html>

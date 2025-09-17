@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입 - 교사용 알림장 도우미</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f5f7fa; }
+        
+        .container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .register-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        .logo { text-align: center; margin-bottom: 30px; }
+        .logo h1 { color: #2c3e50; font-size: 24px; }
+        .logo p { color: #7f8c8d; font-size: 14px; margin-top: 5px; }
+        
+        .form-row { display: flex; gap: 15px; }
+        .form-group { margin-bottom: 20px; flex: 1; }
+        .form-group label { display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #3498db; }
+        
+        .btn { width: 100%; padding: 12px; background: #27ae60; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 15px; }
+        .btn:hover { background: #219a52; }
+        .btn-secondary { background: #95a5a6; }
+        .btn-secondary:hover { background: #7f8c8d; }
+        
+        .links { text-align: center; }
+        .links a { color: #3498db; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
+        
+        .info-text { background: #e8f4f8; padding: 15px; border-radius: 8px; font-size: 13px; color: #2c3e50; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="register-box">
+            <div class="logo">
+                <h1>📝 알림장 도우미</h1>
+                <p>교사 전용 계정을 만들어보세요</p>
+            </div>
+            
+            <div class="info-text">
+                📋 교사 인증은 가입 후 관리자 승인을 통해 이루어집니다.<br>
+                ✅ 승인까지 1-2일 소요되며, 그 전까지는 둘러보기만 가능합니다.
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">이름</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="school">학교명</label>
+                        <input type="text" id="school" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="grade">담당 학년</label>
+                        <select id="grade" required>
+                            <option value="">선택하세요</option>
+                            <option value="초등1">초등 1학년</option>
+                            <option value="초등2">초등 2학년</option>
+                            <option value="초등3">초등 3학년</option>
+                            <option value="초등4">초등 4학년</option>
+                            <option value="초등5">초등 5학년</option>
+                            <option value="초등6">초등 6학년</option>
+                            <option value="중등1">중등 1학년</option>
+                            <option value="중등2">중등 2학년</option>
+                            <option value="중등3">중등 3학년</option>
+                            <option value="고등1">고등 1학년</option>
+                            <option value="고등2">고등 2학년</option>
+                            <option value="고등3">고등 3학년</option>
+                            <option value="전체">전체 학년</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">담당 과목</label>
+                        <input type="text" id="subject" placeholder="예: 국어, 수학, 담임" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">이메일</label>
+                    <input type="email" id="email" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="password">비밀번호</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">비밀번호 확인</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">회원가입</button>
+                <button type="button" class="btn btn-secondary" onclick="location.href='login.html'">로그인으로 돌아가기</button>
+            </form>
+            
+            <div class="links">
+                <a href="main.html">먼저 둘러보기</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            
+            // 회원가입 로직 구현 필요
+            alert('회원가입이 완료되었습니다. 관리자 승인을 기다려주세요.');
+            location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

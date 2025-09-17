@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>내 문구 - 교사용 알림장 도우미</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fb; color: #333; height: 100vh; overflow: hidden; }
+        
+        .app-layout { display: flex; height: 100vh; }
+        
+        /* 사이드바 */
+        .sidebar { width: 280px; background: #2c3e50; color: white; display: flex; flex-direction: column; box-shadow: 2px 0 5px rgba(0,0,0,0.1); }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid #34495e; }
+        .sidebar-logo { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+        .user-info { font-size: 14px; color: #bdc3c7; }
+        
+        .sidebar-nav { flex: 1; padding: 20px 0; }
+        .nav-section { margin-bottom: 30px; }
+        .nav-title { padding: 0 20px 10px; font-size: 12px; text-transform: uppercase; color: #95a5a6; font-weight: bold; }
+        .nav-item { padding: 12px 20px; cursor: pointer; transition: background 0.2s; border-left: 3px solid transparent; }
+        .nav-item:hover { background: #34495e; }
+        .nav-item.active { background: #3498db; border-left-color: #2980b9; }
+        .nav-item-icon { display: inline-block; width: 20px; margin-right: 10px; }
+        
+        /* 메인 콘텐츠 */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        
+        .top-bar { background: white; padding: 15px 25px; border-bottom: 1px solid #e0e0e0; display: flex; align-items: center; justify-content: space-between; }
+        .search-container { flex: 1; max-width: 500px; position: relative; }
+        .search-input { width: 100%; padding: 12px 15px; border: 2px solid #e0e0e0; border-radius: 25px; font-size: 14px; }
+        .search-input:focus { outline: none; border-color: #3498db; }
+        .top-actions { display: flex; gap: 10px; }
+        .action-btn { padding: 8px 16px; border: 1px solid #3498db; background: white; color: #3498db; border-radius: 20px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .action-btn:hover { background: #3498db; color: white; }
+        .action-btn.primary { background: #3498db; color: white; }
+        
+        .content-area { flex: 1; overflow-y: auto; padding: 25px; }
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .content-title { font-size: 24px; font-weight: bold; color: #2c3e50; }
+        .content-stats { color: #7f8c8d; font-size: 14px; }
+        
+        .tabs { display: flex; gap: 20px; margin-bottom: 25px; border-bottom: 2px solid #ecf0f1; }
+        .tab { padding: 12px 0; cursor: pointer; color: #7f8c8d; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab.active { color: #2c3e50; border-bottom-color: #3498db; font-weight: bold; }
+        .tab:hover { color: #2c3e50; }
+        
+        .empty-state { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+        .empty-state h3 { margin-bottom: 10px; color: #2c3e50; }
+        
+        .my-notices-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
+        .notice-item { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); transition: all 0.3s ease; border: 2px solid transparent; }
+        .notice-item:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); border-color: #3498db; }
+        
+        .notice-meta { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+        .meta-tag { padding: 4px 8px; background: #ecf0f1; color: #2c3e50; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .meta-tag.category { background: #e8f5e8; color: #27ae60; }
+        .meta-tag.season { background: #fef5e7; color: #f39c12; }
+        .meta-tag.private { background: #ffe8e8; color: #e74c3c; }
+        
+        .notice-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; color: #2c3e50; }
+        .notice-details { color: #5d6d7e; font-size: 12px; line-height: 1.5; margin-bottom: 15px; }
+        
+        .notice-actions { display: flex; justify-content: space-between; align-items: center; }
+        .action-group { display: flex; gap: 8px; }
+        .mini-btn { padding: 6px 12px; border: 1px solid #ddd; background: white; border-radius: 8px; cursor: pointer; font-size: 11px; transition: all 0.2s; }
+        .mini-btn.edit { color: #3498db; border-color: #3498db; }
+        .mini-btn.share { color: #27ae60; border-color: #27ae60; }
+        .mini-btn.delete { color: #e74c3c; border-color: #e74c3c; }
+        .mini-btn:hover { background: #f8f9fa; }
+        
+        .notice-date { color: #95a5a6; font-size: 11px; }
+        
+        /* 모달 */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+        .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 20px; font-weight: bold; color: #2c3e50; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #95a5a6; }
+        .close-btn:hover { color: #2c3e50; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        .form-group textarea { resize: vertical; height: 120px; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #3498db; }
+        
+        .tag-input-container { display: flex; flex-wrap: wrap; gap: 8px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 8px; min-height: 45px; }
+        .tag-item { background: #3498db; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .tag-remove { background: none; border: none; color: white; cursor: pointer; font-size: 14px; }
+        .tag-input { border: none; outline: none; flex: 1; min-width: 100px; }
+        
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; }
+        .btn.primary { background: #3498db; color: white; }
+        .btn.primary:hover { background: #2980b9; }
+        .btn.secondary { background: #95a5a6; color: white; }
+        .btn.secondary:hover { background: #7f8c8d; }
+        
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📝 알림장 도우미</div>
+                <div class="user-info">김선생님, 안녕하세요!</div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-title">메뉴</div>
+                    <div class="nav-item" onclick="location.href='main.html'">
+                        <span class="nav-item-icon">🏠</span>전체 문구
+                    </div>
+                    <div class="nav-item active">
+                        <span class="nav-item-icon">💾</span>내 문구
+                    </div>
+                    <div class="nav-item" onclick="location.href='stats.html'">
+                        <span class="nav-item-icon">📊</span>사용 통계
+                    </div>
+                    <div class="nav-item" onclick="location.href='feedback.html'">
+                        <span class="nav-item-icon">💡</span>아이디어 제안
+                    </div>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <!-- 상단 바 -->
+            <div class="top-bar">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="🔍 내 문구 검색...">
+                </div>
+                <div class="top-actions">
+                    <button class="action-btn primary" onclick="openAddModal()">➕ 새 문구 추가</button>
+                    <button class="action-btn" onclick="location.href='login.html'">로그아웃</button>
+                </div>
+            </div>
+            
+            <!-- 콘텐츠 영역 -->
+            <div class="content-area">
+                <div class="content-header">
+                    <h1 class="content-title">내 문구</h1>
+                    <div class="content-stats">총 <span id="totalCount">3</span>개 문구</div>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('saved')">저장한 문구 (2)</div>
+                    <div class="tab" onclick="showTab('created')">내가 만든 문구 (1)</div>
+                    <div class="tab" onclick="showTab('shared')">공유된 문구 (1)</div>
+                </div>
+                
+                <div id="saved-content" class="tab-content">
+                    <div class="my-notices-container">
+                        <div class="notice-item">
+                            <div class="notice-meta">
+                                <div class="meta-tag category">안전지도</div>
+                                <div class="meta-tag season">여름</div>
+                                <div class="meta-tag private">저장됨</div>
+                            </div>
+                            <div class="notice-title">여름철 물놀이 안전수칙</div>
+                            <div class="notice-details">
+                                • 깊은 물에는 절대 들어가지 마세요<br>
+                                • 혼자서 물놀이 하지 마세요<br>
+                                • 물놀이 전 충분한 준비운동을 하세요
+                            </div>
+                            <div class="notice-actions">
+                                <div class="action-group">
+                                    <button class="mini-btn edit" onclick="editNotice(1)">✏️ 수정</button>
+                                    <button class="mini-btn delete" onclick="deleteNotice(1)">🗑️ 삭제</button>
+                                </div>
+                                <div class="notice-date">저장일: 2025.08.05</div>
+                            </div>
+                        </div>
+                        
+                        <div class="notice-item">
+                            <div class="notice-meta">
+                                <div class="meta-tag category">생활지도</div>
+                                <div class="meta-tag season">방학</div>
+                                <div class="meta-tag private">저장됨</div>
+                            </div>
+                            <div class="notice-title">방학 중 규칙적인 생활</div>
+                            <div class="notice-details">
+                                • 일찍 자고 일찍 일어나기<br>
+                                • 정해진 시간에 학습하기<br>
+                                • 규칙적인 운동으로 건강 챙기기
+                            </div>
+                            <div class="notice-actions">
+                                <div class="action-group">
+                                    <button class="mini-btn edit" onclick="editNotice(2)">✏️ 수정</button>
+                                    <button class="mini-btn delete" onclick="deleteNotice(2)">🗑️ 삭제</button>
+                                </div>
+                                <div class="notice-date">저장일: 2025.08.03</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="created-content" class="tab-content" style="display: none;">
+                    <div class="my-notices-container">
+                        <div class="notice-item">
+                            <div class="notice-meta">
+                                <div class="meta-tag category">생활지도</div>
+                                <div class="meta-tag">예절</div>
+                                <div class="meta-tag private">내 작성</div>
+                            </div>
+                            <div class="notice-title">교실에서의 기본 예절</div>
+                            <div class="notice-details">
+                                • 선생님과 친구들에게 인사하기<br>
+                                • 수업 시간에 집중하기<br>
+                                • 정리정돈 습관 기르기
+                            </div>
+                            <div class="notice-actions">
+                                <div class="action-group">
+                                    <button class="mini-btn edit" onclick="editNotice(3)">✏️ 수정</button>
+                                    <button class="mini-btn share" onclick="shareNotice(3)">🌐 공유</button>
+                                    <button class="mini-btn delete" onclick="deleteNotice(3)">🗑️ 삭제</button>
+                                </div>
+                                <div class="notice-date">작성일: 2025.08.01</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="shared-content" class="tab-content" style="display: none;">
+                    <div class="empty-state">
+                        <h3>🌐 공유된 문구가 없습니다</h3>
+                        <p>내가 만든 문구를 다른 선생님들과 공유해보세요!</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- 문구 추가/편집 모달 -->
+    <div id="noticeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">새 문구 추가</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <form id="noticeForm">
+                <div class="form-group">
+                    <label for="noticeTitle">문구 제목</label>
+                    <input type="text" id="noticeTitle" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="noticeContent">메인 문구</label>
+                    <textarea id="noticeContent" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="noticeDetails">세부 내용 (선택사항)</label>
+                    <textarea id="noticeDetails" placeholder="• 세부 내용 1&#10;• 세부 내용 2"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>태그</label>
+                    <div class="tag-input-container" id="tagContainer">
+                        <input type="text" class="tag-input" placeholder="태그 입력 후 Enter" onkeypress="addTag(event)">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="shareOption">공유 설정</label>
+                    <select id="shareOption">
+                        <option value="private">개인용 (나만 보기)</option>
+                        <option value="public">전체 공유</option>
+                    </select>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" onclick="closeModal()">취소</button>
+                    <button type="submit" class="btn primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let currentTags = [];
+        let editingId = null;
+        
+        function showTab(tabName) {
+            // 탭 활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // 콘텐츠 표시
+            document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+            document.getElementById(tabName + '-content').style.display = 'block';
+        }
+        
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = '새 문구 추가';
+            document.getElementById('noticeForm').reset();
+            currentTags = [];
+            editingId = null;
+            updateTagDisplay();
+            document.getElementById('noticeModal').style.display = 'block';
+        }
+        
+        function editNotice(id) {
+            document.getElementById('modalTitle').textContent = '문구 편집';
+            editingId = id;
+            // 기존 데이터 로드 로직 필요
+            document.getElementById('noticeModal').style.display = 'block';
+        }
+        
+        function closeModal() {
+            document.getElementById('noticeModal').style.display = 'none';
+        }
+        
+        function addTag(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const tagValue = event.target.value.trim();
+                if (tagValue && !currentTags.includes(tagValue)) {
+                    currentTags.push(tagValue);
+                    event.target.value = '';
+                    updateTagDisplay();
+                }
+            }
+        }
+        
+        function removeTag(tag) {
+            currentTags = currentTags.filter(t => t !== tag);
+            updateTagDisplay();
+        }
+        
+        function updateTagDisplay() {
+            const container = document.getElementById('tagContainer');
+            const input = container.querySelector('.tag-input');
+            
+            // 기존 태그들 제거
+            container.querySelectorAll('.tag-item').forEach(item => item.remove());
+            
+            // 새 태그들 추가
+            currentTags.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'tag-item';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <button type="button" class="tag-remove" onclick="removeTag('${tag}')">&times;</button>
+                `;
+                container.insertBefore(tagElement, input);
+            });
+        }
+        
+        function shareNotice(id) {
+            if (confirm('이 문구를 다른 선생님들과 공유하시겠습니까?')) {
+                alert('문구가 공유되었습니다!');
+            }
+        }
+        
+        function deleteNotice(id) {
+            if (confirm('정말로 이 문구를 삭제하시겠습니까?')) {
+                alert('문구가 삭제되었습니다.');
+                // 삭제 로직 구현 필요
+            }
+        }
+        
+        document.getElementById('noticeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('noticeTitle').value,
+                content: document.getElementById('noticeContent').value,
+                details: document.getElementById('noticeDetails').value,
+                tags: currentTags,
+                shareOption: document.getElementById('shareOption').value
+            };
+            
+            // 저장 로직 구현 필요
+            alert(editingId ? '문구가 수정되었습니다.' : '새 문구가 추가되었습니다.');
+            closeModal();
+        });
+        
+        // 모달 외부 클릭 시 닫기
+        document.getElementById('noticeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

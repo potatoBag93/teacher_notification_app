@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>선택된 카드 UI 개선안 목업</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            padding: 2rem;
+            margin: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 3rem;
+        }
+        
+        .version-section {
+            margin-bottom: 4rem;
+        }
+        
+        .version-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* 기본 카드 스타일 */
+        .notice-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            min-height: 200px;
+            position: relative;
+            border: 2px solid transparent;
+            box-sizing: border-box;
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+        
+        .category-tag {
+            background: #3b82f6;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .like-count {
+            color: #ef4444;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-content {
+            color: #4b5563;
+            line-height: 1.5;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .sub-items {
+            list-style: disc;
+            padding-left: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .sub-items li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .hashtags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .hashtag {
+            color: #6b7280;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* 버전 1: 현재 스타일 (삼각형 + 체크마크) */
+        .v1-selected {
+            border-color: #3b82f6;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e1f0ff 100%);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+        }
+        
+        .v1-selected::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-top: 20px solid #3b82f6;
+            z-index: 1;
+        }
+        
+        .v1-selected::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        /* 버전 2: 원형 체크박스 스타일 */
+        .v2-selected {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+        
+        .v2-selected::after {
+            content: '✓';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            background: #10b981;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+
+        /* 버전 3: 좌측 세로 바 스타일 */
+        .v3-selected {
+            border-left: 4px solid #8b5cf6;
+            background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+            transform: translateX(4px);
+        }
+        
+        .v3-selected::after {
+            content: '선택됨';
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #8b5cf6;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* 버전 4: 전체 테두리 강조 + 그림자 */
+        .v4-selected {
+            border: 3px solid #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .v4-selected::after {
+            content: '★';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: #f59e0b;
+            font-size: 18px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 버전 5: 미니멀 체크마크 (우하단) */
+        .v5-selected {
+            border-color: #6366f1;
+            background: linear-gradient(135deg, #f8faff 0%, #eef2ff 100%);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+        }
+        
+        .v5-selected::after {
+            content: '✓';
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 20px;
+            height: 20px;
+            background: #6366f1;
+            color: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* 버전 6: 그라데이션 테두리 */
+        .v6-selected {
+            border: 2px solid transparent;
+            background: linear-gradient(white, white) padding-box, 
+                        linear-gradient(45deg, #ec4899, #8b5cf6) border-box;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.15);
+        }
+        
+        .v6-selected::after {
+            content: '💖';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 16px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.05); }
+        }
+
+        /* 호버 효과 */
+        .notice-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .notice-card.v3-selected:hover {
+            transform: translateX(4px) translateY(-2px);
+        }
+        
+        .notice-card.v4-selected:hover {
+            transform: translateY(-4px);
+        }
+
+        /* 설명 박스 */
+        .description {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            color: #475569;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .pros, .cons {
+            font-size: 0.8rem;
+        }
+        
+        .pros h4, .cons h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.875rem;
+        }
+        
+        .pros h4 { color: #059669; }
+        .cons h4 { color: #dc2626; }
+        
+        .pros ul, .cons ul {
+            margin: 0;
+            padding-left: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 선택된 카드 UI 개선안 목업</h1>
+        
+        <!-- 버전 1: 현재 스타일 -->
+        <div class="version-section">
+            <div class="version-title">버전 1: 현재 스타일 (삼각형 + 체크마크)</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">안전보건</span>
+                        <span class="like-count">❤️ 23</span>
+                    </div>
+                    <h3 class="card-title">겨울철 등하교 안전 수칙</h3>
+                    <div class="card-content">
+                        눈과 얼음으로 미끄러운 겨울철, 안전한 등하교를 위해 다음 사항을 꼭 지켜주세요.
+                        <ul class="sub-items">
+                            <li>미끄럼 방지 신발을 착용하세요</li>
+                            <li>급하게 뛰지 마시고 천천히 걸어주세요</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#교통안전</span>
+                        <span class="hashtag">#한파대비</span>
+                    </div>
+                </div>
+                <div class="notice-card v1-selected">
+                    <div class="card-header">
+                        <span class="category-tag">안전보건</span>
+                        <span class="like-count">❤️ 23</span>
+                    </div>
+                    <h3 class="card-title">겨울철 등하교 안전 수칙</h3>
+                    <div class="card-content">
+                        눈과 얼음으로 미끄러운 겨울철, 안전한 등하교를 위해 다음 사항을 꼭 지켜주세요.
+                        <ul class="sub-items">
+                            <li>미끄럼 방지 신발을 착용하세요</li>
+                            <li>급하게 뛰지 마시고 천천히 걸어주세요</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#교통안전</span>
+                        <span class="hashtag">#한파대비</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>현재 적용된 스타일</strong> - 우상단 삼각형과 체크마크 조합
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>명확한 선택 표시</li>
+                            <li>시각적으로 눈에 띔</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>삼각형이 다소 어색함</li>
+                            <li>디자인이 투박할 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버전 2: 원형 체크박스 -->
+        <div class="version-section">
+            <div class="version-title">버전 2: 원형 체크박스 스타일</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">학습관리</span>
+                        <span class="like-count">❤️ 18</span>
+                    </div>
+                    <h3 class="card-title">창의적 독서 활동 안내</h3>
+                    <div class="card-content">
+                        이번 주는 창의 독서 주간입니다. 책을 읽고 다양한 방법으로 표현해보세요.
+                        <ul class="sub-items">
+                            <li>좋아하는 장면을 그림으로 그려보세요</li>
+                            <li>주인공에게 편지를 써보세요</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#독서활동</span>
+                        <span class="hashtag">#창작활동</span>
+                    </div>
+                </div>
+                <div class="notice-card v2-selected">
+                    <div class="card-header">
+                        <span class="category-tag">학습관리</span>
+                        <span class="like-count">❤️ 18</span>
+                    </div>
+                    <h3 class="card-title">창의적 독서 활동 안내</h3>
+                    <div class="card-content">
+                        이번 주는 창의 독서 주간입니다. 책을 읽고 다양한 방법으로 표현해보세요.
+                        <ul class="sub-items">
+                            <li>좋아하는 장면을 그림으로 그려보세요</li>
+                            <li>주인공에게 편지를 써보세요</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#독서활동</span>
+                        <span class="hashtag">#창작활동</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>깔끔한 원형 체크박스</strong> - 녹색 원형 배경의 체크마크
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>모던하고 친숙한 디자인</li>
+                            <li>체크박스 형태로 직관적</li>
+                            <li>부드러운 색상 조화</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>상대적으로 덜 눈에 띌 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버전 3: 좌측 세로 바 -->
+        <div class="version-section">
+            <div class="version-title">버전 3: 좌측 세로 바 스타일</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">체육건강</span>
+                        <span class="like-count">❤️ 31</span>
+                    </div>
+                    <h3 class="card-title">건강한 겨울나기 프로젝트</h3>
+                    <div class="card-content">
+                        추운 겨울, 건강하게 지내기 위한 생활 습관을 함께 실천해봅시다.
+                        <ul class="sub-items">
+                            <li>매일 30분 이상 실내 운동하기</li>
+                            <li>충분한 수면과 영양 섭취</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#건강관리</span>
+                        <span class="hashtag">#체력향상</span>
+                    </div>
+                </div>
+                <div class="notice-card v3-selected">
+                    <div class="card-header">
+                        <span class="category-tag">체육건강</span>
+                        <span class="like-count">❤️ 31</span>
+                    </div>
+                    <h3 class="card-title">건강한 겨울나기 프로젝트</h3>
+                    <div class="card-content">
+                        추운 겨울, 건강하게 지내기 위한 생활 습관을 함께 실천해봅시다.
+                        <ul class="sub-items">
+                            <li>매일 30분 이상 실내 운동하기</li>
+                            <li>충분한 수면과 영양 섭취</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#건강관리</span>
+                        <span class="hashtag">#체력향상</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>좌측 강조 바 + 살짝 이동</strong> - 좌측 세로 바와 우측 라벨 조합
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>매우 직관적인 선택 표시</li>
+                            <li>세련되고 모던한 느낌</li>
+                            <li>이동 효과로 동적 느낌</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>레이아웃 변화가 클 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버전 4: 전체 테두리 강조 -->
+        <div class="version-section">
+            <div class="version-title">버전 4: 전체 테두리 강조 + 애니메이션</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">행사활동</span>
+                        <span class="like-count">❤️ 15</span>
+                    </div>
+                    <h3 class="card-title">겨울 체험학습 안내</h3>
+                    <div class="card-content">
+                        흥미진진한 겨울 체험학습을 떠나요! 눈사람 만들기와 썰매타기가 준비되어 있습니다.
+                        <ul class="sub-items">
+                            <li>따뜻한 옷차림으로 준비해주세요</li>
+                            <li>개인 썰매 지참 가능</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#체험학습</span>
+                        <span class="hashtag">#겨울활동</span>
+                    </div>
+                </div>
+                <div class="notice-card v4-selected">
+                    <div class="card-header">
+                        <span class="category-tag">행사활동</span>
+                        <span class="like-count">❤️ 15</span>
+                    </div>
+                    <h3 class="card-title">겨울 체험학습 안내</h3>
+                    <div class="card-content">
+                        흥미진진한 겨울 체험학습을 떠나요! 눈사람 만들기와 썰매타기가 준비되어 있습니다.
+                        <ul class="sub-items">
+                            <li>따뜻한 옷차림으로 준비해주세요</li>
+                            <li>개인 썰매 지참 가능</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#체험학습</span>
+                        <span class="hashtag">#겨울활동</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>굵은 테두리 + 떠오르는 효과</strong> - 주황색 테두리와 펄스 별 애니메이션
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>매우 강한 시각적 임팩트</li>
+                            <li>재미있는 애니메이션 효과</li>
+                            <li>선택 상태 매우 명확</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>과도할 수 있음</li>
+                            <li>주의를 너무 끌 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버전 5: 미니멀 우하단 체크 -->
+        <div class="version-section">
+            <div class="version-title">버전 5: 미니멀 우하단 체크마크</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">인성교육</span>
+                        <span class="like-count">❤️ 27</span>
+                    </div>
+                    <h3 class="card-title">친구와 함께하는 협력 프로젝트</h3>
+                    <div class="card-content">
+                        서로 도우며 함께 성장하는 협력의 가치를 배워봅시다.
+                        <ul class="sub-items">
+                            <li>팀별 역할 분담하기</li>
+                            <li>서로의 의견 존중하기</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#협력정신</span>
+                        <span class="hashtag">#배려</span>
+                    </div>
+                </div>
+                <div class="notice-card v5-selected">
+                    <div class="card-header">
+                        <span class="category-tag">인성교육</span>
+                        <span class="like-count">❤️ 27</span>
+                    </div>
+                    <h3 class="card-title">친구와 함께하는 협력 프로젝트</h3>
+                    <div class="card-content">
+                        서로 도우며 함께 성장하는 협력의 가치를 배워봅시다.
+                        <ul class="sub-items">
+                            <li>팀별 역할 분담하기</li>
+                            <li>서로의 의견 존중하기</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#협력정신</span>
+                        <span class="hashtag">#배려</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>우하단 미니멀 체크박스</strong> - 작고 깔끔한 사각 체크마크
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>매우 깔끔하고 미니멀</li>
+                            <li>콘텐츠를 방해하지 않음</li>
+                            <li>모던한 디자인</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>다소 눈에 띄지 않을 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버전 6: 그라데이션 테두리 -->
+        <div class="version-section">
+            <div class="version-title">버전 6: 그라데이션 테두리 + 하트 애니메이션</div>
+            <div class="cards-grid">
+                <div class="notice-card">
+                    <div class="card-header">
+                        <span class="category-tag">가정연계</span>
+                        <span class="like-count">❤️ 42</span>
+                    </div>
+                    <h3 class="card-title">가족과 함께하는 감사 인사</h3>
+                    <div class="card-content">
+                        가족에게 감사한 마음을 전하는 특별한 시간을 가져보세요.
+                        <ul class="sub-items">
+                            <li>가족에게 감사 편지 쓰기</li>
+                            <li>함께 요리하며 대화하기</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#가족소통</span>
+                        <span class="hashtag">#감사인사</span>
+                    </div>
+                </div>
+                <div class="notice-card v6-selected">
+                    <div class="card-header">
+                        <span class="category-tag">가정연계</span>
+                        <span class="like-count">❤️ 42</span>
+                    </div>
+                    <h3 class="card-title">가족과 함께하는 감사 인사</h3>
+                    <div class="card-content">
+                        가족에게 감사한 마음을 전하는 특별한 시간을 가져보세요.
+                        <ul class="sub-items">
+                            <li>가족에게 감사 편지 쓰기</li>
+                            <li>함께 요리하며 대화하기</li>
+                        </ul>
+                    </div>
+                    <div class="hashtags">
+                        <span class="hashtag">#가족소통</span>
+                        <span class="hashtag">#감사인사</span>
+                    </div>
+                </div>
+            </div>
+            <div class="description">
+                <strong>그라데이션 테두리 + 하트 박동</strong> - 화려한 그라데이션과 하트 애니메이션
+                <div class="pros-cons">
+                    <div class="pros">
+                        <h4>👍 장점</h4>
+                        <ul>
+                            <li>매우 독특하고 예쁜 디자인</li>
+                            <li>감정적 어필</li>
+                            <li>시선을 끄는 효과</li>
+                        </ul>
+                    </div>
+                    <div class="cons">
+                        <h4>👎 단점</h4>
+                        <ul>
+                            <li>교육 환경에는 과할 수 있음</li>
+                            <li>전문성이 떨어져 보일 수 있음</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 추천 정리 -->
+        <div class="version-section">
+            <div class="version-title">💡 추천 순위</div>
+            <div class="description">
+                <h3>교육용 앱에 가장 적합한 순서:</h3>
+                <ol style="padding-left: 2rem; line-height: 1.8;">
+                    <li><strong>버전 2 (원형 체크박스)</strong> - 가장 직관적이고 깔끔함</li>
+                    <li><strong>버전 5 (미니멀 우하단)</strong> - 콘텐츠 중심의 세련된 디자인</li>
+                    <li><strong>버전 3 (좌측 세로 바)</strong> - 모던하고 명확한 선택 표시</li>
+                    <li><strong>버전 1 (현재 스타일)</strong> - 현재 사용 중, 무난함</li>
+                    <li><strong>버전 4 (전체 테두리)</strong> - 임팩트는 강하지만 과할 수 있음</li>
+                    <li><strong>버전 6 (그라데이션)</strong> - 예쁘지만 교육 환경에는 부적절</li>
+                </ol>
+                
+                <h3 style="margin-top: 2rem;">구현 시 고려사항:</h3>
+                <ul style="padding-left: 2rem; line-height: 1.8;">
+                    <li>모든 버전에서 카드 크기가 변하지 않도록 box-sizing 유지</li>
+                    <li>애니메이션은 성능을 고려하여 적절히 사용</li>
+                    <li>접근성을 위해 충분한 색상 대비 확보</li>
+                    <li>터치 디바이스에서도 명확하게 보이도록 크기 조정</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

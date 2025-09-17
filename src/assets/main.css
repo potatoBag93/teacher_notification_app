@@ -1,0 +1,69 @@
+@import './base.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 프로젝트 전용 글로벌 스타일 */
+@layer base {
+  body {
+    @apply font-sans bg-gray-50 text-gray-900;
+  }
+}
+
+@layer components {
+  /* 카테고리 태그 스타일 */
+  .tag-안전 {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  .tag-생활지도 {
+    @apply bg-orange-50 text-orange-700 border-orange-200;
+  }
+  .tag-학습 {
+    @apply bg-green-50 text-green-700 border-green-200;
+  }
+  .tag-건강 {
+    @apply bg-purple-50 text-purple-700 border-purple-200;
+  }
+  .tag-행사 {
+    @apply bg-blue-50 text-blue-700 border-blue-200;
+  }
+  .tag-알림 {
+    @apply bg-yellow-50 text-yellow-700 border-yellow-200;
+  }
+  .tag-상담 {
+    @apply bg-pink-50 text-pink-700 border-pink-200;
+  }
+  .tag-칭찬 {
+    @apply bg-lime-50 text-lime-700 border-lime-200;
+  }
+  .tag-주의 {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  .tag-준비물 {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+  .tag-숙제 {
+    @apply bg-gray-50 text-gray-700 border-gray-200;
+  }
+  .tag-기타 {
+    @apply bg-neutral-50 text-neutral-700 border-neutral-200;
+  }
+  .tag-일반 {
+    @apply bg-slate-50 text-slate-700 border-slate-200;
+  }
+  
+  /* 블록 카드 스타일 */
+  .block-card {
+    @apply bg-white rounded-lg border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+  
+  /* 드래그 중인 요소 스타일 */
+  .sortable-ghost {
+    @apply opacity-50;
+  }
+  
+  .sortable-chosen {
+    @apply transform scale-105;
+  }
+}

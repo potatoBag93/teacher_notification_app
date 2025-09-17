@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통계 대시보드 - 교사용 알림장 도우미</title>
+    <link rel="stylesheet" href="../components/theme.css">
+    <link rel="stylesheet" href="../components/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .app-layout { 
+            display: flex; 
+            height: 100vh; 
+            background: var(--secondary-50); 
+        }
+        
+        /* 사이드바 */
+        .sidebar { 
+            width: 280px; 
+            background: var(--secondary-800); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: var(--shadow-lg); 
+        }
+        
+        .sidebar-header { 
+            padding: var(--space-6); 
+            border-bottom: 1px solid var(--secondary-700); 
+        }
+        
+        .sidebar-logo { 
+            font-size: var(--text-xl); 
+            font-weight: var(--font-bold); 
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .user-info { 
+            font-size: var(--text-sm); 
+            color: var(--secondary-300); 
+        }
+        
+        .sidebar-nav { 
+            flex: 1; 
+            padding: var(--space-6) 0; 
+        }
+        
+        .nav-section { 
+            margin-bottom: var(--space-8); 
+        }
+        
+        .nav-title { 
+            padding: 0 var(--space-6) var(--space-3); 
+            font-size: var(--text-xs); 
+            text-transform: uppercase; 
+            color: var(--secondary-400); 
+            font-weight: var(--font-semibold); 
+        }
+        
+        .nav-item { 
+            padding: var(--space-3) var(--space-6); 
+            cursor: pointer; 
+            transition: all var(--duration-fast) var(--ease-in-out); 
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .nav-item:hover { 
+            background: var(--secondary-700); 
+        }
+        
+        .nav-item.active { 
+            background: var(--primary-600); 
+            border-left-color: var(--primary-400); 
+        }
+        
+        /* 메인 콘텐츠 */
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        
+        .top-bar { 
+            background: white; 
+            padding: var(--space-4) var(--space-6); 
+            border-bottom: 1px solid var(--secondary-200); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+        
+        .page-title {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-bold);
+            color: var(--secondary-900);
+        }
+        
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-6);
+        }
+        
+        /* 통계 대시보드 레이아웃 */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: var(--space-6);
+            height: 100%;
+        }
+        
+        .main-stats {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+        
+        .sidebar-stats {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+        
+        /* 상단 요약 통계 */
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+        }
+        
+        /* 차트 영역 */
+        .chart-section {
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--secondary-200);
+        }
+        
+        .chart-title {
+            font-size: var(--text-xl);
+            font-weight: var(--font-semibold);
+            color: var(--secondary-900);
+        }
+        
+        .chart-placeholder {
+            height: 300px;
+            background: var(--secondary-50);
+            border: 2px dashed var(--secondary-300);
+            border-radius: var(--rounded-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary-500);
+            font-size: var(--text-lg);
+        }
+        
+        /* 카테고리별 사용 현황 */
+        .category-usage {
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .usage-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--secondary-100);
+        }
+        
+        .usage-item:last-child {
+            border-bottom: none;
+        }
+        
+        .usage-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+        
+        .usage-progress {
+            flex: 1;
+            height: 8px;
+            background: var(--secondary-200);
+            border-radius: var(--rounded-full);
+            margin: 0 var(--space-4);
+            overflow: hidden;
+        }
+        
+        .usage-progress-bar {
+            height: 100%;
+            border-radius: var(--rounded-full);
+            transition: width var(--duration-normal) var(--ease-out);
+        }
+        
+        .usage-count {
+            font-weight: var(--font-medium);
+            color: var(--secondary-700);
+            min-width: 60px;
+            text-align: right;
+        }
+        
+        /* 최근 활동 */
+        .recent-activity {
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--secondary-100);
+        }
+        
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--rounded-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--text-sm);
+        }
+        
+        .activity-content {
+            flex: 1;
+        }
+        
+        .activity-text {
+            font-size: var(--text-sm);
+            color: var(--secondary-700);
+            margin-bottom: var(--space-1);
+        }
+        
+        .activity-time {
+            font-size: var(--text-xs);
+            color: var(--secondary-500);
+        }
+        
+        /* 추천 섹션 */
+        .recommendations {
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .recommendation-item {
+            background: var(--info) / 0.05;
+            border: 1px solid var(--info) / 0.2;
+            border-radius: var(--rounded-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+        
+        .recommendation-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .recommendation-text {
+            font-size: var(--text-sm);
+            color: var(--secondary-700);
+            margin-bottom: var(--space-2);
+        }
+        
+        .recommendation-action {
+            font-size: var(--text-xs);
+            color: var(--info);
+            text-decoration: none;
+            font-weight: var(--font-medium);
+        }
+        
+        .recommendation-action:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span style="font-size: 24px;">📊</span>
+                    사용 통계
+                </div>
+                <div class="user-info">김선생님의 사용 현황</div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-title">메뉴</div>
+                    <div class="nav-item" onclick="location.href='main.html'">
+                        <span class="nav-item-icon">🏠</span>메인 화면
+                    </div>
+                    <div class="nav-item" onclick="location.href='edit-notice.html'">
+                        <span class="nav-item-icon">✏️</span>문구 편집
+                    </div>
+                    <div class="nav-item" onclick="location.href='my-notices.html'">
+                        <span class="nav-item-icon">💾</span>내 컬렉션
+                    </div>
+                    <div class="nav-item active">
+                        <span class="nav-item-icon">📊</span>사용 통계
+                    </div>
+                    <div class="nav-item" onclick="location.href='feedback.html'">
+                        <span class="nav-item-icon">💡</span>피드백
+                    </div>
+                </div>
+                
+                <div style="margin-top: auto; padding: var(--space-6);">
+                    <button class="btn btn-secondary" onclick="location.href='login.html'" style="width: 100%; background: var(--secondary-700); border-color: var(--secondary-600); color: white;">로그아웃</button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <div class="top-bar">
+                <h1 class="page-title">📊 내 알림장 사용 분석</h1>
+                <div class="top-actions">
+                    <button class="btn btn-outline">📅 기간 설정</button>
+                    <button class="btn btn-outline">📤 리포트 내보내기</button>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="dashboard-layout">
+                    <!-- 메인 통계 영역 -->
+                    <div class="main-stats">
+                        <!-- 상단 요약 통계 -->
+                        <div class="summary-stats">
+                            <div class="stats-card">
+                                <div class="stats-icon">📝</div>
+                                <div class="stats-content">
+                                    <div class="stats-number">47</div>
+                                    <div class="stats-label">총 사용</div>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">💾</div>
+                                <div class="stats-content">
+                                    <div class="stats-number">12</div>
+                                    <div class="stats-label">저장한 문구</div>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">🌐</div>
+                                <div class="stats-content">
+                                    <div class="stats-number">3</div>
+                                    <div class="stats-label">공유한 문구</div>
+                                </div>
+                            </div>
+                            <div class="stats-card">
+                                <div class="stats-icon">❤️</div>
+                                <div class="stats-content">
+                                    <div class="stats-number">28</div>
+                                    <div class="stats-label">받은 좋아요</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 차트 영역 -->
+                        <div class="chart-section">
+                            <div class="chart-header">
+                                <h2 class="chart-title">📈 월별 사용 추이</h2>
+                                <select class="select-field">
+                                    <option>최근 6개월</option>
+                                    <option>최근 1년</option>
+                                    <option>전체 기간</option>
+                                </select>
+                            </div>
+                            <div class="chart-placeholder">
+                                📊 월별 사용량 차트<br>
+                                <small style="color: var(--secondary-400);">Chart.js 연동 예정</small>
+                            </div>
+                        </div>
+
+                        <!-- 카테고리별 사용 현황 -->
+                        <div class="category-usage">
+                            <div class="chart-header">
+                                <h2 class="chart-title">🏷️ 카테고리별 사용 현황</h2>
+                                <span style="font-size: var(--text-sm); color: var(--secondary-500);">클릭하면 상세 문구 목록 표시</span>
+                            </div>
+                            
+                            <div class="usage-item">
+                                <div class="usage-label">
+                                    <span class="tag tag-safety">안전</span>
+                                </div>
+                                <div class="usage-progress">
+                                    <div class="usage-progress-bar" style="width: 38.3%; background: var(--tag-safety-text);"></div>
+                                </div>
+                                <div class="usage-count">18회 (38.3%)</div>
+                            </div>
+                            
+                            <div class="usage-item">
+                                <div class="usage-label">
+                                    <span class="tag tag-life">생활지도</span>
+                                </div>
+                                <div class="usage-progress">
+                                    <div class="usage-progress-bar" style="width: 31.9%; background: var(--tag-life-text);"></div>
+                                </div>
+                                <div class="usage-count">15회 (31.9%)</div>
+                            </div>
+                            
+                            <div class="usage-item">
+                                <div class="usage-label">
+                                    <span class="tag tag-study">학습</span>
+                                </div>
+                                <div class="usage-progress">
+                                    <div class="usage-progress-bar" style="width: 17.0%; background: var(--tag-study-text);"></div>
+                                </div>
+                                <div class="usage-count">8회 (17.0%)</div>
+                            </div>
+                            
+                            <div class="usage-item">
+                                <div class="usage-label">
+                                    <span class="tag tag-health">건강</span>
+                                </div>
+                                <div class="usage-progress">
+                                    <div class="usage-progress-bar" style="width: 12.8%; background: var(--tag-health-text);"></div>
+                                </div>
+                                <div class="usage-count">6회 (12.8%)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 사이드바 통계 영역 -->
+                    <div class="sidebar-stats">
+                        <!-- 최근 활동 -->
+                        <div class="recent-activity">
+                            <div class="chart-header">
+                                <h3 class="chart-title">🕒 최근 활동</h3>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: var(--tag-safety-bg); color: var(--tag-safety-text);">
+                                    🏊‍♂️
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">물놀이 안전수칙 사용</div>
+                                    <div class="activity-time">2시간 전</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: var(--tag-life-bg); color: var(--tag-life-text);">
+                                    ⏰
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">규칙적인 생활 문구 편집</div>
+                                    <div class="activity-time">어제</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: var(--tag-praise-bg); color: var(--tag-praise-text);">
+                                    👏
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">새 칭찬 문구 작성</div>
+                                    <div class="activity-time">3일 전</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: var(--tag-health-bg); color: var(--tag-health-text);">
+                                    🌡️
+                                </div>
+                                <div class="activity-content">
+                                    <div class="activity-text">폭염 주의 문구 공유</div>
+                                    <div class="activity-time">1주일 전</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 추천 섹션 -->
+                        <div class="recommendations">
+                            <div class="chart-header">
+                                <h3 class="chart-title">💡 추천</h3>
+                            </div>
+                            
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    <strong>환경 교육</strong> 관련 문구를 아직 사용하지 않으셨네요!
+                                </div>
+                                <a href="#" class="recommendation-action">환경 교육 문구 보기 →</a>
+                            </div>
+                            
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    이번 달 <strong>안전 문구</strong>를 많이 사용하셨어요. 비슷한 주제의 새 문구를 확인해보세요.
+                                </div>
+                                <a href="#" class="recommendation-action">관련 문구 탐색 →</a>
+                            </div>
+                            
+                            <div class="recommendation-item">
+                                <div class="recommendation-text">
+                                    작성하신 문구가 다른 선생님들에게 <strong>15개의 좋아요</strong>를 받았어요!
+                                </div>
+                                <a href="#" class="recommendation-action">내 문구 현황 보기 →</a>
+                            </div>
+                        </div>
+
+                        <!-- 사용하지 않은 카테고리 -->
+                        <div class="category-usage">
+                            <div class="chart-header">
+                                <h3 class="chart-title">🎯 아직 미사용 카테고리</h3>
+                            </div>
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
+                                <span class="tag tag-event">행사</span>
+                                <span class="tag tag-counsel">상담</span>
+                                <span class="tag tag-supplies">준비물</span>
+                                <span class="tag tag-other">기타</span>
+                            </div>
+                            
+                            <div style="margin-top: var(--space-4);">
+                                <button class="btn btn-outline" style="width: 100%;">새로운 카테고리 탐색</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 카테고리 클릭 시 상세 보기
+        function showCategoryDetails(category) {
+            alert(`${category} 카테고리의 상세 사용 내역을 보여줍니다.`);
+        }
+        
+        // 차트 데이터 (실제 구현 시 Chart.js 사용)
+        const chartData = {
+            labels: ['3월', '4월', '5월', '6월', '7월', '8월'],
+            datasets: [{
+                label: '문구 사용 횟수',
+                data: [5, 8, 12, 15, 18, 12],
+                borderColor: 'var(--primary-500)',
+                backgroundColor: 'var(--primary-100)',
+                tension: 0.4
+            }]
+        };
+        
+        // 프로그레스 바 애니메이션
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBars = document.querySelectorAll('.usage-progress-bar');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>

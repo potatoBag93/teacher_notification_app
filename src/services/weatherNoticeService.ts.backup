@@ -1,0 +1,373 @@
+/**
+ * 날씨 기반 공지사항 생성 서비스
+ * 
+ * 사용자의 학교 위치 날씨를 기반으로
+ * 데이터베이스에서 적절한 날씨 문구를 선택합니다.
+ */
+
+import type { Notice, Category } from '../data/notices'
+import { WeatherService, type WeatherData } from './weatherService'
+import { NoticeService } from './noticeService'
+
+export class WeatherNoticeService {
+  
+  /**
+   * 사용자 학교 위치 기반 날씨 공지사항 생성
+   */
+  static async generateWeatherNotices(schoolLat: number, schoolLng: number): Promise<Notice[]> {
+    console.log('🌤️📝 날씨 기반 공지사항 생성 시작')
+    
+    try {
+      // 1. 날씨 정보 가져오기
+      const weather = await WeatherService.getWeatherByLocation(schoolLat, schoolLng)
+      if (!weather) {
+        console.warn('날씨 정보를 가져올 수 없어 공지사항을 생성하지 않습니다.')
+        return []
+      }
+      
+      console.log(`🌤️📝 현재 날씨: ${weather.condition}, ${weather.temperature}°C, 습도 ${weather.humidity}%, 풍속 ${weather.windSpeed}m/s`)
+      
+      // 2. 데이터베이스에서 날씨 문구들 조회
+      const weatherNotices = await NoticeService.getNotices({
+        weatherNoticesOnly: true
+      })
+      
+      // 3. 조건에 맞는 문구 필터링
+      const matchingNotices = weatherNotices.filter(notice => 
+        this.isWeatherConditionMatch(weather, notice.weather_conditions)
+      )
+      
+      console.log(`🌤️📝 조건에 맞는 날씨 문구 ${matchingNotices.length}개 발견`)
+      
+      // 4. 상위 3개만 반환
+      return matchingNotices.slice(0, 3)
+      
+    } catch (error) {
+      console.error('🌤️📝 날씨 기반 공지사항 생성 실패:', error)
+      return []
+    }
+  }
+
+  /**
+   * 날씨 조건이 문구 조건과 일치하는지 확인
+   */
+  private static isWeatherConditionMatch(weather: WeatherData, conditions: any): boolean {
+    if (!conditions) return false
+    
+    // 온도 조건 체크
+    if (conditions.temperature) {
+      if (conditions.temperature.min && weather.temperature < conditions.temperature.min) {
+        return false
+      }
+      if (conditions.temperature.max && weather.temperature > conditions.temperature.max) {
+        return false
+      }
+    }
+    
+    // 날씨 상태 조건 체크
+    if (conditions.condition && !conditions.condition.includes(weather.condition)) {
+      return false
+    }
+    
+    // 풍속 조건 체크
+    if (conditions.windSpeed?.min && weather.windSpeed < conditions.windSpeed.min) {
+      return false
+    }
+
+    // 습도 조건 체크
+    if (conditions.humidity?.min && weather.humidity < conditions.humidity.min) {
+      return false
+    }
+    
+    return true
+  }
+
+  /**
+   * 날씨 기반 키워드 생성 (참고용)
+   */
+  static generateWeatherKeywords(weather: WeatherData): string[] {
+    const keywords: string[] = []
+
+    // 온도 기반 키워드
+    if (weather.temperature >= 30) {
+      keywords.push('폭염', '더위', '수분섭취', '그늘', '휴식')
+    } else if (weather.temperature >= 25) {
+      keywords.push('무더위', '시원함', '물마시기')
+    } else if (weather.temperature <= 5) {
+      keywords.push('한파', '추위', '보온', '따뜻함')
+    } else if (weather.temperature <= 10) {
+      keywords.push('추위', '외투', '체온유지')
+    }
+
+    // 날씨 상태 기반 키워드
+    if (weather.condition.includes('비')) {
+      keywords.push('우산', '미끄러짐', '안전', '우비')
+    }
+    if (weather.condition.includes('눈')) {
+      keywords.push('눈길', '미끄러짐', '보온', '안전')
+    }
+
+    // 바람 기반 키워드
+    if (weather.windSpeed >= 8) {
+      keywords.push('강풍', '안전', '고정', '주의')
+    }
+
+    // 습도 기반 키워드
+    if (weather.humidity >= 80) {
+      keywords.push('습도', '환기', '쾌적', '위생')
+    }
+
+    return keywords
+  }
+      
+      console.log(`🌤️📝 날씨 기반 공지사항 ${notices.length}개 생성 완료`)
+      return notices
+      
+    } catch (error) {
+      console.error('🌤️📝 날씨 기반 공지사항 생성 실패:', error)
+      return []
+    }
+  }
+  
+  /**
+   * 날씨 조건에 따른 템플릿 선택
+   */
+  private static selectWeatherTemplates(weather: WeatherData, conditions: any): WeatherNoticeTemplate[] {
+    const templates: WeatherNoticeTemplate[] = []
+    
+    // 폭염 주의보
+    if (weather.temperature >= 33) {
+      const heatTemplates = [
+        {
+          id: 'heat_01',
+          title: '🌡️ 폭염 주의보 발령',
+          content: `오늘 기온이 ${weather.temperature}°C까지 올라갈 예정입니다. 폭염으로 인한 온열질환 예방에 각별히 주의해주세요.`,
+          subItems: [
+            '충분한 수분 섭취하기',
+            '외출 시 양산이나 모자 착용',
+            '무리한 야외활동 자제',
+            '시원한 그늘에서 휴식',
+            '몸에 이상 증상 시 즉시 보건실 방문'
+          ],
+          tags: ['안전', '건강', '알림'] as Category[],
+          priority: 1,
+          icon: '🌡️'
+        },
+        {
+          id: 'heat_02', 
+          title: '☀️ 무더위 특보 - 건강관리 필수',
+          content: `현재 기온 ${weather.temperature}°C, 체감온도 ${weather.feelsLike}°C의 무더위가 계속됩니다. 학생 여러분의 건강을 위해 다음 사항을 지켜주세요.`,
+          subItems: [
+            '물을 자주 마시기 (갈증을 느끼기 전에)',
+            '땀을 많이 흘렸다면 이온음료 섭취',
+            '점심시간 외부활동 최소화',
+            '교실 에어컨 적정온도 유지',
+            '어지럽거나 메스꺼우면 즉시 신고'
+          ],
+          tags: ['건강', '생활지도', '주의'] as Category[],
+          priority: 1,
+          icon: '☀️'
+        },
+        {
+          id: 'heat_03',
+          title: '🔥 극심한 더위 - 안전수칙 준수',
+          content: `오늘 최고기온이 ${weather.temperature}°C로 매우 높습니다. 열사병과 탈수 예방을 위해 안전수칙을 철저히 지켜주세요.`,
+          subItems: [
+            '30분마다 물 한 컵씩 마시기',
+            '체육시간 강도 조절',
+            '그늘진 곳에서 활동하기',
+            '냉방시설 적극 이용',
+            '두통·현기증 시 즉시 휴식'
+          ],
+          tags: ['안전', '체육', '건강'] as Category[],
+          priority: 1,
+          icon: '🔥'
+        }
+      ]
+      const randomIndex = Math.floor(Math.random() * heatTemplates.length)
+      templates.push(heatTemplates[randomIndex])
+    }
+    
+    // 한파 주의보
+    else if (weather.temperature <= 0) {
+      const coldTemplates = [
+        {
+          id: 'cold_01',
+          title: '❄️ 한파 특보 발령',
+          content: `오늘 기온이 ${weather.temperature}°C로 매우 춥습니다. 동상과 감기 예방을 위해 보온에 신경써주세요.`,
+          subItems: [
+            '외출 시 두꺼운 외투 착용',
+            '목도리, 장갑, 모자 준비',
+            '실내외 온도차로 인한 감기 주의',
+            '따뜻한 음료 섭취',
+            '젖은 옷은 즉시 갈아입기'
+          ],
+          tags: ['안전', '건강', '알림'] as Category[],
+          priority: 1,
+          icon: '❄️'
+        },
+        {
+          id: 'cold_02',
+          title: '🧊 극한 추위 - 체온 유지 필수',
+          content: `현재 기온 ${weather.temperature}°C, 체감온도는 더욱 낮습니다. 동상 위험이 있으니 각별한 주의가 필요합니다.`,
+          subItems: [
+            '얇은 옷을 여러 겹 착용',
+            '손과 발끝 보온 철저히',
+            '야외활동 시간 단축',
+            '실내 활동 늘리기',
+            '따뜻한 물로 손 씻기'
+          ],
+          tags: ['안전', '생활지도', '주의'] as Category[],
+          priority: 1,
+          icon: '🧊'
+        }
+      ]
+      const randomIndex = Math.floor(Math.random() * coldTemplates.length)
+      templates.push(coldTemplates[randomIndex])
+    }
+    
+    // 비/우천 시
+    else if (conditions.isRaining) {
+      const rainTemplates = [
+        {
+          id: 'rain_01',
+          title: '🌧️ 우천 시 안전수칙',
+          content: `비가 내리고 있습니다. 미끄러짐 사고 예방과 안전한 등하교를 위해 다음 사항을 지켜주세요.`,
+          subItems: [
+            '우산 또는 우비 착용',
+            '복도와 계단에서 천천히 걷기',
+            '신발 밑창 물기 제거',
+            '젖은 우산은 지정된 곳에 보관',
+            '차도에서 떨어져 걷기'
+          ],
+          tags: ['안전', '교통', '알림'] as Category[],
+          priority: 2,
+          icon: '🌧️'
+        },
+        {
+          id: 'rain_02',
+          title: '☔ 비오는 날 생활수칙',
+          content: `우천으로 인해 실외활동이 제한됩니다. 실내에서 안전하고 의미있는 시간을 보내도록 합시다.`,
+          subItems: [
+            '우산 챙기고 등하교',
+            '물웅덩이 피해 다니기',
+            '실내화로 갈아신기',
+            '젖은 물건 잘 말리기',
+            '독서나 실내게임 즐기기'
+          ],
+          tags: ['생활지도', '알림'] as Category[],
+          priority: 2,
+          icon: '☔'
+        }
+      ]
+      const randomIndex = Math.floor(Math.random() * rainTemplates.length)
+      templates.push(rainTemplates[randomIndex])
+    }
+    
+    // 강풍 주의
+    else if (conditions.isWindy) {
+      templates.push({
+        id: 'wind_01',
+        title: '💨 강풍 주의보',
+        content: `강한 바람이 불고 있습니다 (풍속 ${weather.windSpeed.toFixed(1)}m/s). 낙하물과 날아오는 물건에 주의해주세요.`,
+        subItems: [
+          '건물 주변 낙하물 주의',
+          '우산 사용 시 조심',
+          '모자나 가벼운 물건 단단히 고정',
+          '야외활동 자제',
+          '안전한 곳에서 대기'
+        ],
+        tags: ['안전', '주의', '알림'] as Category[],
+        priority: 2,
+        icon: '💨'
+      })
+    }
+    
+    // 더운 날씨 (폭염은 아님)
+    else if (conditions.isHot) {
+      const hotTemplates = [
+        {
+          id: 'hot_01',
+          title: '🌞 무더위 안전수칙',
+          content: `오늘 기온이 ${weather.temperature}°C로 더워질 예정입니다. 건강한 하루를 위해 더위 예방법을 실천해주세요.`,
+          subItems: [
+            '물을 충분히 마시기',
+            '그늘에서 휴식하기',
+            '가벼운 옷차림',
+            '과도한 운동 피하기',
+            '시원한 곳에서 활동'
+          ],
+          tags: ['건강', '생활지도'] as Category[],
+          priority: 3,
+          icon: '🌞'
+        },
+        {
+          id: 'hot_02',
+          title: '🌻 더운 날씨 건강관리',
+          content: `따뜻한 날씨입니다 (${weather.temperature}°C). 활동적인 하루를 보내되 건강관리도 함께 해주세요.`,
+          subItems: [
+            '수분 보충 자주하기',
+            '모자나 양산 활용',
+            '점심시간 그늘 이용',
+            '냉방기 적절히 사용',
+            '몸의 신호 귀기울이기'
+          ],
+          tags: ['건강', '알림'] as Category[],
+          priority: 3,
+          icon: '🌻'
+        }
+      ]
+      const randomIndex = Math.floor(Math.random() * hotTemplates.length)
+      templates.push(hotTemplates[randomIndex])
+    }
+    
+    return templates
+  }
+  
+  /**
+   * 템플릿을 Notice 형태로 변환
+   */
+  private static createNoticeFromTemplate(template: WeatherNoticeTemplate, weather: WeatherData): Notice {
+    const now = new Date()
+    
+    return {
+      id: `weather_${template.id}_${now.getTime()}`,
+      title: template.title,
+      content: template.content,
+      tags: template.tags,
+      author: '🤖 날씨 기반 생성',
+      likeCount: 0,
+      subItems: template.subItems,
+      createdAt: now,
+      isRecommended: template.priority <= 2, // 우선순위 1,2는 추천으로 표시
+      isPopular: false,
+      usageCount: 0
+    }
+  }
+  
+  /**
+   * 날씨 아이콘 반환
+   */
+  static getWeatherIcon(condition: string): string {
+    const iconMap: Record<string, string> = {
+      '맑음': '☀️',
+      '구름많음': '⛅',
+      '흐림': '☁️', 
+      '비': '🌧️',
+      '소나기': '🌦️',
+      '눈': '❄️',
+      '안개': '🌫️',
+      '뇌우': '⛈️'
+    }
+    
+    return iconMap[condition] || '🌤️'
+  }
+  
+  /**
+   * 날씨 상태 메시지 생성
+   */
+  static generateWeatherStatusMessage(weather: WeatherData): string {
+    const icon = this.getWeatherIcon(weather.condition)
+    return `${icon} ${weather.condition} ${weather.temperature}°C (${weather.location})`
+  }
+}

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카드 레이아웃 개선안 목업</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .mockup-section {
+            margin-bottom: 60px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .mockup-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 10px;
+        }
+        
+        .mockup-description {
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+        
+        .pros { color: #059669; }
+        .cons { color: #dc2626; }
+        
+        /* 공통 카드 스타일 */
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            border-left: 4px solid #3b82f6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin: 8px;
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card-number {
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+        
+        .card-content {
+            color: #475569;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: #f8fafc;
+            border-radius: 4px;
+        }
+        
+        .card-sub-items {
+            margin-left: 16px;
+        }
+        
+        .card-sub-item {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        
+        /* 방안 1: 동적 높이 계산 */
+        .method1-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .method1-card {
+            flex: 0 0 320px;
+            transition: all 0.3s ease;
+        }
+        
+        .method1-card.unified {
+            height: 280px; /* JavaScript로 계산된 최대 높이 */
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .method1-card .card-content {
+            flex: 1;
+        }
+        
+        /* 방안 2: CSS Grid */
+        .method2-container {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: 1fr;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            min-height: 300px;
+        }
+        
+        .method2-card {
+            width: 320px;
+            align-self: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .method2-card .card-content {
+            flex: 1;
+        }
+        
+        /* 방안 3: 단계별 높이 시스템 */
+        .method3-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .method3-card {
+            flex: 0 0 320px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .method3-card.size-small { height: 200px; }
+        .method3-card.size-medium { height: 280px; }
+        .method3-card.size-large { height: 360px; }
+        
+        .method3-card .card-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .method3-card .card-sub-items {
+            margin-top: auto;
+        }
+        
+        /* 방안 4: Flexbox + 실시간 측정 */
+        .method4-container {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            align-items: flex-start;
+        }
+        
+        .method4-card {
+            flex: 0 0 320px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            transition: height 0.3s ease;
+        }
+        
+        .method4-card .card-content {
+            flex: 1;
+        }
+        
+        /* 시뮬레이션 버튼 */
+        .simulation-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 12px;
+        }
+        
+        .simulation-btn:hover {
+            background: #2563eb;
+        }
+        
+        /* 높이 표시 */
+        .height-indicator {
+            position: absolute;
+            right: 4px;
+            top: 4px;
+            background: rgba(59, 130, 246, 0.8);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        
+        .card {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; color: #1e40af; margin-bottom: 40px;">🎯 카드 높이 통일 개선안 목업</h1>
+    
+    <!-- 방안 1: 동적 높이 계산 -->
+    <div class="mockup-section">
+        <div class="mockup-title">🥇 방안 1: 동적 높이 계산 (JavaScript)</div>
+        <div class="mockup-description">
+            실제 렌더링된 카드들의 높이를 JavaScript로 측정하고 가장 높은 값으로 통일
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                ✅ 실제 내용에 기반한 최적 높이<br>
+                ✅ 여백 최소화<br>
+                ✅ 완벽한 높이 통일<br>
+                ✅ 내용 변경 시 자동 재계산
+            </div>
+            <div class="cons">
+                ❌ DOM 조작 필요<br>
+                ❌ 약간의 성능 오버헤드<br>
+                ❌ 초기 렌더링 후 높이 조정 필요
+            </div>
+        </div>
+        
+        <button class="simulation-btn" onclick="simulateMethod1()">📏 높이 측정 및 통일 시뮬레이션</button>
+        <button class="simulation-btn" onclick="resetMethod1()">🔄 초기화</button>
+        
+        <div class="method1-container" id="method1-container">
+            <div class="method1-card card">
+                <div class="height-indicator" id="height1">auto</div>
+                <div class="card-title">
+                    <span class="card-number">1</span>
+                    오늘의 과제 안내
+                </div>
+                <div class="card-content">
+                    수학 문제집 23-25페이지를 풀어오세요.
+                </div>
+            </div>
+            
+            <div class="method1-card card">
+                <div class="height-indicator" id="height2">auto</div>
+                <div class="card-title">
+                    <span class="card-number">2</span>
+                    내일 준비물 안내
+                </div>
+                <div class="card-content">
+                    내일은 과학 실험이 있습니다. 실험복과 보안경을 꼭 가져오세요. 실험 도구는 학교에서 준비하니 따로 가져올 필요 없습니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 실험복</div>
+                    <div class="card-sub-item">• 보안경</div>
+                    <div class="card-sub-item">• 실험 노트</div>
+                </div>
+            </div>
+            
+            <div class="method1-card card">
+                <div class="height-indicator" id="height3">auto</div>
+                <div class="card-title">
+                    <span class="card-number">3</span>
+                    체험학습 안내
+                </div>
+                <div class="card-content">
+                    다음 주 금요일에 과학관 견학을 갑니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 준비물: 필기구, 물</div>
+                    <div class="card-sub-item">• 복장: 편한 운동화</div>
+                    <div class="card-sub-item">• 시간: 오전 9시 출발</div>
+                    <div class="card-sub-item">• 장소: 국립과천과학관</div>
+                    <div class="card-sub-item">• 점심: 도시락 지참</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 방안 2: CSS Grid -->
+    <div class="mockup-section">
+        <div class="mockup-title">🥈 방안 2: CSS Grid 활용</div>
+        <div class="mockup-description">
+            CSS Grid의 grid-template-rows: 1fr을 사용하여 모든 카드가 같은 행 높이를 가지도록 설정
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                ✅ CSS만으로 해결<br>
+                ✅ 자동 높이 통일<br>
+                ✅ 성능 우수<br>
+                ✅ 브라우저 지원 좋음
+            </div>
+            <div class="cons">
+                ❌ 기존 flex 구조 변경 필요<br>
+                ❌ 가로 스크롤 구현 복잡<br>
+                ❌ 드래그 스크롤과 충돌 가능
+            </div>
+        </div>
+        
+        <div class="method2-container">
+            <div class="method2-card card">
+                <div class="height-indicator">Grid 1fr</div>
+                <div class="card-title">
+                    <span class="card-number">1</span>
+                    오늘의 과제 안내
+                </div>
+                <div class="card-content">
+                    수학 문제집 23-25페이지를 풀어오세요.
+                </div>
+            </div>
+            
+            <div class="method2-card card">
+                <div class="height-indicator">Grid 1fr</div>
+                <div class="card-title">
+                    <span class="card-number">2</span>
+                    내일 준비물 안내
+                </div>
+                <div class="card-content">
+                    내일은 과학 실험이 있습니다. 실험복과 보안경을 꼭 가져오세요. 실험 도구는 학교에서 준비하니 따로 가져올 필요 없습니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 실험복</div>
+                    <div class="card-sub-item">• 보안경</div>
+                    <div class="card-sub-item">• 실험 노트</div>
+                </div>
+            </div>
+            
+            <div class="method2-card card">
+                <div class="height-indicator">Grid 1fr</div>
+                <div class="card-title">
+                    <span class="card-number">3</span>
+                    체험학습 안내
+                </div>
+                <div class="card-content">
+                    다음 주 금요일에 과학관 견학을 갑니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 준비물: 필기구, 물</div>
+                    <div class="card-sub-item">• 복장: 편한 운동화</div>
+                    <div class="card-sub-item">• 시간: 오전 9시 출발</div>
+                    <div class="card-sub-item">• 장소: 국립과천과학관</div>
+                    <div class="card-sub-item">• 점심: 도시락 지참</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 방안 3: 단계별 높이 시스템 -->
+    <div class="mockup-section">
+        <div class="mockup-title">🥉 방안 3: 단계별 높이 시스템</div>
+        <div class="mockup-description">
+            내용량에 따라 S, M, L 크기로 분류하여 각각 다른 높이 적용 (Small: 200px, Medium: 280px, Large: 360px)
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                ✅ 예측 가능한 높이<br>
+                ✅ 깔끔한 정렬<br>
+                ✅ 관리하기 쉬움<br>
+                ✅ 성능 좋음
+            </div>
+            <div class="cons">
+                ❌ 세밀한 조정 필요<br>
+                ❌ 여백이 많을 수 있음<br>
+                ❌ 경계선 카드의 애매함
+            </div>
+        </div>
+        
+        <button class="simulation-btn" onclick="toggleSizes()">📐 크기 분류 토글</button>
+        
+        <div class="method3-container">
+            <div class="method3-card card size-small">
+                <div class="height-indicator">Small (200px)</div>
+                <div class="card-title">
+                    <span class="card-number">1</span>
+                    오늘의 과제 안내
+                </div>
+                <div class="card-content">
+                    수학 문제집 23-25페이지를 풀어오세요.
+                </div>
+            </div>
+            
+            <div class="method3-card card size-medium">
+                <div class="height-indicator">Medium (280px)</div>
+                <div class="card-title">
+                    <span class="card-number">2</span>
+                    내일 준비물 안내
+                </div>
+                <div class="card-content">
+                    내일은 과학 실험이 있습니다. 실험복과 보안경을 꼭 가져오세요. 실험 도구는 학교에서 준비하니 따로 가져올 필요 없습니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 실험복</div>
+                    <div class="card-sub-item">• 보안경</div>
+                    <div class="card-sub-item">• 실험 노트</div>
+                </div>
+            </div>
+            
+            <div class="method3-card card size-large">
+                <div class="height-indicator">Large (360px)</div>
+                <div class="card-title">
+                    <span class="card-number">3</span>
+                    체험학습 안내
+                </div>
+                <div class="card-content">
+                    다음 주 금요일에 과학관 견학을 갑니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 준비물: 필기구, 물</div>
+                    <div class="card-sub-item">• 복장: 편한 운동화</div>
+                    <div class="card-sub-item">• 시간: 오전 9시 출발</div>
+                    <div class="card-sub-item">• 장소: 국립과천과학관</div>
+                    <div class="card-sub-item">• 점심: 도시락 지참</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 방안 4: Flexbox + 실시간 측정 -->
+    <div class="mockup-section">
+        <div class="mockup-title">🏆 방안 4: Flexbox + 실시간 측정 (하이브리드)</div>
+        <div class="mockup-description">
+            기본은 자연스러운 높이로 두고, 필요시 JavaScript로 실시간 높이 측정 후 통일. 기존 구조 유지하면서 최적화
+        </div>
+        <div class="pros-cons">
+            <div class="pros">
+                ✅ 자연스러운 배치<br>
+                ✅ 기존 구조 유지<br>
+                ✅ 선택적 높이 통일<br>
+                ✅ 성능과 UX 균형
+            </div>
+            <div class="cons">
+                ❌ 복잡한 로직<br>
+                ❌ 상태 관리 필요
+            </div>
+        </div>
+        
+        <button class="simulation-btn" onclick="toggleMethod4Unity()">🔄 높이 통일 토글</button>
+        <button class="simulation-btn" onclick="animateMethod4()">✨ 통일 애니메이션</button>
+        
+        <div class="method4-container" id="method4-container">
+            <div class="method4-card card">
+                <div class="height-indicator" id="method4-height1">auto</div>
+                <div class="card-title">
+                    <span class="card-number">1</span>
+                    오늘의 과제 안내
+                </div>
+                <div class="card-content">
+                    수학 문제집 23-25페이지를 풀어오세요.
+                </div>
+            </div>
+            
+            <div class="method4-card card">
+                <div class="height-indicator" id="method4-height2">auto</div>
+                <div class="card-title">
+                    <span class="card-number">2</span>
+                    내일 준비물 안내
+                </div>
+                <div class="card-content">
+                    내일은 과학 실험이 있습니다. 실험복과 보안경을 꼭 가져오세요. 실험 도구는 학교에서 준비하니 따로 가져올 필요 없습니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 실험복</div>
+                    <div class="card-sub-item">• 보안경</div>
+                    <div class="card-sub-item">• 실험 노트</div>
+                </div>
+            </div>
+            
+            <div class="method4-card card">
+                <div class="height-indicator" id="method4-height3">auto</div>
+                <div class="card-title">
+                    <span class="card-number">3</span>
+                    체험학습 안내
+                </div>
+                <div class="card-content">
+                    다음 주 금요일에 과학관 견학을 갑니다.
+                </div>
+                <div class="card-sub-items">
+                    <div class="card-sub-item">• 준비물: 필기구, 물</div>
+                    <div class="card-sub-item">• 복장: 편한 운동화</div>
+                    <div class="card-sub-item">• 시간: 오전 9시 출발</div>
+                    <div class="card-sub-item">• 장소: 국립과천과학관</div>
+                    <div class="card-sub-item">• 점심: 도시락 지참</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 40px; padding: 20px; background: #e0f2fe; border-radius: 8px;">
+        <h3 style="color: #0369a1;">🤔 어떤 방안이 가장 마음에 드시나요?</h3>
+        <p style="color: #0c4a6e;">각 방안의 장단점을 실제로 확인해보시고 선택해주세요!</p>
+    </div>
+
+    <script>
+        let method1Unified = false;
+        let method4Unified = false;
+        let sizesToggled = false;
+        
+        // 방안 1: 동적 높이 계산 시뮬레이션
+        function simulateMethod1() {
+            const cards = document.querySelectorAll('#method1-container .method1-card');
+            
+            if (!method1Unified) {
+                // 실제 높이 측정 시뮬레이션
+                const heights = Array.from(cards).map(card => card.offsetHeight);
+                const maxHeight = Math.max(...heights);
+                
+                cards.forEach((card, index) => {
+                    card.classList.add('unified');
+                    card.style.height = maxHeight + 'px';
+                    document.getElementById(`height${index + 1}`).textContent = maxHeight + 'px';
+                });
+                
+                method1Unified = true;
+            }
+        }
+        
+        function resetMethod1() {
+            const cards = document.querySelectorAll('#method1-container .method1-card');
+            cards.forEach((card, index) => {
+                card.classList.remove('unified');
+                card.style.height = 'auto';
+                document.getElementById(`height${index + 1}`).textContent = 'auto';
+            });
+            method1Unified = false;
+        }
+        
+        // 방안 3: 크기 분류 토글
+        function toggleSizes() {
+            const cards = document.querySelectorAll('.method3-card');
+            
+            if (!sizesToggled) {
+                // 모든 카드를 large로 변경
+                cards.forEach(card => {
+                    card.className = 'method3-card card size-large';
+                    card.querySelector('.height-indicator').textContent = 'Large (360px)';
+                });
+            } else {
+                // 원래 크기로 복원
+                cards[0].className = 'method3-card card size-small';
+                cards[0].querySelector('.height-indicator').textContent = 'Small (200px)';
+                
+                cards[1].className = 'method3-card card size-medium';
+                cards[1].querySelector('.height-indicator').textContent = 'Medium (280px)';
+                
+                cards[2].className = 'method3-card card size-large';
+                cards[2].querySelector('.height-indicator').textContent = 'Large (360px)';
+            }
+            
+            sizesToggled = !sizesToggled;
+        }
+        
+        // 방안 4: Flexbox + 실시간 측정
+        function toggleMethod4Unity() {
+            const cards = document.querySelectorAll('#method4-container .method4-card');
+            
+            if (!method4Unified) {
+                const heights = Array.from(cards).map(card => card.offsetHeight);
+                const maxHeight = Math.max(...heights);
+                
+                cards.forEach((card, index) => {
+                    card.style.height = maxHeight + 'px';
+                    document.getElementById(`method4-height${index + 1}`).textContent = maxHeight + 'px';
+                });
+                
+                method4Unified = true;
+            } else {
+                cards.forEach((card, index) => {
+                    card.style.height = 'auto';
+                    document.getElementById(`method4-height${index + 1}`).textContent = 'auto';
+                });
+                
+                method4Unified = false;
+            }
+        }
+        
+        function animateMethod4() {
+            const cards = document.querySelectorAll('#method4-container .method4-card');
+            
+            // 애니메이션으로 높이 통일 과정 보여주기
+            cards.forEach(card => {
+                card.style.transition = 'height 0.6s ease';
+                card.style.background = 'linear-gradient(135deg, #ffffff 0%, #e0f2fe 100%)';
+            });
+            
+            setTimeout(() => {
+                const heights = Array.from(cards).map(card => card.offsetHeight);
+                const maxHeight = Math.max(...heights);
+                
+                cards.forEach((card, index) => {
+                    card.style.height = maxHeight + 'px';
+                    document.getElementById(`method4-height${index + 1}`).textContent = maxHeight + 'px';
+                });
+                
+                method4Unified = true;
+            }, 100);
+            
+            setTimeout(() => {
+                cards.forEach(card => {
+                    card.style.background = 'white';
+                });
+            }, 700);
+        }
+    </script>
+</body>
+</html>

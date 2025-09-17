@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>메인페이지 옵션B 개선 - 스마트 네비게이션</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: #f8fafc;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* 페이지 헤더 */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+        }
+
+        /* 뷰 모드 토글 */
+        .view-mode-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .toggle-btn {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-btn:hover {
+            background: #f9fafb;
+        }
+
+        .toggle-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* 네비게이션 바 (하이브리드 모드용) */
+        .navigation-bar {
+            position: sticky;
+            top: 0;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .navigation-bar.hybrid-mode {
+            display: block;
+        }
+
+        .nav-content {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+        }
+
+        .nav-section {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            margin-right: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-section:hover {
+            background: #f3f4f6;
+        }
+
+        .nav-section.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .nav-section .icon {
+            font-size: 1.25rem;
+        }
+
+        .nav-section .label {
+            font-weight: 500;
+        }
+
+        .nav-section .count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        /* 추천 섹션 */
+        .recommendations-section {
+            background: white;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .recommendations-section.tab-mode {
+            display: none;
+        }
+
+        .recommendations-section.tab-mode.active {
+            display: block;
+            margin-bottom: 0;
+        }
+
+        .recommendations-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .recommendations-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .recommendations-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .recommendations-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .collapse-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .collapse-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .recommendations-content {
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .recommendations-content.collapsed {
+            max-height: 0;
+            padding: 0 1.5rem;
+        }
+
+        /* 추천 통계 제거로 인한 CSS 정리 */
+
+        /* 추천 액션 바 */
+        .recommendation-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-chip {
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn.primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .nav-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 추천 문구 그리드 */
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .notice-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notice-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 추천 타입 표시 */
+        .recommendation-type {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.6875rem;
+            font-weight: 500;
+        }
+
+        .type-weather {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .type-personal {
+            background: #fed7aa;
+            color: #c2410c;
+        }
+
+        .type-category {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .notice-header {
+            margin-bottom: 0.75rem;
+        }
+
+        .notice-tags {
+            display: flex;
+            gap: 0.375rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-badge {
+            background: #f3f4f6;
+            color: #374151;
+            padding: 0.1875rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.6875rem;
+            font-weight: 500;
+        }
+
+        .sub-tag {
+            color: #6b7280;
+            font-size: 0.6875rem;
+        }
+
+        .notice-content h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #111827;
+            line-height: 1.4;
+        }
+
+        .notice-text {
+            color: #4b5563;
+            font-size: 0.75rem;
+            line-height: 1.5;
+        }
+
+        .notice-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .like-count {
+            font-size: 0.6875rem;
+            color: #6b7280;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.375rem;
+        }
+
+        .btn-small {
+            padding: 0.1875rem 0.375rem;
+            font-size: 0.6875rem;
+            border-radius: 0.1875rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-small:hover {
+            background: #f9fafb;
+        }
+
+        /* 전체 문구 섹션 */
+        .all-notices-section {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+
+        .all-notices-section.tab-mode {
+            display: none;
+        }
+
+        .all-notices-section.tab-mode.active {
+            display: block;
+        }
+
+        .all-notices-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .section-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-count {
+            background: #f3f4f6;
+            color: #6b7280;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            margin-left: 1rem;
+        }
+
+        .search-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            width: 250px;
+        }
+
+        .search-btn {
+            padding: 0.5rem 1rem;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-btn:hover {
+            background: #1d4ed8;
+        }
+
+        /* 필터 컨트롤 */
+        .filter-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .category-tag {
+            padding: 0.375rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            border: 1px solid #d1d5db;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-tag.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .sort-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background: white;
+            font-size: 0.875rem;
+        }
+
+        .exclude-recommended {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .exclude-recommended input[type="checkbox"] {
+            margin: 0;
+        }
+
+        /* 전체 문구 그리드 */
+        .all-notices-content {
+            padding: 1.5rem;
+        }
+
+        .all-notices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* 로딩 및 더보기 */
+        .load-more-section {
+            text-align: center;
+            padding: 1rem;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .load-more-btn {
+            padding: 0.75rem 2rem;
+            background: #f9fafb;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-more-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .load-progress {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+
+        /* 스크롤 애니메이션 */
+        .scroll-target {
+            scroll-margin-top: 100px;
+        }
+
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1rem 0.5rem;
+            }
+
+            .recommendations-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .recommendations-controls {
+                justify-content: space-between;
+            }
+
+            .filter-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .view-mode-toggle {
+                position: relative;
+                top: auto;
+                right: auto;
+                margin-bottom: 1rem;
+            }
+
+            .section-title-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .recommendation-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="main-container">
+        <!-- 뷰 모드 토글 -->
+        <div class="view-mode-toggle">
+            <button class="toggle-btn active" data-mode="scroll">
+                📄 스크롤 모드
+            </button>
+            <button class="toggle-btn" data-mode="tab">
+                📑 탭 모드
+            </button>
+        </div>
+
+        <!-- 페이지 헤더 -->
+        <header class="page-header">
+            <h1 class="page-title">교실 소통 문구</h1>
+            <p class="page-subtitle">스마트 추천으로 시작해서 전체 탐색까지</p>
+        </header>
+
+        <!-- 하이브리드 네비게이션 바 (탭 모드에서만 표시) -->
+        <nav class="navigation-bar" id="navigationBar">
+            <div class="nav-content">
+                <div class="nav-section active" data-target="recommendations">
+                    <span class="icon">🔥</span>
+                    <span class="label">맞춤 추천</span>
+                    <span class="count">15</span>
+                </div>
+                <div class="nav-section" data-target="all-notices">
+                    <span class="icon">📚</span>
+                    <span class="label">전체 문구</span>
+                    <span class="count">1,247</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- 🔥 추천 섹션 -->
+        <section class="recommendations-section scroll-target" id="recommendations">
+            <div class="recommendations-header">
+                <div class="recommendations-title">
+                    <span>🔥</span>
+                    맞춤 추천 문구
+                </div>
+                <div class="recommendations-controls">
+                    <button class="refresh-btn" id="refreshRecommendations">
+                        🔄 새로고침
+                    </button>
+                    <button class="collapse-btn" id="collapseRecommendations">▼</button>
+                </div>
+            </div>
+            
+            <div class="recommendations-content" id="recommendationsContent">
+
+                <!-- 추천 액션 바 -->
+                <div class="recommendation-actions">
+                    <div class="quick-filters">
+                        <div class="filter-chip active">전체</div>
+                        <div class="filter-chip">날씨</div>
+                        <div class="filter-chip">개인화</div>
+                        <div class="filter-chip">새 카테고리</div>
+                    </div>
+                    <div class="navigation-buttons">
+                        <button class="nav-btn secondary" id="scrollToAll">
+                            📚 모든 문구 보러가기
+                        </button>
+                        <button class="nav-btn primary">
+                            + 새 문구 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 추천 문구 그리드 -->
+                <div class="recommendations-grid">
+                    <!-- 날씨 기반 추천 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-weather">날씨 추천</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">건강안전</span>
+                                <span class="sub-tag">#우천시</span>
+                                <span class="sub-tag">#안전</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>비 오는 날 안전 수칙</h3>
+                            <div class="notice-text">
+                                오늘은 비가 많이 내릴 예정입니다. 등하교 시 안전에 유의해 주세요. 우산을 꼭 챙기고, 미끄러운 바닥을 조심하며, 차량 운행 시 시야를 확보해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 24</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 개인화 추천 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-personal">개인 맞춤</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">학습활동</span>
+                                <span class="sub-tag">#독서</span>
+                                <span class="sub-tag">#습관</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>독서 습관 기르기 프로젝트</h3>
+                            <div class="notice-text">
+                                매일 15분씩 독서하는 습관을 기르기 위한 프로젝트를 시작합니다. 개인별 독서 목표를 설정하고 기록장을 작성해 보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 32</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 새 카테고리 추천 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-category">새 카테고리</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">창의체험</span>
+                                <span class="sub-tag">#체험학습</span>
+                                <span class="sub-tag">#협력</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>과학 실험 체험 활동 안내</h3>
+                            <div class="notice-text">
+                                이번 주 과학 시간에는 물의 순환을 직접 체험해 볼 수 있는 실험을 준비했습니다. 실험복을 착용하고 모둠별로 협력해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 18</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 개인화 추천 2 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-personal">개인 맞춤</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">학급관리</span>
+                                <span class="sub-tag">#칭찬</span>
+                                <span class="sub-tag">#격려</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>오늘의 칭찬 릴레이</h3>
+                            <div class="notice-text">
+                                친구들의 좋은 점을 찾아 칭찬해 주는 활동을 통해 서로를 격려해 봅시다. 진심어린 칭찬과 구체적인 행동을 언급해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 45</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 날씨 기반 추천 2 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-weather">날씨 추천</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">학습활동</span>
+                                <span class="sub-tag">#실내활동</span>
+                                <span class="sub-tag">#창의</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>비 오는 날 실내 창의 활동</h3>
+                            <div class="notice-text">
+                                우천으로 인해 실외 활동 대신 실내에서 할 수 있는 재미있는 활동을 준비했어요. 빗소리를 들으며 감상문을 써보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 31</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- 새 카테고리 추천 2 -->
+                    <article class="notice-card">
+                        <span class="recommendation-type type-category">새 카테고리</span>
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">진로교육</span>
+                                <span class="sub-tag">#꿈</span>
+                                <span class="sub-tag">#직업</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>나의 꿈 발표하기</h3>
+                            <div class="notice-text">
+                                각자의 꿈과 목표를 친구들과 나누어 보는 시간을 가져봅시다. 꿈을 이루기 위한 계획을 세우고 서로 응원해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 22</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- 📚 전체 문구 섹션 -->
+        <section class="all-notices-section scroll-target" id="all-notices">
+            <div class="all-notices-header">
+                <div class="section-title-bar">
+                    <div class="section-title">
+                        <h2>
+                            📚 전체 문구 탐색
+                            <span class="result-count">총 1,247개 문구</span>
+                        </h2>
+                    </div>
+                    <div class="search-controls">
+                        <input type="text" class="search-input" placeholder="문구 검색...">
+                        <button class="search-btn">🔍 검색</button>
+                    </div>
+                </div>
+                
+                <!-- 필터 컨트롤 -->
+                <div class="filter-controls">
+                    <div class="category-filters">
+                        <div class="category-tag active">전체</div>
+                        <div class="category-tag">학급관리</div>
+                        <div class="category-tag">학습활동</div>
+                        <div class="category-tag">생활지도</div>
+                        <div class="category-tag">창의체험</div>
+                        <div class="category-tag">평가안내</div>
+                        <div class="category-tag">학부모소통</div>
+                        <div class="category-tag">건강안전</div>
+                        <div class="category-tag">진로교육</div>
+                        <div class="category-tag">환경교육</div>
+                    </div>
+                    
+                    <div class="filter-options">
+                        <select class="sort-select">
+                            <option value="latest">최신순</option>
+                            <option value="popular">인기순</option>
+                            <option value="usage">사용량순</option>
+                            <option value="alphabetical">가나다순</option>
+                        </select>
+                        
+                        <label class="exclude-recommended">
+                            <input type="checkbox" id="excludeRecommended">
+                            추천 문구 제외
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="all-notices-content">
+                <!-- 전체 문구 그리드 -->
+                <div class="all-notices-grid">
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">학부모소통</span>
+                                <span class="sub-tag">#알림</span>
+                                <span class="sub-tag">#준비물</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>다음 주 준비물 안내</h3>
+                            <div class="notice-text">
+                                다음 주 수업에 필요한 준비물을 미리 안내드립니다. 색연필 12색, 스케치북 4절지, 풀과 가위를 준비해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 12</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">평가안내</span>
+                                <span class="sub-tag">#시험</span>
+                                <span class="sub-tag">#준비</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>중간평가 준비 안내</h3>
+                            <div class="notice-text">
+                                다음 주 중간평가를 위한 준비 사항을 안내합니다. 교과서를 복습하고 연습 문제를 풀어보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 28</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">생활지도</span>
+                                <span class="sub-tag">#예절</span>
+                                <span class="sub-tag">#인사</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>바른 인사 습관 기르기</h3>
+                            <div class="notice-text">
+                                상대방을 존중하는 마음으로 바른 인사를 나누어 봅시다. 눈을 마주치며 밝은 목소리로 인사해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 16</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">환경교육</span>
+                                <span class="sub-tag">#재활용</span>
+                                <span class="sub-tag">#실천</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>교실 재활용 프로젝트</h3>
+                            <div class="notice-text">
+                                환경을 생각하는 마음으로 교실에서 재활용품을 분리수거해요. 분리수거함을 만들고 창작 활동도 해보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 26</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">학급관리</span>
+                                <span class="sub-tag">#협력</span>
+                                <span class="sub-tag">#팀워크</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>모둠 활동 규칙 정하기</h3>
+                            <div class="notice-text">
+                                효과적인 모둠 활동을 위해 함께 지킬 규칙을 정해봅시다. 서로 의견을 존중하고 역할을 분담해 주세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 19</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">건강안전</span>
+                                <span class="sub-tag">#운동</span>
+                                <span class="sub-tag">#건강</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>체력 단련 주간 안내</h3>
+                            <div class="notice-text">
+                                건강한 몸과 마음을 위한 체력 단련 주간을 운영합니다. 매일 스트레칭과 간단한 운동을 함께 해보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 23</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">창의체험</span>
+                                <span class="sub-tag">#미술</span>
+                                <span class="sub-tag">#표현</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>감정 표현 미술 활동</h3>
+                            <div class="notice-text">
+                                다양한 재료를 활용하여 자신의 감정을 자유롭게 표현해 보는 시간입니다. 색깔과 선으로 기분을 나타내 보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 21</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="notice-card">
+                        <div class="notice-header">
+                            <div class="notice-tags">
+                                <span class="category-badge">진로교육</span>
+                                <span class="sub-tag">#진로</span>
+                                <span class="sub-tag">#탐색</span>
+                            </div>
+                        </div>
+                        <div class="notice-content">
+                            <h3>직업 체험 활동 계획</h3>
+                            <div class="notice-text">
+                                다양한 직업의 세계를 체험해 볼 수 있는 활동을 계획했습니다. 관심 있는 직업을 선택하고 체험해 보세요.
+                            </div>
+                        </div>
+                        <div class="notice-actions">
+                            <span class="like-count">❤️ 17</span>
+                            <div class="action-buttons">
+                                <button class="btn-small">복사</button>
+                                <button class="btn-small">저장</button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- 더 많은 문구 불러오기 -->
+                <div class="load-more-section">
+                    <button class="load-more-btn" id="loadMoreBtn">
+                        더 많은 문구 보기
+                    </button>
+                    <div class="load-progress">
+                        현재: 20개 / 전체: 1,247개 (1.6%)
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        let currentMode = 'scroll'; // 'scroll' 또는 'tab'
+
+        // 뷰 모드 전환
+        document.querySelectorAll('.toggle-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const mode = this.dataset.mode;
+                
+                // 토글 버튼 상태 변경
+                document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 모드 전환
+                currentMode = mode;
+                switchViewMode(mode);
+            });
+        });
+
+        function switchViewMode(mode) {
+            const navBar = document.getElementById('navigationBar');
+            const recommendationsSection = document.querySelector('.recommendations-section');
+            const allNoticesSection = document.querySelector('.all-notices-section');
+            
+            if (mode === 'tab') {
+                // 탭 모드: 네비게이션 바 표시, 섹션들은 탭처럼 동작
+                navBar.classList.add('hybrid-mode');
+                recommendationsSection.classList.add('tab-mode', 'active');
+                allNoticesSection.classList.add('tab-mode');
+                
+                // 추천 섹션 접기 기능 비활성화
+                document.getElementById('collapseRecommendations').style.display = 'none';
+            } else {
+                // 스크롤 모드: 네비게이션 바 숨김, 일반 스크롤
+                navBar.classList.remove('hybrid-mode');
+                recommendationsSection.classList.remove('tab-mode', 'active');
+                allNoticesSection.classList.remove('tab-mode', 'active');
+                
+                // 추천 섹션 접기 기능 활성화
+                document.getElementById('collapseRecommendations').style.display = 'block';
+            }
+        }
+
+        // 네비게이션 바 클릭 (탭 모드용)
+        document.querySelectorAll('.nav-section').forEach(section => {
+            section.addEventListener('click', function() {
+                if (currentMode !== 'tab') return;
+                
+                const target = this.dataset.target;
+                
+                // 네비게이션 활성화 상태 변경
+                document.querySelectorAll('.nav-section').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 섹션 표시/숨김
+                document.querySelectorAll('.recommendations-section, .all-notices-section').forEach(s => {
+                    s.classList.remove('active');
+                });
+                document.getElementById(target).classList.add('active');
+            });
+        });
+
+        // 스크롤 기반 네비게이션 (스크롤 모드용)
+        document.getElementById('scrollToAll').addEventListener('click', function() {
+            const targetSection = document.getElementById('all-notices');
+            
+            if (currentMode === 'tab') {
+                // 탭 모드에서는 전체 문구 탭으로 전환
+                document.querySelectorAll('.nav-section').forEach(s => s.classList.remove('active'));
+                document.querySelector('.nav-section[data-target="all-notices"]').classList.add('active');
+                
+                document.querySelectorAll('.recommendations-section, .all-notices-section').forEach(s => {
+                    s.classList.remove('active');
+                });
+                document.getElementById('all-notices').classList.add('active');
+            } else {
+                // 스크롤 모드에서는 부드러운 스크롤
+                targetSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                
+                // 스크롤 후 시각적 효과
+                setTimeout(() => {
+                    targetSection.style.transform = 'scale(1.01)';
+                    targetSection.style.transition = 'transform 0.3s ease';
+                    setTimeout(() => {
+                        targetSection.style.transform = 'scale(1)';
+                    }, 300);
+                }, 500);
+            }
+        });
+
+        // 추천 섹션 접기/펼치기 (스크롤 모드용)
+        document.getElementById('collapseRecommendations').addEventListener('click', function() {
+            if (currentMode !== 'scroll') return;
+            
+            const content = document.getElementById('recommendationsContent');
+            
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                this.textContent = '▼';
+                this.classList.remove('collapsed');
+            } else {
+                content.classList.add('collapsed');
+                this.textContent = '▶';
+                this.classList.add('collapsed');
+            }
+        });
+
+        // 추천 필터 기능
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 실제로는 추천 결과 필터링
+                console.log('추천 필터:', this.textContent);
+            });
+        });
+
+        // 카테고리 필터
+        document.querySelectorAll('.category-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                const section = this.closest('.filter-controls');
+                section.querySelectorAll('.category-tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 결과 카운트 업데이트 시뮬레이션
+                const resultCount = document.querySelector('.result-count');
+                if (resultCount && this.textContent !== '전체') {
+                    const randomCount = Math.floor(Math.random() * 200) + 50;
+                    resultCount.textContent = `총 ${randomCount}개 문구`;
+                } else if (resultCount) {
+                    resultCount.textContent = '총 1,247개 문구';
+                }
+            });
+        });
+
+        // 추천 제외 체크박스
+        document.getElementById('excludeRecommended').addEventListener('change', function() {
+            const resultCount = document.querySelector('.result-count');
+            if (this.checked) {
+                resultCount.textContent = '총 1,232개 문구 (추천 제외)';
+            } else {
+                resultCount.textContent = '총 1,247개 문구';
+            }
+        });
+
+        // 검색 기능
+        document.querySelector('.search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        document.querySelector('.search-btn').addEventListener('click', performSearch);
+
+        function performSearch() {
+            const query = document.querySelector('.search-input').value;
+            console.log('검색어:', query);
+            
+            // 검색 결과 시뮬레이션
+            const resultCount = document.querySelector('.result-count');
+            if (query.trim()) {
+                const randomCount = Math.floor(Math.random() * 100) + 10;
+                resultCount.textContent = `"${query}" 검색 결과: ${randomCount}개`;
+            } else {
+                resultCount.textContent = '총 1,247개 문구';
+            }
+        }
+
+        // 더 보기 버튼
+        document.getElementById('loadMoreBtn').addEventListener('click', function() {
+            const progress = document.querySelector('.load-progress');
+            const currentCount = parseInt(progress.textContent.match(/현재: (\d+)개/)[1]);
+            const newCount = currentCount + 20;
+            const percentage = ((newCount / 1247) * 100).toFixed(1);
+            
+            progress.innerHTML = `현재: ${newCount}개 / 전체: 1,247개 (${percentage}%)`;
+            
+            this.textContent = '더 많은 문구 불러오는 중...';
+            setTimeout(() => {
+                this.textContent = '더 많은 문구 보기';
+            }, 1000);
+        });
+
+        // 새로고침 버튼
+        document.getElementById('refreshRecommendations').addEventListener('click', function() {
+            this.textContent = '🔄 새로고침 중...';
+            setTimeout(() => {
+                this.textContent = '🔄 새로고침';
+            }, 1500);
+        });
+
+        // 정렬 변경
+        document.querySelector('.sort-select').addEventListener('change', function() {
+            console.log('정렬 기준 변경:', this.value);
+        });
+
+        // 초기 모드 설정
+        switchViewMode('scroll');
+    </script>
+</body>
+</html>

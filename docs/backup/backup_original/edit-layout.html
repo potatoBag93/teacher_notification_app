@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>문구 편집 - 교사용 알림장 도우미</title>
+    <link rel="stylesheet" href="../components/theme.css">
+    <link rel="stylesheet" href="../components/components.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* 편집 페이지 전용 스타일 */
+        .edit-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--secondary-50);
+        }
+        
+        /* 편집 도구바 */
+        .edit-toolbar {
+            background: white;
+            border-bottom: 1px solid var(--secondary-200);
+            padding: var(--space-4) var(--space-6);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+        }
+        
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+        
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        /* 상하 분할 편집 영역 */
+        .edit-workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .nav-section { 
+            margin-bottom: var(--space-8); 
+        }
+        
+        .nav-title { 
+            padding: 0 var(--space-6) var(--space-3); 
+            font-size: var(--text-xs); 
+            text-transform: uppercase; 
+            color: var(--secondary-400); 
+            font-weight: var(--font-semibold); 
+        }
+        
+        .nav-item { 
+            padding: var(--space-3) var(--space-6); 
+            cursor: pointer; 
+            transition: all var(--duration-fast) var(--ease-in-out); 
+            border-left: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+        
+        .nav-item:hover { 
+            background: var(--secondary-700); 
+        }
+        
+        .nav-item.active { 
+            background: var(--primary-600); 
+            border-left-color: var(--primary-400); 
+        }
+        
+        /* 메인 콘텐츠 */
+        .main-content { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        
+        /* 상단 툴바 */
+        .top-bar { 
+            background: white; 
+            padding: var(--space-4) var(--space-6); 
+            border-bottom: 1px solid var(--secondary-200); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: var(--space-6);
+        }
+        
+        .editor-title {
+            font-size: var(--text-xl);
+            font-weight: var(--font-semibold);
+            color: var(--secondary-900);
+        }
+        
+        .top-actions { 
+            display: flex; 
+            gap: var(--space-3); 
+        }
+        
+        /* 편집 영역 */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: var(--space-6);
+            gap: var(--space-6);
+        }
+        
+        /* 상하 분할 레이아웃 */
+        .editor-layout { 
+            flex: 1;
+            display: flex; 
+            flex-direction: column; 
+            gap: var(--space-6); 
+        }
+        
+        /* 선택된 블록 영역 (상단 30%) */
+        .selected-blocks-section {
+            flex: 0 0 30%;
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            padding: var(--space-5);
+            overflow-y: auto;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--secondary-200);
+        }
+        
+        .section-title {
+            font-size: var(--text-lg);
+            font-weight: var(--font-semibold);
+            color: var(--secondary-900);
+        }
+        
+        .block-count {
+            font-size: var(--text-sm);
+            color: var(--secondary-500);
+            background: var(--secondary-100);
+            padding: var(--space-1) var(--space-3);
+            border-radius: var(--rounded-full);
+        }
+        
+        .selected-blocks-grid {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+        }
+        
+        /* 편집 영역 (하단 70%) */
+        .editing-section {
+            flex: 1;
+            background: white;
+            border: 1px solid var(--secondary-200);
+            border-radius: var(--rounded-lg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .editing-workspace {
+            flex: 1;
+            padding: var(--space-5);
+            overflow-y: auto;
+        }
+        
+        .editing-blocks {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+        
+        /* 미리보기 패널 */
+        .preview-panel {
+            border-top: 1px solid var(--secondary-200);
+            padding: var(--space-5);
+            background: var(--secondary-50);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-4);
+        }
+        
+        .preview-title {
+            font-size: var(--text-base);
+            font-weight: var(--font-medium);
+            color: var(--secondary-700);
+        }
+        
+        .preview-content {
+            background: white;
+            padding: var(--space-4);
+            border-radius: var(--rounded-lg);
+            border: 1px solid var(--secondary-200);
+            font-family: var(--font-family-primary);
+            line-height: var(--leading-relaxed);
+        }
+        
+        /* 자동 생성 제목 */
+        .auto-generated-title {
+            background: var(--primary-50);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--rounded-lg);
+            color: var(--primary-800);
+            font-weight: var(--font-semibold);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--primary-200);
+        }
+        
+        /* 빈 상태 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-12);
+            text-align: center;
+            color: var(--secondary-500);
+        }
+        
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: var(--space-4);
+            opacity: 0.5;
+        }
+        
+        .empty-state-text {
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-2);
+        }
+        
+        .empty-state-subtext {
+            font-size: var(--text-sm);
+            color: var(--secondary-400);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <!-- 사이드바 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <span style="font-size: 24px;">✏️</span>
+                    알림장 편집기
+                </div>
+                <div class="user-info">김선생님의 편집 공간</div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-title">메뉴</div>
+                    <div class="nav-item" onclick="location.href='main.html'">
+                        <span class="nav-item-icon">🏠</span>메인 화면
+                    </div>
+                    <div class="nav-item active">
+                        <span class="nav-item-icon">✏️</span>문구 편집
+                    </div>
+                    <div class="nav-item" onclick="location.href='my-notices.html'">
+                        <span class="nav-item-icon">💾</span>내 컬렉션
+                    </div>
+                    <div class="nav-item" onclick="location.href='stats.html'">
+                        <span class="nav-item-icon">📊</span>사용 통계
+                    </div>
+                    <div class="nav-item" onclick="location.href='feedback.html'">
+                        <span class="nav-item-icon">💡</span>피드백
+                    </div>
+                </div>
+                
+                <div style="margin-top: auto; padding: var(--space-6);">
+                    <button class="btn btn-secondary" onclick="location.href='login.html'" style="width: 100%; background: var(--secondary-700); border-color: var(--secondary-600); color: white;">로그아웃</button>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <!-- 상단 툴바 -->
+            <div class="top-bar">
+                <div class="editor-title">📝 알림장 편집하기</div>
+                <div class="top-actions">
+                    <button class="btn btn-outline">🎲 랜덤추가</button>
+                    <button class="btn btn-outline">🤖 AI포맷팅</button>
+                    <button class="btn btn-outline">👀 미리보기</button>
+                    <button class="btn btn-secondary">💾 임시저장</button>
+                    <button class="btn btn-primary">🌐 저장및공유</button>
+                </div>
+            </div>
+
+            <!-- 편집 영역 -->
+            <div class="editor-container">
+                <!-- 자동 생성 제목 -->
+                <div class="auto-generated-title">
+                    📅 2025년 8월 8일 알림장
+                </div>
+
+                <!-- 상하 분할 레이아웃 -->
+                <div class="editor-layout">
+                    <!-- 선택된 블록 영역 (상단) -->
+                    <div class="selected-blocks-section">
+                        <div class="section-header">
+                            <h3 class="section-title">📦 선택된 블록들</h3>
+                            <span class="block-count">3개 선택</span>
+                        </div>
+                        
+                        <div class="selected-blocks-grid">
+                            <!-- 선택된 블록 카드들 -->
+                            <div class="edit-block" style="width: 200px;">
+                                <div class="edit-block-header">
+                                    <div class="drag-handle">⋮⋮</div>
+                                    <h4 class="block-title">여름철 물놀이 안전수칙</h4>
+                                    <div class="block-actions">
+                                        <button class="btn-action-small">👁️</button>
+                                        <button class="btn-action-small">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="edit-block-content">
+                                    <div class="block-tags">
+                                        <span class="tag tag-safety">안전</span>
+                                        <span class="tag tag-summer">여름활동</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="edit-block" style="width: 200px;">
+                                <div class="edit-block-header">
+                                    <div class="drag-handle">⋮⋮</div>
+                                    <h4 class="block-title">방학 중 규칙적인 생활</h4>
+                                    <div class="block-actions">
+                                        <button class="btn-action-small">👁️</button>
+                                        <button class="btn-action-small">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="edit-block-content">
+                                    <div class="block-tags">
+                                        <span class="tag tag-life">생활지도</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="edit-block" style="width: 200px;">
+                                <div class="edit-block-header">
+                                    <div class="drag-handle">⋮⋮</div>
+                                    <h4 class="block-title">폭염 대비 건강관리</h4>
+                                    <div class="block-actions">
+                                        <button class="btn-action-small">👁️</button>
+                                        <button class="btn-action-small">🗑️</button>
+                                    </div>
+                                </div>
+                                <div class="edit-block-content">
+                                    <div class="block-tags">
+                                        <span class="tag tag-health">건강</span>
+                                        <span class="tag tag-summer">여름활동</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 편집 영역 (하단) -->
+                    <div class="editing-section">
+                        <div class="section-header" style="padding: var(--space-5) var(--space-5) 0;">
+                            <h3 class="section-title">✏️ 편집 영역</h3>
+                            <div style="display: flex; gap: var(--space-2);">
+                                <button class="btn btn-outline" style="font-size: var(--text-xs); padding: var(--space-1) var(--space-3);">🔗 병합</button>
+                                <button class="btn btn-outline" style="font-size: var(--text-xs); padding: var(--space-1) var(--space-3);">📝 포맷팅</button>
+                                <button class="btn btn-outline" style="font-size: var(--text-xs); padding: var(--space-1) var(--space-3);">🗑️ 비우기</button>
+                            </div>
+                        </div>
+
+                        <div class="editing-workspace">
+                            <div class="editing-blocks">
+                                <!-- 편집 중인 블록 1 -->
+                                <div class="edit-block">
+                                    <div class="edit-block-header">
+                                        <div class="drag-handle">⋮⋮</div>
+                                        <h4 class="block-title">블록 1: 여름철 물놀이 안전수칙</h4>
+                                        <div class="block-actions">
+                                            <button class="btn-action-small">✏️</button>
+                                            <button class="btn-action-small">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="edit-block-content">
+                                        <div class="block-tags">
+                                            <span class="tag tag-safety">안전</span>
+                                            <span class="tag tag-summer">여름활동</span>
+                                        </div>
+                                        <div class="block-text">
+                                            여름철 물놀이 시 다음 안전수칙을 반드시 지켜주세요.
+                                            <br>- 깊은 물에는 절대 들어가지 마세요
+                                            <br>- 혼자서 물놀이 하지 마세요
+                                            <br>- 물에 들어가기 전 충분한 준비운동을 하세요
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 편집 중인 블록 2 -->
+                                <div class="edit-block">
+                                    <div class="edit-block-header">
+                                        <div class="drag-handle">⋮⋮</div>
+                                        <h4 class="block-title">블록 2: 방학 중 규칙적인 생활</h4>
+                                        <div class="block-actions">
+                                            <button class="btn-action-small">✏️</button>
+                                            <button class="btn-action-small">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="edit-block-content">
+                                        <div class="block-tags">
+                                            <span class="tag tag-life">생활지도</span>
+                                        </div>
+                                        <div class="block-text">
+                                            방학 중에도 규칙적인 생활습관을 유지해주세요.
+                                            <br>- 일찍 자고 일찍 일어나기
+                                            <br>- 정해진 시간에 학습하기
+                                            <br>- 규칙적인 운동으로 건강 챙기기
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 편집 중인 블록 3 -->
+                                <div class="edit-block">
+                                    <div class="edit-block-header">
+                                        <div class="drag-handle">⋮⋮</div>
+                                        <h4 class="block-title">블록 3: 폭염 대비 건강관리</h4>
+                                        <div class="block-actions">
+                                            <button class="btn-action-small">✏️</button>
+                                            <button class="btn-action-small">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="edit-block-content">
+                                        <div class="block-tags">
+                                            <span class="tag tag-health">건강</span>
+                                            <span class="tag tag-summer">여름활동</span>
+                                        </div>
+                                        <div class="block-text">
+                                            오늘 폭염주의보가 발령되었습니다. 건강 관리에 유의해주세요.
+                                            <br>- 외출 시 양산이나 모자 착용하기
+                                            <br>- 충분한 수분 섭취하기
+                                            <br>- 시원한 장소에서 휴식 취하기
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 미리보기 패널 -->
+                        <div class="preview-panel">
+                            <div class="preview-header">
+                                <h4 class="preview-title">📋 최종 알림장 미리보기</h4>
+                                <button class="btn btn-outline" style="font-size: var(--text-xs); padding: var(--space-1) var(--space-3);">📋 클립보드 복사</button>
+                            </div>
+                            <div class="preview-content">
+                                <div style="font-weight: var(--font-semibold); margin-bottom: var(--space-4); color: var(--primary-600);">
+                                    2025년 8월 8일 알림장
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-3);">
+                                    <strong>여름철 물놀이 안전수칙</strong><br>
+                                    여름철 물놀이 시 다음 안전수칙을 반드시 지켜주세요.<br>
+                                    - 깊은 물에는 절대 들어가지 마세요<br>
+                                    - 혼자서 물놀이 하지 마세요<br>
+                                    - 물에 들어가기 전 충분한 준비운동을 하세요
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-3);">
+                                    <strong>방학 중 규칙적인 생활</strong><br>
+                                    방학 중에도 규칙적인 생활습관을 유지해주세요.<br>
+                                    - 일찍 자고 일찍 일어나기<br>
+                                    - 정해진 시간에 학습하기<br>
+                                    - 규칙적인 운동으로 건강 챙기기
+                                </div>
+                                
+                                <div>
+                                    <strong>폭염 대비 건강관리</strong><br>
+                                    오늘 폭염주의보가 발령되었습니다. 건강 관리에 유의해주세요.<br>
+                                    - 외출 시 양산이나 모자 착용하기<br>
+                                    - 충분한 수분 섭취하기<br>
+                                    - 시원한 장소에서 휴식 취하기
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 드래그 앤 드롭 시뮬레이션 (실제 구현 시 Sortable.js 사용)
+        function highlightDropZone(event) {
+            event.preventDefault();
+            event.target.style.backgroundColor = 'var(--primary-50)';
+        }
+        
+        function removeHighlight(event) {
+            event.target.style.backgroundColor = '';
+        }
+        
+        // 블록 편집 모드 토글
+        function toggleEditMode(element) {
+            const isEditing = element.classList.contains('editing');
+            if (isEditing) {
+                element.classList.remove('editing');
+                // 편집 모드 종료
+            } else {
+                element.classList.add('editing');
+                // 편집 모드 시작
+            }
+        }
+        
+        // AI 포맷팅 시뮬레이션
+        function applyAIFormatting() {
+            alert('AI 포맷팅이 적용되었습니다!\n- 문체 통일: ~습니다체로 변경\n- 중복 내용 제거\n- 문법 검사 완료');
+        }
+        
+        // 임시저장
+        function saveTemp() {
+            localStorage.setItem('temp_notice', JSON.stringify({
+                title: '2025년 8월 8일 알림장',
+                blocks: ['여름철 물놀이 안전수칙', '방학 중 규칙적인 생활', '폭염 대비 건강관리'],
+                saved_at: new Date().toISOString()
+            }));
+            alert('임시저장되었습니다!');
+        }
+        
+        // 클립보드 복사
+        function copyToClipboard() {
+            const previewContent = document.querySelector('.preview-content').innerText;
+            navigator.clipboard.writeText(previewContent).then(() => {
+                alert('클립보드에 복사되었습니다!');
+            });
+        }
+    </script>
+</body>
+</html>

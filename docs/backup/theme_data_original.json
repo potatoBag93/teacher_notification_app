@@ -1,0 +1,228 @@
+{
+  "theme_name": "modern_office",
+  "theme_title": "모던 오피스 스타일",
+  "description": "깔끔하고 효율적인 느낌의 화이트 베이스 + 블루 계열 포인트 컬러",
+  
+  "colors": {
+    "primary": {
+      "50": "#eff6ff",
+      "100": "#dbeafe", 
+      "200": "#bfdbfe",
+      "300": "#93c5fd",
+      "400": "#60a5fa",
+      "500": "#3b82f6",
+      "600": "#2563eb",
+      "700": "#1d4ed8",
+      "800": "#1e40af",
+      "900": "#1e3a8a"
+    },
+    "secondary": {
+      "50": "#f8fafc",
+      "100": "#f1f5f9",
+      "200": "#e2e8f0",
+      "300": "#cbd5e1",
+      "400": "#94a3b8",
+      "500": "#64748b",
+      "600": "#475569",
+      "700": "#334155",
+      "800": "#1e293b",
+      "900": "#0f172a"
+    },
+    "success": "#10b981",
+    "warning": "#f59e0b",
+    "error": "#ef4444",
+    "info": "#3b82f6"
+  },
+  
+  "tag_colors": {
+    "안전": {
+      "bg": "#fef2f2",
+      "text": "#dc2626",
+      "border": "#fecaca"
+    },
+    "생활지도": {
+      "bg": "#fff7ed",
+      "text": "#ea580c",
+      "border": "#fed7aa"
+    },
+    "학습": {
+      "bg": "#f0fdf4",
+      "text": "#16a34a",
+      "border": "#bbf7d0"
+    },
+    "건강": {
+      "bg": "#faf5ff",
+      "text": "#9333ea",
+      "border": "#e9d5ff"
+    },
+    "행사": {
+      "bg": "#eff6ff",
+      "text": "#2563eb",
+      "border": "#bfdbfe"
+    },
+    "알림": {
+      "bg": "#fefce8",
+      "text": "#ca8a04",
+      "border": "#fef08a"
+    },
+    "상담": {
+      "bg": "#fdf2f8",
+      "text": "#db2777",
+      "border": "#fbcfe8"
+    },
+    "칭찬": {
+      "bg": "#f0fdfa",
+      "text": "#059669",
+      "border": "#a7f3d0"
+    },
+    "주의": {
+      "bg": "#fef2f2",
+      "text": "#dc2626",
+      "border": "#fecaca"
+    },
+    "준비물": {
+      "bg": "#fef3c7",
+      "text": "#92400e",
+      "border": "#fde68a"
+    },
+    "숙제": {
+      "bg": "#f9fafb",
+      "text": "#374151",
+      "border": "#d1d5db"
+    },
+    "기타": {
+      "bg": "#f3f4f6",
+      "text": "#4b5563",
+      "border": "#d1d5db"
+    },
+    "일반": {
+      "bg": "#f8fafc",
+      "text": "#64748b",
+      "border": "#e2e8f0"
+    }
+  },
+  
+  "typography": {
+    "font_family": {
+      "primary": "'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "secondary": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "mono": "'JetBrains Mono', 'Fira Code', Consolas, monospace"
+    },
+    "font_sizes": {
+      "xs": "0.75rem",
+      "sm": "0.875rem", 
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem"
+    },
+    "font_weights": {
+      "light": "300",
+      "normal": "400",
+      "medium": "500",
+      "semibold": "600",
+      "bold": "700"
+    },
+    "line_heights": {
+      "tight": "1.25",
+      "normal": "1.5",
+      "relaxed": "1.625",
+      "loose": "2"
+    }
+  },
+  
+  "spacing": {
+    "0": "0",
+    "1": "0.25rem",
+    "2": "0.5rem",
+    "3": "0.75rem",
+    "4": "1rem",
+    "5": "1.25rem",
+    "6": "1.5rem",
+    "8": "2rem",
+    "10": "2.5rem",
+    "12": "3rem",
+    "16": "4rem",
+    "20": "5rem",
+    "24": "6rem"
+  },
+  
+  "border_radius": {
+    "none": "0",
+    "sm": "0.125rem",
+    "base": "0.375rem",
+    "md": "0.5rem",
+    "lg": "0.75rem",
+    "xl": "1rem",
+    "full": "9999px"
+  },
+  
+  "shadows": {
+    "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    "base": "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+    "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+    "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)"
+  },
+  
+  "layout": {
+    "container_max_width": "1280px",
+    "sidebar_width": "280px",
+    "header_height": "64px",
+    "card_min_height": "120px",
+    "mobile_breakpoint": "768px",
+    "tablet_breakpoint": "1024px"
+  },
+  
+  "components": {
+    "card": {
+      "background": "#ffffff",
+      "border": "1px solid #e2e8f0",
+      "border_radius": "0.75rem",
+      "shadow": "0 1px 3px 0 rgb(0 0 0 / 0.1)",
+      "padding": "1.5rem",
+      "hover_shadow": "0 4px 6px -1px rgb(0 0 0 / 0.1)"
+    },
+    "button": {
+      "primary": {
+        "bg": "#3b82f6",
+        "text": "#ffffff",
+        "border": "transparent",
+        "hover_bg": "#2563eb",
+        "padding": "0.75rem 1.5rem",
+        "border_radius": "0.5rem"
+      },
+      "secondary": {
+        "bg": "#ffffff",
+        "text": "#374151",
+        "border": "#d1d5db",
+        "hover_bg": "#f9fafb",
+        "padding": "0.75rem 1.5rem",
+        "border_radius": "0.5rem"
+      }
+    },
+    "input": {
+      "bg": "#ffffff",
+      "border": "#d1d5db",
+      "border_radius": "0.5rem",
+      "padding": "0.75rem 1rem",
+      "focus_border": "#3b82f6",
+      "focus_ring": "0 0 0 3px rgb(59 130 246 / 0.1)"
+    }
+  },
+  
+  "animations": {
+    "duration": {
+      "fast": "150ms",
+      "normal": "300ms",
+      "slow": "500ms"
+    },
+    "easing": {
+      "ease_in_out": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "ease_out": "cubic-bezier(0, 0, 0.2, 1)",
+      "ease_in": "cubic-bezier(0.4, 0, 1, 1)"
+    }
+  }
+}
