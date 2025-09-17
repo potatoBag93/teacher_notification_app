@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { configService } from '../services/configService'
 import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(configService.getBaseUrl()),
   routes: [
 
     {
@@ -105,7 +106,7 @@ router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
 
   // 개발 환경에서 관리자 페이지 접근 허용
-  if (import.meta.env.DEV && to.name === 'admin') {
+  if (configService.isDevelopment() && to.name === 'admin') {
     console.log('🔧 개발 모드: 관리자 페이지 접근 허용')
     next()
     return

@@ -104,6 +104,17 @@ class ConfigService {
   }
 
   /**
+   * 라우터 Base URL 반환
+   * 프로덕션에서는 '/', 개발환경에서는 환경변수 사용
+   */
+  getBaseUrl(): string {
+    if (this.isProduction()) {
+      return '/'
+    }
+    return import.meta.env.BASE_URL || '/'
+  }
+
+  /**
    * 설정 정보 출력 (디버깅용)
    */
   getConfigInfo(): { hasUrl: boolean; hasKey: boolean; environment: string; source: string } {
@@ -128,5 +139,6 @@ export const getSupabaseAnonKey = () => configService.getSupabaseAnonKey()
 export const getEnvironment = () => configService.getEnvironment()
 export const isDevelopment = () => configService.isDevelopment()
 export const isProduction = () => configService.isProduction()
+export const getBaseUrl = () => configService.getBaseUrl()
 
 export default configService
