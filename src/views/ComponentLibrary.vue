@@ -102,7 +102,7 @@
               <CategoryTag 
                 v-for="tag in ['학습관리', '안전보건', '인성교육']" 
                 :key="tag"
-                :category=ExtendedCategory 
+                :category="tag as Category" 
                 clickable 
                 :active="activeTag === tag" 
                 @click="setActiveTag" 

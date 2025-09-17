@@ -5,7 +5,7 @@ export interface EditBlock {
   title: string
   content: string
   tags: Category[]
-  subItems: string[]
+  subItems?: string[]
   order: number
   isEditing?: boolean
   metadata?: {
@@ -30,7 +30,7 @@ export function noticeToEditBlock(notice: Notice, order: number): EditBlock {
     title: notice.title,
     content: notice.content,
     tags: [...notice.tags],
-    subItems: [...notice.subItems],
+    subItems: notice.subItems && notice.subItems.length > 0 ? [...notice.subItems] : undefined,
     order,
     isEditing: false
   }

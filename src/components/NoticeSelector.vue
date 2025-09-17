@@ -33,7 +33,7 @@
             </div>
             
             <h3 class="notice-title">{{ notice.title }}</h3>
-            <p class="notice-preview">{{ notice.preview }}</p>
+            <p class="notice-preview">{{ notice.content.length > 50 ? notice.content.substring(0, 50) + '...' : notice.content }}</p>
             
             <div class="selection-indicator">
               <div v-if="selectedIds.includes(notice.id)" class="selected-check">✓</div>

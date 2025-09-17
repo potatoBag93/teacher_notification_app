@@ -38,7 +38,7 @@
     </div>
     
     <div :class="$style.content">
-      <p :class="$style.preview">{{ notice.preview }}</p>
+      <p :class="$style.preview">{{ notice.content.length > 50 ? notice.content.substring(0, 50) + '...' : notice.content }}</p>
       
       <div :class="$style.tags">
         <CategoryTag 
