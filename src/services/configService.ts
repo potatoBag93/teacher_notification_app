@@ -115,6 +115,24 @@ class ConfigService {
   }
 
   /**
+   * 사이트 URL 반환 (OAuth redirect용)
+   * 프로덕션에서는 현재 origin 사용, 개발환경에서는 localhost
+   */
+  getSiteUrl(): string {
+    if (typeof window !== 'undefined') {
+      // 브라우저 환경에서는 현재 origin 사용
+      return window.location.origin
+    }
+    
+    // SSR 환경에서는 환경변수 사용
+    if (this.isProduction()) {
+      return import.meta.env.VITE_SITE_URL || 'https://teacher-notification-app.vercel.app'
+    }
+    
+    return 'http://localhost:5173'
+  }
+
+  /**
    * 설정 정보 출력 (디버깅용)
    */
   getConfigInfo(): { hasUrl: boolean; hasKey: boolean; environment: string; source: string } {
@@ -140,5 +158,6 @@ export const getEnvironment = () => configService.getEnvironment()
 export const isDevelopment = () => configService.isDevelopment()
 export const isProduction = () => configService.isProduction()
 export const getBaseUrl = () => configService.getBaseUrl()
+export const getSiteUrl = () => configService.getSiteUrl()
 
 export default configService
