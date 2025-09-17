@@ -10,6 +10,7 @@
 
 import { supabase } from '../lib/supabase'
 import type { Database } from '../lib/database.types'
+import { getSupabaseUrl, getSupabaseAnonKey } from './configService'
 
 // 데이터베이스 타입 정의
 type UserProfile = Database['public']['Tables']['user_profiles']['Row']
@@ -123,75 +124,37 @@ export class UserService {
     try {
       let targetUserId = userId
       
-      // userId가 제공되지 않은 경우 localStorage에서 추출
+      // userId가 제공되지 않은 경우 현재 인증된 사용자 정보 가져오기
       if (!targetUserId) {
-        try {
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-          const storageKey = `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`
-          const storedToken = localStorage.getItem(storageKey)
-          
-          if (storedToken) {
-            const tokenData = JSON.parse(storedToken)
-            targetUserId = tokenData.user?.id
-          }
-        } catch (localStorageError) {
-          // localStorage 실패시 getUser fallback
-          const { data: user, error: getUserError } = await supabase.auth.getUser()
-          if (getUserError) {
-            throw new Error('User not authenticated')
-          }
-          targetUserId = user.user?.id
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        
+        if (authError || !user) {
+          throw new Error('User not authenticated')
         }
+        
+        targetUserId = user.id
       }
       
       if (!targetUserId) {
-        throw new Error('User not authenticated')
+        throw new Error('User ID is required')
       }
 
-      // fetch API를 직접 사용하여 프로필 조회
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+      // Supabase 클라이언트를 직접 사용 (자동으로 인증 토큰 관리)
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', targetUserId)
+        .single()
       
-      // localStorage에서 토큰 추출
-      const storageKey = `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`
-      const storedToken = localStorage.getItem(storageKey)
-      let authToken = supabaseKey // 기본값은 anon key
-      
-      if (storedToken) {
-        try {
-          const tokenData = JSON.parse(storedToken)
-          if (tokenData.access_token) {
-            authToken = tokenData.access_token
-          }
-        } catch (e) {
-          // 토큰 파싱 실패시 anon key 사용
+      if (error) {
+        // 프로필이 없는 경우 (404)
+        if (error.code === 'PGRST116') {
+          return null
         }
+        throw error
       }
       
-      const url = `${supabaseUrl}/rest/v1/user_profiles?select=*&id=eq.${targetUserId}`
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'apikey': supabaseKey,
-          'authorization': `Bearer ${authToken}`,
-          'content-type': 'application/json',
-          'accept': 'application/json'
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      
-      const data = await response.json()
-      
-      // 프로필이 없을 때는 null 반환 (배열이 비어있거나 첫 번째 요소가 없음)
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        return null
-      }
-      
-      return data[0]  // 첫 번째 요소 반환
+      return data
         
     } catch (error) {
       console.error('[UserService.getProfile] 에러:', error)

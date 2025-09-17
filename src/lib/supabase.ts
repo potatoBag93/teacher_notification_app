@@ -9,22 +9,14 @@
 
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
-
-// 환경변수에서 Supabase 설정 값들을 가져옴
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-// 필수 환경변수 검증 - 없으면 에러 발생
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
+import { getSupabaseUrl, getSupabaseAnonKey } from '../services/configService'
 
 /**
  * Supabase 클라이언트 인스턴스
  * - Database 타입을 제네릭으로 지정하여 타입 안전성 확보
  * - 자동 토큰 갱신, 세션 유지, URL에서 세션 감지 활성화
  */
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
   auth: {
     autoRefreshToken: true,    // 토큰 자동 갱신
     persistSession: true,      // 브라우저에 세션 유지
@@ -41,7 +33,7 @@ export const getCurrentUser = async () => {
     // console.log("getCurrentUser started")
 
     // localStorage 토큰 sanity check
-    const storageKey = `sb-${import.meta.env.VITE_SUPABASE_URL!.split('//')[1].split('.')[0]}-auth-token`
+    const storageKey = `sb-${getSupabaseUrl().split('//')[1].split('.')[0]}-auth-token`
     const raw = localStorage.getItem(storageKey)
     if (raw) {
       try {
@@ -251,10 +243,10 @@ export const signOut = async () => {
   
   try {
     // localStorage에서 실제 사용자 토큰 추출
-    const storageKey = `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`
+    const storageKey = `sb-${getSupabaseUrl().split('//')[1].split('.')[0]}-auth-token`
     const storedToken = localStorage.getItem(storageKey)
     
-    let accessToken = supabaseAnonKey // 기본값
+    let accessToken = getSupabaseAnonKey() // 기본값
     
     if (storedToken) {
       try {
@@ -269,10 +261,10 @@ export const signOut = async () => {
     }
     
     // fetch API를 직접 사용하여 로그아웃
-    const response = await fetch(`${supabaseUrl}/auth/v1/logout`, {
+    const response = await fetch(`${getSupabaseUrl()}/auth/v1/logout`, {
       method: 'POST',
       headers: {
-        'apikey': supabaseAnonKey,
+        'apikey': getSupabaseAnonKey(),
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
@@ -296,7 +288,7 @@ export const signOut = async () => {
     
     // 에러가 발생해도 localStorage는 정리 (로그아웃 의도이므로)
     try {
-      const storageKey = `sb-${supabaseUrl.split('//')[1].split('.')[0]}-auth-token`
+      const storageKey = `sb-${getSupabaseUrl().split('//')[1].split('.')[0]}-auth-token`
       localStorage.removeItem(storageKey)
       console.log("supabase.ts - 에러 발생했지만 localStorage 정리 완료")
     } catch (storageError) {
