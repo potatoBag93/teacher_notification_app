@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import { isDevelopment } from './config/environment'
 
 // 개발 모드 체크
-const isDev = import.meta.env.DEV
+const isDev = isDevelopment()
 </script>
 
 <template>

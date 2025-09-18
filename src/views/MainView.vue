@@ -296,6 +296,7 @@ import { WeatherNoticeService } from '../services/weatherNoticeService'
 import { CategoryRecommendationService } from '../services/categoryRecommendationService'
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
+import { getSupabaseUrl, getSupabaseAnonKey } from '../config/environment'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -496,8 +497,8 @@ const loadAllBlocks = async () => {
 // 전체 notices 수 조회 함수
 const getTotalNoticesCount = async (): Promise<number> => {
   try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+    const supabaseUrl = getSupabaseUrl()
+    const supabaseKey = getSupabaseAnonKey()
     
     const url = new URL(`${supabaseUrl}/rest/v1/notices`)
     url.searchParams.append('select', 'count')

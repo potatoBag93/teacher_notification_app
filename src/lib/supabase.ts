@@ -9,7 +9,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
-import { getSupabaseUrl, getSupabaseAnonKey } from '../services/configService'
+import { getSupabaseUrl, getSupabaseAnonKey } from '../config/environment'
 
 /**
  * Supabase 클라이언트 인스턴스

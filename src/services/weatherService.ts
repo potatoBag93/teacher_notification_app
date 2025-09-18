@@ -5,6 +5,8 @@
  * 현재 날씨 정보를 수집하고 AI 문구 생성을 위한 날씨 데이터를 제공합니다.
  */
 
+import { getSupabaseUrl, isDevelopment, shouldUseDummyWeather } from '../config/environment'
+
 // 날씨 데이터 타입 정의
 export interface WeatherData {
   condition: string      // 날씨 상태 (맑음, 흐림, 비, 눈 등)
@@ -31,7 +33,7 @@ export class WeatherService {
     console.log(`🌤️ [Weather] 위치 기반 날씨 정보 수집: ${lat}, ${lng}`)
 
     // 더미 모드인 경우 더미 데이터 반환
-    if (import.meta.env.VITE_USE_DUMMY_WEATHER === 'true') {
+    if (shouldUseDummyWeather()) {
       console.log('🌤️ [Weather] 더미 데이터 모드 사용')
       return this.getDummyWeatherData()
     }
@@ -59,7 +61,7 @@ export class WeatherService {
    */
   private static async getWeatherFromEdgeFunction(lat: number, lng: number): Promise<WeatherData | null> {
     try {
-      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+      const SUPABASE_URL = getSupabaseUrl()
       if (!SUPABASE_URL) {
         console.warn('SUPABASE_URL이 설정되지 않았습니다.')
         return null
@@ -115,7 +117,7 @@ export class WeatherService {
     console.log('🌤️ [Weather] 날씨 정보 수집 시작...')
 
     // 더미 모드인 경우 더미 데이터 반환
-    if (import.meta.env.VITE_USE_DUMMY_WEATHER === 'true') {
+    if (shouldUseDummyWeather()) {
       console.log('🌤️ [Weather] 더미 데이터 모드 사용')
       return this.getDummyWeatherData()
     }

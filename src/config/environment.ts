@@ -10,6 +10,11 @@ interface EnvironmentConfig {
   supabaseAnonKey: string
   isDevelopment: boolean
   isProduction: boolean
+  baseUrl: string
+  siteUrl: string
+  aiSystemUuid?: string
+  useDummyWeather?: boolean
+  supabaseServiceKey?: string
 }
 
 /**
@@ -21,9 +26,16 @@ function getEnvironmentVariable(key: string, fallback?: string): string {
     return import.meta.env[key]
   }
   
-  // 2. 브라우저 환경에서 window 객체에서 찾기 (런타임 설정)
-  if (typeof window !== 'undefined' && (window as any).ENV && (window as any).ENV[key]) {
-    return (window as any).ENV[key]
+  // 2. 브라우저 환경에서 window 객체에서 찾기 (런타임 설정 - ENV 또는 APP_CONFIG)
+  if (typeof window !== 'undefined') {
+    // window.ENV 방식 (기존)
+    if ((window as any).ENV && (window as any).ENV[key]) {
+      return (window as any).ENV[key]
+    }
+    // window.APP_CONFIG 방식 (호환성)
+    if ((window as any).APP_CONFIG && (window as any).APP_CONFIG[key]) {
+      return (window as any).APP_CONFIG[key]
+    }
   }
   
   // 3. Node.js 환경에서 process.env 사용
@@ -40,13 +52,73 @@ function getEnvironmentVariable(key: string, fallback?: string): string {
 }
 
 /**
+ * 개발 환경 여부 확인 헬퍼
+ */
+function checkIsDevelopment(): boolean {
+  // MODE 환경변수 우선
+  if (typeof import.meta !== 'undefined' && import.meta.env?.MODE) {
+    return import.meta.env.MODE === 'development'
+  }
+  
+  // NODE_ENV 확인
+  try {
+    return getEnvironmentVariable('NODE_ENV', 'development') === 'development'
+  } catch {
+    return true // 기본값은 개발 환경
+  }
+}
+
+/**
+ * 사이트 URL 결정 로직
+ */
+function determineSiteUrl(isDev: boolean): string {
+  if (typeof window !== 'undefined') {
+    // 브라우저 환경에서는 현재 origin 사용
+    return window.location.origin
+  }
+  
+  // SSR 환경에서는 환경변수 사용
+  if (!isDev) {
+    try {
+      return getEnvironmentVariable('VITE_SITE_URL', 'https://teacher-notification-app.vercel.app')
+    } catch {
+      return 'https://teacher-notification-app.vercel.app'
+    }
+  }
+  
+  return 'http://localhost:5173'
+}
+
+/**
+ * Base URL 결정 로직
+ */
+function determineBaseUrl(isDev: boolean): string {
+  if (!isDev) {
+    return '/'
+  }
+  
+  try {
+    return getEnvironmentVariable('BASE_URL', '/')
+  } catch {
+    return '/'
+  }
+}
+
+/**
  * 애플리케이션 환경 설정
  */
+const isDevMode = checkIsDevelopment()
+
 export const env: EnvironmentConfig = {
   supabaseUrl: getEnvironmentVariable('VITE_SUPABASE_URL'),
   supabaseAnonKey: getEnvironmentVariable('VITE_SUPABASE_ANON_KEY'),
-  isDevelopment: getEnvironmentVariable('NODE_ENV', 'development') === 'development',
-  isProduction: getEnvironmentVariable('NODE_ENV', 'development') === 'production'
+  isDevelopment: isDevMode,
+  isProduction: !isDevMode,
+  baseUrl: determineBaseUrl(isDevMode),
+  siteUrl: determineSiteUrl(isDevMode),
+  aiSystemUuid: getEnvironmentVariable('VITE_AI_SYSTEM_UUID', ''),
+  useDummyWeather: getEnvironmentVariable('VITE_USE_DUMMY_WEATHER', 'false') === 'true',
+  supabaseServiceKey: getEnvironmentVariable('VITE_SUPABASE_SERVICE_KEY', '')
 }
 
 /**
@@ -94,6 +166,11 @@ export function validateEnvironment(): void {
  *     VITE_SUPABASE_URL: 'https://your-project.supabase.co',
  *     VITE_SUPABASE_ANON_KEY: 'your-anon-key'
  *   }
+ *   // 또는
+ *   window.APP_CONFIG = {
+ *     SUPABASE_URL: 'https://your-project.supabase.co',
+ *     SUPABASE_ANON_KEY: 'your-anon-key'
+ *   }
  * </script>
  * ```
  */
@@ -103,13 +180,97 @@ export function setRuntimeEnvironment(config: Record<string, string>): void {
   }
 }
 
+// =============================================================================
+// ConfigService 호환 함수들 (기존 configService.ts에서 사용되던 함수들)
+// =============================================================================
+
+/**
+ * Supabase URL 반환
+ */
+export const getSupabaseUrl = (): string => env.supabaseUrl
+
+/**
+ * Supabase Anonymous Key 반환
+ */
+export const getSupabaseAnonKey = (): string => env.supabaseAnonKey
+
+/**
+ * 현재 환경 반환
+ */
+export const getEnvironment = (): 'development' | 'production' => {
+  return env.isDevelopment ? 'development' : 'production'
+}
+
+/**
+ * 개발 환경 여부 확인
+ */
+export const isDevelopment = (): boolean => env.isDevelopment
+
+/**
+ * 프로덕션 환경 여부 확인
+ */
+export const isProduction = (): boolean => env.isProduction
+
+/**
+ * 라우터 Base URL 반환
+ */
+export const getBaseUrl = (): string => env.baseUrl
+
+/**
+ * 사이트 URL 반환 (OAuth redirect용)
+ */
+export const getSiteUrl = (): string => env.siteUrl
+
+/**
+ * AI 시스템 UUID 반환
+ */
+export const getAiSystemUuid = (): string | undefined => {
+  return env.aiSystemUuid || undefined
+}
+
+/**
+ * 더미 날씨 사용 여부 반환
+ */
+export const shouldUseDummyWeather = (): boolean => env.useDummyWeather || false
+
+/**
+ * Supabase Service Key 반환 (개발용만)
+ */
+export const getSupabaseServiceKey = (): string | undefined => {
+  return env.supabaseServiceKey || undefined
+}
+
+/**
+ * 설정 정보 출력 (디버깅용)
+ */
+export const getConfigInfo = (): {
+  hasUrl: boolean
+  hasKey: boolean
+  environment: string
+  source: string
+  baseUrl: string
+  siteUrl: string
+} => {
+  const hasRuntimeConfig = typeof window !== 'undefined' && 
+    ((window as any).ENV || (window as any).APP_CONFIG)
+  
+  return {
+    hasUrl: !!env.supabaseUrl,
+    hasKey: !!env.supabaseAnonKey,
+    environment: getEnvironment(),
+    source: hasRuntimeConfig ? 'runtime' : 'environment',
+    baseUrl: env.baseUrl,
+    siteUrl: env.siteUrl
+  }
+}
+
 // 애플리케이션 시작 시 환경변수 유효성 검사
 try {
   validateEnvironment()
 } catch (error) {
   console.error('환경변수 설정 오류:', error)
   // 개발 환경에서만 에러 발생, 프로덕션에서는 경고만
-  if (isDev) {
+  if (isDevelopment()) {
     throw error
   }
 }

@@ -10,7 +10,7 @@
 
 import { supabase } from '../lib/supabase'
 import type { Database } from '../lib/database.types'
-import { getSupabaseUrl, getSupabaseAnonKey } from './configService'
+import { getSupabaseUrl, getSupabaseAnonKey } from '../config/environment'
 
 // 데이터베이스 타입 정의
 type UserProfile = Database['public']['Tables']['user_profiles']['Row']

@@ -7,9 +7,10 @@
 
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
+import { getSupabaseUrl, getSupabaseServiceKey } from '../config/environment'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY // 서비스 키 필요
+const supabaseUrl = getSupabaseUrl()
+const supabaseServiceKey = getSupabaseServiceKey() // 서비스 키
 
 // 서비스 키가 있는 경우에만 RLS 우회 클라이언트 생성
 export const supabaseAdmin = supabaseServiceKey ? createClient<Database>(
