@@ -14,55 +14,62 @@ interface EnvironmentConfig {
   siteUrl: string
   aiSystemUuid?: string
   useDummyWeather?: boolean
-  supabaseServiceKey?: string
 }
 
 /**
  * 환경변수를 안전하게 가져오는 함수
  */
 function getEnvironmentVariable(key: string, fallback?: string): string {
-  // 1. Vite 환경변수 시스템 우선 사용 (빌드 시점에 주입됨)
-  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-    return import.meta.env[key]
-  }
-  
-  // 2. 브라우저 환경에서 window 객체에서 찾기 (런타임 설정 - ENV 또는 APP_CONFIG)
-  if (typeof window !== 'undefined') {
-    // window.ENV 방식 (기존)
-    if ((window as any).ENV && (window as any).ENV[key]) {
-      return (window as any).ENV[key]
+  try {
+    // 1. Vite 환경변수 시스템 우선 사용 (빌드 시점에 주입됨)
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      return import.meta.env[key]
     }
-    // window.APP_CONFIG 방식 (호환성)
-    if ((window as any).APP_CONFIG && (window as any).APP_CONFIG[key]) {
-      return (window as any).APP_CONFIG[key]
+    
+    // 2. 브라우저 환경에서 window 객체에서 찾기 (런타임 설정 - ENV 또는 APP_CONFIG)
+    if (typeof window !== 'undefined') {
+      // window.ENV 방식 (기존)
+      if ((window as any).ENV && (window as any).ENV[key]) {
+        return (window as any).ENV[key]
+      }
+      // window.APP_CONFIG 방식 (호환성)
+      if ((window as any).APP_CONFIG && (window as any).APP_CONFIG[key]) {
+        return (window as any).APP_CONFIG[key]
+      }
     }
+    
+    // 3. Node.js 환경에서 process.env 사용
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key]
+    }
+    
+    // 4. fallback 값 사용
+    if (fallback !== undefined) {
+      return fallback
+    }
+    
+    console.warn(`⚠️ 환경변수 ${key}를 찾을 수 없습니다. 기본값을 사용합니다.`)
+    return ''
+    
+  } catch (error) {
+    console.warn(`⚠️ 환경변수 ${key} 로딩 중 오류:`, error)
+    return fallback || ''
   }
-  
-  // 3. Node.js 환경에서 process.env 사용
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key]
-  }
-  
-  // 4. fallback 값 사용
-  if (fallback) {
-    return fallback
-  }
-  
-  throw new Error(`환경변수 ${key}를 찾을 수 없습니다. 설정을 확인해주세요.`)
 }
 
 /**
  * 개발 환경 여부 확인 헬퍼
  */
 function checkIsDevelopment(): boolean {
-  // MODE 환경변수 우선
-  if (typeof import.meta !== 'undefined' && import.meta.env?.MODE) {
-    return import.meta.env.MODE === 'development'
-  }
-  
-  // NODE_ENV 확인
   try {
-    return getEnvironmentVariable('NODE_ENV', 'development') === 'development'
+    // MODE 환경변수 우선
+    if (typeof import.meta !== 'undefined' && import.meta.env?.MODE) {
+      return import.meta.env.MODE === 'development'
+    }
+    
+    // NODE_ENV 확인
+    const nodeEnv = getEnvironmentVariable('NODE_ENV', 'development')
+    return nodeEnv === 'development'
   } catch {
     return true // 기본값은 개발 환경
   }
@@ -117,8 +124,7 @@ export const env: EnvironmentConfig = {
   baseUrl: determineBaseUrl(isDevMode),
   siteUrl: determineSiteUrl(isDevMode),
   aiSystemUuid: getEnvironmentVariable('VITE_AI_SYSTEM_UUID', ''),
-  useDummyWeather: getEnvironmentVariable('VITE_USE_DUMMY_WEATHER', 'false') === 'true',
-  supabaseServiceKey: getEnvironmentVariable('VITE_SUPABASE_SERVICE_KEY', '')
+  useDummyWeather: getEnvironmentVariable('VITE_USE_DUMMY_WEATHER', 'false') === 'true'
 }
 
 /**
@@ -142,8 +148,8 @@ export function validateEnvironment(): void {
   
   const missing = requiredVars.filter(varName => {
     try {
-      getEnvironmentVariable(varName)
-      return false
+      const value = getEnvironmentVariable(varName)
+      return !value || value.trim() === ''
     } catch {
       return true
     }
@@ -234,13 +240,6 @@ export const getAiSystemUuid = (): string | undefined => {
 export const shouldUseDummyWeather = (): boolean => env.useDummyWeather || false
 
 /**
- * Supabase Service Key 반환 (개발용만)
- */
-export const getSupabaseServiceKey = (): string | undefined => {
-  return env.supabaseServiceKey || undefined
-}
-
-/**
  * 설정 정보 출력 (디버깅용)
  */
 export const getConfigInfo = (): {
@@ -267,10 +266,17 @@ export const getConfigInfo = (): {
 // 애플리케이션 시작 시 환경변수 유효성 검사
 try {
   validateEnvironment()
+  console.log('✅ 환경변수 유효성 검사 통과')
 } catch (error) {
-  console.error('환경변수 설정 오류:', error)
-  // 개발 환경에서만 에러 발생, 프로덕션에서는 경고만
-  if (isDevelopment()) {
-    throw error
-  }
+  console.error('⚠️ 환경변수 설정 오류:', error)
+  console.log('📊 현재 환경변수 상태:', {
+    hasSupabaseUrl: !!import.meta.env.VITE_SUPABASE_URL,
+    hasSupabaseKey: !!import.meta.env.VITE_SUPABASE_ANON_KEY,
+    mode: import.meta.env.MODE,
+    isDev: import.meta.env.DEV
+  })
+  // 개발 환경에서도 에러를 던지지 않고 경고만 출력
+  // if (isDevelopment()) {
+  //   throw error
+  // }
 }

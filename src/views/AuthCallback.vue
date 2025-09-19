@@ -53,7 +53,7 @@ onMounted(async () => {
           router.push('/profile/complete')
         } else if (authStore.isApproved) {
           // 프로필 완성 + 승인됨
-          router.push('/main')
+          router.push('/')
         } else {
           // 프로필 완성 + 승인 대기
           router.push('/pending-approval')

@@ -26,7 +26,7 @@
           <a href="#" :class="[$style.navItem, { [$style.active]: activeTab === 'settings' }]" @click="activeTab = 'settings'">
             시스템 설정
           </a>
-          <router-link to="/main" :class="$style.navItem">사용자 뷰</router-link>
+          <router-link to="/" :class="$style.navItem">사용자 뷰</router-link>
         </nav>
         
         <!-- Search & User Menu -->

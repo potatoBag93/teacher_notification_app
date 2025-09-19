@@ -121,39 +121,58 @@ export class UserService {
    * @throws 인증되지 않은 사용자일 경우 에러 발생
    */
   static async getProfile(userId?: string) {
+    console.log('🔍 [UserService] getProfile 시작, userId:', userId)
     try {
       let targetUserId = userId
       
       // userId가 제공되지 않은 경우 현재 인증된 사용자 정보 가져오기
       if (!targetUserId) {
+        console.log('👤 [UserService] userId 없음, supabase.auth.getUser() 호출...')
         const { data: { user }, error: authError } = await supabase.auth.getUser()
+        console.log('👤 [UserService] supabase.auth.getUser() 결과:', user ? 'OK' : 'NO USER', authError ? 'ERROR' : 'NO ERROR')
         
         if (authError || !user) {
           throw new Error('User not authenticated')
         }
         
         targetUserId = user.id
+        console.log('👤 [UserService] targetUserId 설정:', targetUserId)
       }
       
       if (!targetUserId) {
         throw new Error('User ID is required')
       }
 
-      // Supabase 클라이언트를 직접 사용 (자동으로 인증 토큰 관리)
-      const { data, error } = await supabase
+      console.log('🗃️ [UserService] Supabase 쿼리 시작, targetUserId:', targetUserId)
+      
+      // 2초 타임아웃을 적용한 Supabase 쿼리 (사용자 경험 우선)
+      const queryPromise = supabase
         .from('user_profiles')
         .select('*')
         .eq('id', targetUserId)
         .single()
+
+      // 2초 타임아웃 설정
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Supabase connection timeout - server may be down')), 2000)
+      })
+
+      console.log('⏰ [UserService] 2초 타임아웃으로 쿼리 실행...')
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
+      
+      console.log('🗃️ [UserService] Supabase 쿼리 완료, data:', data ? 'FOUND' : 'NULL', 'error:', error ? error.code : 'NONE')
       
       if (error) {
         // 프로필이 없는 경우 (404)
         if (error.code === 'PGRST116') {
+          console.log('📭 [UserService] 프로필 없음 (PGRST116)')
           return null
         }
+        console.error('❌ [UserService] Supabase 오류:', error)
         throw error
       }
       
+      console.log('✅ [UserService] getProfile 성공')
       return data
         
     } catch (error) {

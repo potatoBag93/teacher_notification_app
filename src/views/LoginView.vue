@@ -32,7 +32,7 @@
       <div :class="$style.divider">또는</div>
       
       <div :class="$style.links">
-        <router-link to="/main" :class="$style.link">둘러보기</router-link>
+        <router-link to="/" :class="$style.link">둘러보기</router-link>
       </div>
     </div>
   </div>

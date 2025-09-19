@@ -21,7 +21,7 @@
           알림장을 작성하고 '📱 알림장 띄우기' 기능을 사용해보세요!<br>
           사용 기록이 쌓이면 여기에 통계가 표시됩니다.
         </p>
-        <RouterLink to="/main" :class="$style.emptyButton">
+        <RouterLink to="/" :class="$style.emptyButton">
           알림장 작성하러 가기
         </RouterLink>
       </div>

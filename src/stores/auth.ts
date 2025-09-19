@@ -11,7 +11,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { supabase, getCurrentUser, getSession, signOut, signInWithGoogle } from '../lib/supabase'
-import { UserService } from '../services/userService'
 import type { Database } from '../lib/database.types'
 
 // 사용자 프로필 타입 정의
@@ -59,26 +58,34 @@ export const useAuthStore = defineStore('auth', () => {
    * 앱 시작시 인증 상태를 초기화합니다
    */
   const initializeAuth = async () => {
-    // console.log("initialize Auth Start")
+    console.log("🔧 [Auth Store] initializeAuth 시작")
     isLoading.value = true
     try {
+      console.log("👤 [Auth Store] getCurrentUser 호출...")
       const currentUser = await getCurrentUser()
+      console.log("👤 [Auth Store] getCurrentUser 결과:", currentUser ? "사용자 있음" : "사용자 없음")
       
       if (currentUser) {
+        console.log("📋 [Auth Store] loadUserProfile 시작...")
         await loadUserProfile()
+        console.log("📋 [Auth Store] loadUserProfile 완료")
         
         // updateLastLogin은 백그라운드에서 실행 (에러 무시)
-        UserService.updateLastLogin().catch(err => 
+        console.log("⏰ [Auth Store] updateLastLogin 백그라운드 호출...")
+        const { UserService } = await import('../services/userService')
+        UserService.updateLastLogin().catch((err: any) => 
           console.warn('[Auth Store] 마지막 로그인 업데이트 실패:', err)
         )
       } else {
+        console.log("🧹 [Auth Store] clearAuth 호출...")
         clearAuth()
-        // console.log("clearAuth Done.")
+        console.log("🧹 [Auth Store] clearAuth 완료")
       }
     } catch (error) {
       console.error('[Auth Store] 인증 초기화 실패:', error)
       clearAuth()
     } finally {
+      console.log("✅ [Auth Store] initializeAuth 완료 - 로딩 해제")
       isLoading.value = false
     }
   }
@@ -105,41 +112,70 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const loadUserProfile = async (userId? : string) => {
     try {
-      // 기존 프로필 조회 시도
-      const profile = await UserService.getProfile(userId)
+      console.log("📋 [Auth Store] loadUserProfile 시작, userId:", userId)
       
-      // 프로필이 없으면 새로 생성
-      if (!profile) {
-        const currentUser = await getCurrentUser()
-        if (!currentUser) {
-          throw new Error('사용자 정보를 찾을 수 없습니다.')
+      // 기존 프로필 조회 시도
+      console.log("🔍 [Auth Store] UserService.getProfile 호출...")
+      
+      try {
+        const { UserService } = await import('../services/userService')
+        const profile = await UserService.getProfile(userId)
+        console.log("🔍 [Auth Store] UserService.getProfile 결과:", profile ? "프로필 있음" : "프로필 없음")
+        
+        // 프로필이 없으면 새로 생성
+        if (!profile) {
+          console.log("🆕 [Auth Store] 새 프로필 생성 시작...")
+          const currentUser = await getCurrentUser()
+          if (!currentUser) {
+            throw new Error('사용자 정보를 찾을 수 없습니다.')
+          }
+
+          console.log("🆕 [Auth Store] UserService.createProfile 호출...")
+          // 구글 계정 정보로 프로필 생성
+          const newProfile = await UserService.createProfile({
+            id: currentUser.id,
+            email: currentUser.email!,
+            fullName: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '이름 없음',
+            schoolName: '', // 나중에 사용자가 입력
+            phone: undefined,
+            position: undefined
+          })
+
+          console.log("✅ [Auth Store] 새 프로필 생성 완료")
+          user.value = newProfile
+          isAuthenticated.value = true
+          isApproved.value = newProfile.is_approved
+          isAdmin.value = newProfile.is_admin
+          return
         }
-
-        // 구글 계정 정보로 프로필 생성
-        const newProfile = await UserService.createProfile({
-          id: currentUser.id,
-          email: currentUser.email!,
-          fullName: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '이름 없음',
-          schoolName: '', // 나중에 사용자가 입력
-          phone: undefined,
-          position: undefined
-        })
-
-        user.value = newProfile
+        
+        // 프로필이 있으면 설정
+        console.log("✅ [Auth Store] 기존 프로필 설정 중...")
+        user.value = profile
         isAuthenticated.value = true
-        isApproved.value = newProfile.is_approved
-        isAdmin.value = newProfile.is_admin
-        return
+        isApproved.value = profile.is_approved
+        isAdmin.value = profile.is_admin
+        console.log("✅ [Auth Store] 프로필 설정 완료")
+        
+      } catch (error: any) {
+        console.error('[Auth Store] 프로필 로드 중 오류:', error)
+        
+        // 타임아웃이나 네트워크 오류인 경우 세션 강제 초기화
+        if (error.message?.includes('timeout') || error.message?.includes('network')) {
+          console.warn('🔄 [Auth Store] 세션 타임아웃/네트워크 오류 - 세션 강제 초기화')
+          await supabase.auth.signOut()
+          clearAuth()
+          // 페이지 새로고침하여 완전히 초기화
+          window.location.reload()
+          return
+        }
+        
+        clearAuth()
+        throw error
       }
       
-      // 프로필이 있으면 설정
-      user.value = profile
-      isAuthenticated.value = true
-      isApproved.value = profile.is_approved
-      isAdmin.value = profile.is_admin
-      
     } catch (error) {
-      console.error('[Auth Store] 프로필 로드 실패:', error)
+      console.error('[Auth Store] loadUserProfile 최종 에러:', error)
       clearAuth()
     }
   }
@@ -243,6 +279,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     isLoading.value = true
     try {
+      const { UserService } = await import('../services/userService')
       const updatedProfile = await UserService.updateProfile(updates)
       user.value = updatedProfile  // 로컬 상태 업데이트
       return { success: true }
@@ -263,6 +300,7 @@ export const useAuthStore = defineStore('auth', () => {
    */
   const checkApprovalStatus = async () => {
     try {
+      const { UserService } = await import('../services/userService')
       const status = await UserService.checkApprovalStatus()
       isApproved.value = status.is_approved  // 로컬 상태 업데이트
       return status

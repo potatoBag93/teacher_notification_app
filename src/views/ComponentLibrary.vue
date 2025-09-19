@@ -292,7 +292,7 @@
         <div class="footer-content">
           <p>🎨 실시간 컴포넌트 라이브러리 - 모든 컴포넌트는 실제 앱에서 사용되는 버전입니다</p>
           <div class="footer-links">
-            <router-link to="/main" class="footer-link">메인으로</router-link>
+            <router-link to="/" class="footer-link">메인으로</router-link>
             <router-link to="/about" class="footer-link">About</router-link>
           </div>
         </div>

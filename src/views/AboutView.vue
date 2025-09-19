@@ -272,7 +272,7 @@
             </p>
           </div>
           <div class="footer-links">
-            <router-link to="/main" class="footer-link">메인으로</router-link>
+            <router-link to="/" class="footer-link">메인으로</router-link>
             <router-link to="/components" class="footer-link">컴포넌트</router-link>
           </div>
         </div>

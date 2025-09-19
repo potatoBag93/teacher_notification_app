@@ -172,7 +172,7 @@ onMounted(() => {
   }
   
   if (authStore.user?.school_name?.trim()) {
-    router.push('/main')
+    router.push('/')
     return
   }
 

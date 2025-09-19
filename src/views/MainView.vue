@@ -290,10 +290,7 @@ import {
   type Category 
 } from '../data/notices'
 // import { AIServiceSimplified } from '../services/aiServiceSimplified'
-import { NoticeService } from '../services/noticeService'
-import { UserUsageService } from '../services/userUsageService'
-import { WeatherNoticeService } from '../services/weatherNoticeService'
-import { CategoryRecommendationService } from '../services/categoryRecommendationService'
+// Services are now dynamically imported to prevent circular dependencies
 import { useAuthStore } from '../stores/auth'
 import { supabase } from '../lib/supabase'
 import { getSupabaseUrl, getSupabaseAnonKey } from '../config/environment'
@@ -478,6 +475,9 @@ const loadAllBlocks = async () => {
     totalBlocksCount.value = totalCount
       // console.log("loadAllBlocks",totalCount)
 
+    // 동적 임포트로 NoticeService 로드
+    const { NoticeService } = await import('../services/noticeService')
+    
     // 실제 notices 로딩
     const notices = await NoticeService.getNotices({
       limit: 6,
@@ -534,6 +534,9 @@ const getTotalNoticesCount = async (): Promise<number> => {
 // 날씨 기반 공지사항 로딩
 const loadWeatherNotices = async () => {
   try {
+    // 동적 임포트로 WeatherNoticeService 로드
+    const { WeatherNoticeService } = await import('../services/weatherNoticeService')
+    
     // 사용자의 학교 위치 정보 확인
     const user = authStore.user as any
     if (!user || !user.school_lat || !user.school_lng) {
@@ -574,6 +577,9 @@ const loadCategoryRecommendations = async () => {
   try {
     console.log('🎯 카테고리 추천 문구 로딩 중...')
     
+    // 동적 임포트로 CategoryRecommendationService 로드
+    const { CategoryRecommendationService } = await import('../services/categoryRecommendationService')
+    
     const categoryRecommendations = await CategoryRecommendationService.getRecommendations(2)
     
     if (categoryRecommendations.length > 0) {
@@ -592,6 +598,9 @@ const loadCategoryRecommendations = async () => {
 const loadRecommendedBlocks = async () => {
   try {
     console.log('🏆 추천 문구 로딩 중...')
+    
+    // 동적 임포트로 NoticeService 로드
+    const { NoticeService } = await import('../services/noticeService')
     
     // 사용량이 높은 문구들과 인기 문구들을 가져오기
     const [popularNotices, usageNotices] = await Promise.all([
@@ -734,6 +743,9 @@ const loadMoreNotices = async () => {
   
   try {
     console.log('📚 [Data] 추가 문구 로딩 중...')
+    
+    // 동적 임포트로 NoticeService 로드
+    const { NoticeService } = await import('../services/noticeService')
     
     // 현재 페이지의 다음 데이터를 가져오기
     const offset = currentPage.value * pageSize
@@ -884,6 +896,9 @@ const openSelectedNoticesPreview = async () => {
 // 사용 기록 저장
 const saveUsageRecords = async () => {
   try {
+    // 동적 임포트로 UserUsageService 로드
+    const { UserUsageService } = await import('../services/userUsageService')
+    
     const noticeIds = selectedNotices.value.map(notice => notice.id)
     await UserUsageService.saveMultipleNoticeUsage(noticeIds)
     console.log('알림장 사용 기록이 저장되었습니다.')

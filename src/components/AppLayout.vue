@@ -11,7 +11,7 @@
         
         <!-- Navigation -->
         <nav class="main-nav">
-          <RouterLink to="/" class="nav-link" :class="{ active: $route.path === '/main' }">
+          <RouterLink to="/" class="nav-link" :class="{ active: $route.path === '/' }">
             메인
           </RouterLink>
           <RouterLink to="/edit" class="nav-link" :class="{ active: $route.path === '/edit' }">

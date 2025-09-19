@@ -331,7 +331,7 @@ const finalizeNotice = () => {
   if (confirmed) {
     // 완료 처리 - 실제로는 서버에 저장하거나 다른 페이지로 이동
     alert('알림장이 완료되었습니다!')
-    router.push('/main')
+  router.push('/')
   }
 }
 
