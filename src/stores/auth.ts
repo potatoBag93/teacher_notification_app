@@ -10,7 +10,10 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { supabase, getCurrentUser, getSession, signOut, signInWithGoogle } from '../lib/supabase'
+import { supabase, signOut, signInWithGoogle } from '../lib/supabase'
+// 전역 가드: 리스너 1회만, 중복 트리거 방지
+let __authListenerWired = false
+let __lastUserId: string | null = null
 import type { Database } from '../lib/database.types'
 
 // 사용자 프로필 타입 정의
@@ -21,17 +24,9 @@ export const useAuthStore = defineStore('auth', () => {
   
   /** 현재 로그인된 사용자의 프로필 정보 */
   const user = ref<User | null>(null)
-  
-  /** 로딩 상태 (로그인, 초기화 등) */
   const isLoading = ref(false)
-  
-  /** 사용자 인증 여부 */
   const isAuthenticated = ref(false)
-  
-  /** 관리자 승인 여부 */
   const isApproved = ref(false)
-  
-  /** 관리자 권한 여부 */
   const isAdmin = ref(false)
   // stores/auth.ts
   const isInit = ref(false)
@@ -54,44 +49,62 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ==================== 액션 (Actions) ====================
   
-  /**
-   * 앱 시작시 인증 상태를 초기화합니다
-   */
+  // 인증 상태 플래그만 세팅 (프로필은 비동기)
+  function setAuthFlags(profile: User | null) {
+    user.value = profile
+    const authed = !!profile
+    isAuthenticated.value = authed
+    isApproved.value = !!profile?.is_approved
+    isAdmin.value = !!profile?.is_admin
+  }
+
+  async function setFromSession(session: import('@supabase/supabase-js').Session | null) {
+    if (!session?.user) { setAuthFlags(null); return }
+    // 프로필은 비동기로 (렌더 블로킹 금지)
+    void loadUserProfile(session.user.id)
+  }
+
+  function wireAuthListenerOnce() {
+    if (__authListenerWired) return
+    __authListenerWired = true
+    supabase.auth.onAuthStateChange((event, session) => {
+      const uid = session?.user?.id ?? null
+      // 같은 유저/같은 세션에서 INITIAL_SESSION → SIGNED_IN 중복 방지
+      if ((event === 'INITIAL_SESSION' || event === 'SIGNED_IN') && uid && uid === __lastUserId) {
+        return
+      }
+      if (uid) __lastUserId = uid
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        void setFromSession(session)
+      }
+      if (event === 'SIGNED_OUT') {
+        setAuthFlags(null)
+        resetInitFlags()
+      }
+    })
+  }
+
   const initializeAuth = async () => {
-    console.log("🔧 [Auth Store] initializeAuth 시작")
+    console.log("� [Auth Store] initializeAuth 시작")
     isLoading.value = true
     try {
-      console.log("👤 [Auth Store] getCurrentUser 호출...")
-      const currentUser = await getCurrentUser()
-      console.log("👤 [Auth Store] getCurrentUser 결과:", currentUser ? "사용자 있음" : "사용자 없음")
-      
-      if (currentUser) {
-        console.log("📋 [Auth Store] loadUserProfile 시작...")
-        await loadUserProfile()
-        console.log("📋 [Auth Store] loadUserProfile 완료")
-        
-        // updateLastLogin은 백그라운드에서 실행 (에러 무시)
-        console.log("⏰ [Auth Store] updateLastLogin 백그라운드 호출...")
-        const { UserService } = await import('../services/userService')
-        UserService.updateLastLogin().catch((err: any) => 
-          console.warn('[Auth Store] 마지막 로그인 업데이트 실패:', err)
-        )
-      } else {
-        console.log("🧹 [Auth Store] clearAuth 호출...")
-        clearAuth()
-        console.log("🧹 [Auth Store] clearAuth 완료")
-      }
+      wireAuthListenerOnce()
+      // 초기 세션만 확인(렌더 블로킹 최소화)
+      const { data, error } = await supabase.auth.getSession()
+      if (error) console.warn('[Auth Store] getSession warning:', error)
+      await setFromSession(data.session ?? null) // 내부에서 비동기 프로필 로드
     } catch (error) {
       console.error('[Auth Store] 인증 초기화 실패:', error)
-      clearAuth()
+      setAuthFlags(null)
     } finally {
-      console.log("✅ [Auth Store] initializeAuth 완료 - 로딩 해제")
       isLoading.value = false
+      console.log("✅ [Auth Store] initializeAuth 완료 - 로딩 해제")
     }
   }
 
   // "동시에 한 번만" + "성공 시에만 완료 표시" + "항상 동일 Promise 공유"
   const initializeAuthOnce = async (): Promise<void> => {
+    console.log("AuthOnce")
     if (isInit.value) return
     if (initPromise) return initPromise
 
@@ -110,73 +123,36 @@ export const useAuthStore = defineStore('auth', () => {
   /**
    * 현재 인증된 사용자의 프로필을 로드합니다
    */
-  const loadUserProfile = async (userId? : string) => {
+  // 프로필 로드는 안전하게: 실패해도 signOut/reload 없이 상태만 유지
+  const loadUserProfile = async (userId?: string) => {
     try {
       console.log("📋 [Auth Store] loadUserProfile 시작, userId:", userId)
-      
-      // 기존 프로필 조회 시도
-      console.log("🔍 [Auth Store] UserService.getProfile 호출...")
-      
-      try {
-        const { UserService } = await import('../services/userService')
-        const profile = await UserService.getProfile(userId)
-        console.log("🔍 [Auth Store] UserService.getProfile 결과:", profile ? "프로필 있음" : "프로필 없음")
-        
-        // 프로필이 없으면 새로 생성
-        if (!profile) {
-          console.log("🆕 [Auth Store] 새 프로필 생성 시작...")
-          const currentUser = await getCurrentUser()
-          if (!currentUser) {
-            throw new Error('사용자 정보를 찾을 수 없습니다.')
-          }
-
-          console.log("🆕 [Auth Store] UserService.createProfile 호출...")
-          // 구글 계정 정보로 프로필 생성
-          const newProfile = await UserService.createProfile({
-            id: currentUser.id,
-            email: currentUser.email!,
-            fullName: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || '이름 없음',
-            schoolName: '', // 나중에 사용자가 입력
-            phone: undefined,
-            position: undefined
-          })
-
-          console.log("✅ [Auth Store] 새 프로필 생성 완료")
-          user.value = newProfile
-          isAuthenticated.value = true
-          isApproved.value = newProfile.is_approved
-          isAdmin.value = newProfile.is_admin
-          return
-        }
-        
-        // 프로필이 있으면 설정
-        console.log("✅ [Auth Store] 기존 프로필 설정 중...")
-        user.value = profile
-        isAuthenticated.value = true
-        isApproved.value = profile.is_approved
-        isAdmin.value = profile.is_admin
-        console.log("✅ [Auth Store] 프로필 설정 완료")
-        
-      } catch (error: any) {
-        console.error('[Auth Store] 프로필 로드 중 오류:', error)
-        
-        // 타임아웃이나 네트워크 오류인 경우 세션 강제 초기화
-        if (error.message?.includes('timeout') || error.message?.includes('network')) {
-          console.warn('🔄 [Auth Store] 세션 타임아웃/네트워크 오류 - 세션 강제 초기화')
-          await supabase.auth.signOut()
-          clearAuth()
-          // 페이지 새로고침하여 완전히 초기화
-          window.location.reload()
-          return
-        }
-        
-        clearAuth()
-        throw error
+      const targetId = userId ?? (await supabase.auth.getUser()).data.user?.id
+      if (!targetId) { setAuthFlags(null); return }
+      const { UserService } = await import('../services/userService')
+      // 5초 타임아웃 방어
+      const p = UserService.getProfile(targetId)
+      const t = new Promise<null>((_, rej) => setTimeout(() => rej(new Error('profile timeout')), 5000))
+      const profile = await Promise.race([p, t]) as User | null
+      if (!profile) {
+        // 최초 로그인: 프로필 생성
+        const { data: u } = await supabase.auth.getUser()
+        if (!u.user) { setAuthFlags(null); return }
+        const newProfile = await UserService.createProfile({
+          id: u.user.id,
+          email: u.user.email!,
+          fullName: u.user.user_metadata?.full_name || u.user.user_metadata?.name || '이름 없음',
+          schoolName: '',
+        })
+        setAuthFlags(newProfile)
+        return
       }
-      
-    } catch (error) {
-      console.error('[Auth Store] loadUserProfile 최종 에러:', error)
-      clearAuth()
+      setAuthFlags(profile)
+      // 마지막 로그인 업데이트는 백그라운드
+      void UserService.updateLastLogin().catch(err => console.warn('[Auth Store] lastLogin 실패:', err))
+    } catch (error: any) {
+      console.warn('[Auth Store] loadUserProfile 에러 (상태 유지):', error?.message || error)
+      // 여기서 signOut/reload 하지 말 것. 네트워크 회복되면 다음 TOKEN_REFRESHED/포커스에서 재시도됨.
     }
   }
 
@@ -215,25 +191,17 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       console.log('[Auth Store] OAuth 콜백 처리 시작')
-      
-      // 현재 세션 확인
-      const session = await getSession()
-      if (!session) {
-        throw new Error('인증 세션을 찾을 수 없습니다.')
-      }
-
-      console.log('[Auth Store] 세션 확인됨:', session.user.email)
-      
-      // 사용자 프로필 로드 또는 생성
-      await loadUserProfile()
-      
+      // 누락 방지: 명시 교환 (이미 처리됐다면 no-op)
+      try { await supabase.auth.exchangeCodeForSession(window.location.href) } catch {}
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) throw new Error('인증 세션을 찾을 수 없습니다.')
+      console.log('[Auth Store] 세션 확인됨:', data.session.user.email)
+      // 프로필은 백그라운드로
+      void loadUserProfile(data.session.user.id)
       return { success: true }
     } catch (error: any) {
       console.error('[Auth Store] OAuth 콜백 처리 실패:', error)
-      return { 
-        success: false, 
-        error: error.message || 'OAuth 콜백 처리에 실패했습니다.' 
-      }
+      return { success: false, error: error.message || 'OAuth 콜백 처리에 실패했습니다.' }
     } finally {
       isLoading.value = false
     }

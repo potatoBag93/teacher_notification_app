@@ -145,21 +145,14 @@ export class UserService {
 
       console.log('🗃️ [UserService] Supabase 쿼리 시작, targetUserId:', targetUserId)
       
-      // 2초 타임아웃을 적용한 Supabase 쿼리 (사용자 경험 우선)
-      const queryPromise = supabase
+
+      // Supabase 쿼리 (타임아웃 없이)
+      const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', targetUserId)
         .single()
 
-      // 2초 타임아웃 설정
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Supabase connection timeout - server may be down')), 2000)
-      })
-
-      console.log('⏰ [UserService] 2초 타임아웃으로 쿼리 실행...')
-      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
-      
       console.log('🗃️ [UserService] Supabase 쿼리 완료, data:', data ? 'FOUND' : 'NULL', 'error:', error ? error.code : 'NONE')
       
       if (error) {

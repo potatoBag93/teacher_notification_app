@@ -14,18 +14,18 @@
           <RouterLink to="/" class="nav-link" :class="{ active: $route.path === '/' }">
             메인
           </RouterLink>
-          <RouterLink to="/edit" class="nav-link" :class="{ active: $route.path === '/edit' }">
+          <!-- <RouterLink to="/edit" class="nav-link" :class="{ active: $route.path === '/edit' }">
             편집
           </RouterLink>
           <RouterLink to="/collection" class="nav-link" :class="{ active: $route.path === '/collection' }">
             내 컬렉션
-          </RouterLink>
+          </RouterLink> -->
           <RouterLink to="/stats" class="nav-link" :class="{ active: $route.path === '/stats' }">
             통계
           </RouterLink>
-          <RouterLink to="/feedback" class="nav-link" :class="{ active: $route.path === '/feedback' }">
+          <!-- <RouterLink to="/feedback" class="nav-link" :class="{ active: $route.path === '/feedback' }">
             피드백
-          </RouterLink>
+          </RouterLink> -->
         </nav>
         
         <!-- Search Bar - 임시 비활성화 -->
@@ -44,12 +44,12 @@
         <div class="user-menu">
           <!-- 로그인된 상태 -->
           <template v-if="authStore.isAuthenticated">
-            <button class="notification-btn">
+            <!-- <button class="notification-btn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
-            </button>
+            </button> -->
             
             <!-- 사용자 드롭다운 -->
             <div class="user-dropdown" ref="userDropdown">
@@ -374,5 +374,18 @@ onUnmounted(() => {
   .app-main {
     padding: 1rem;
   }
+}
+/* 드롭다운 메뉴 스타일 개선 */
+.dropdown-menu {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  padding: 0.5rem 0;
+  min-width: 180px;
+  position: absolute;
+  right: 0;
+  top: 48px;
+  z-index: 200;
 }
 </style>
