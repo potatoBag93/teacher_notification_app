@@ -3,7 +3,7 @@
     <div class="component-library">
       <header class="library-header">
         <h1>🎨 컴포넌트 라이브러리</h1>
-        <p>교실 소통 문구 앱에서 사용하는 컴포넌트들의 실시간 데모</p>
+  <p>알뭐에서 사용하는 컴포넌트들의 실시간 데모</p>
         <div class="library-stats">
           <span class="stat-item">📦 {{ Object.keys(components).length }}개 컴포넌트</span>
           <span class="stat-item">🏷️ {{ categories.length }}개 카테고리</span>
@@ -139,7 +139,7 @@
         <!-- NoticeCard 컴포넌트 -->
         <section class="component-section">
           <h2>NoticeCard</h2>
-          <p>알림장 문구 카드 컴포넌트 - 메인 카테고리 + 서브태그 시스템</p>
+          <p>알뭐 문구 카드 컴포넌트 - 메인 카테고리 + 서브태그 시스템</p>
           
           <div class="component-demo">
             <div class="demo-notice-cards">
@@ -243,7 +243,7 @@
 
         <section class="component-section">
           <h2>AppLayout</h2>
-          <p>전체 앱의 레이아웃을 담당하는 컴포넌트 - 현재 이 페이지를 감싸고 있음</p>
+          <p>전체 알뭐의 레이아웃을 담당하는 컴포넌트 - 현재 이 페이지를 감싸고 있음</p>
           
           <div class="component-demo">
             <div class="layout-demo">
@@ -290,7 +290,7 @@
       <!-- 푸터 -->
       <footer class="library-footer">
         <div class="footer-content">
-          <p>🎨 실시간 컴포넌트 라이브러리 - 모든 컴포넌트는 실제 앱에서 사용되는 버전입니다</p>
+          <p>🎨 실시간 컴포넌트 라이브러리 - 모든 컴포넌트는 실제 알뭐에서 사용되는 버전입니다</p>
           <div class="footer-links">
             <router-link to="/" class="footer-link">메인으로</router-link>
             <router-link to="/about" class="footer-link">About</router-link>

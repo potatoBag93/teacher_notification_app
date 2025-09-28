@@ -80,7 +80,7 @@ import.meta.env.VITE_USE_DUMMY_WEATHER === 'true'
 1. **VITE_SUPABASE_URL**
    - 용도: Supabase 프로젝트 URL
    - 필수: ✅
-   - 예시: `https://your-project.supabase.co`
+   - 예시: `https://your-almo.supabase.co`
 
 2. **VITE_SUPABASE_ANON_KEY**
    - 용도: Supabase 공개 API 키
@@ -114,7 +114,7 @@ import.meta.env.VITE_USE_DUMMY_WEATHER === 'true'
 8. **VITE_SITE_URL** (옵션)
    - 용도: 프로덕션 사이트 URL
    - 필수: ❌
-   - 기본값: `https://teacher-notification-app.vercel.app`
+   - 기본값: `https://almo.vercel.app`
 
 ## 🚀 Vercel 배포용 환경변수 설정
 
@@ -127,7 +127,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
 # 선택적 환경변수
 VITE_AI_SYSTEM_UUID=your-ai-system-uuid
-VITE_SITE_URL=https://teacher-notification-app.vercel.app
+VITE_SITE_URL=https://almo.vercel.app
 
 # 개발용 (Production에 설정하지 마세요!)
 # VITE_SUPABASE_SERVICE_KEY=service-key-here

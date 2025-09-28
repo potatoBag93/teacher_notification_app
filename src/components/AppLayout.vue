@@ -6,7 +6,7 @@
         <!-- Logo -->
         <div class="logo-section">
           <div class="logo-icon">📝</div>
-          <h1 class="logo-text">알림장 도우미</h1>
+          <h1 class="logo-text">알뭐</h1>
         </div>
         
         <!-- Navigation -->
@@ -62,41 +62,43 @@
               </button>
               
               <!-- 드롭다운 메뉴 -->
-              <div v-if="showUserMenu" class="dropdown-menu">
-                <div class="user-info">
-                  <div class="user-name">{{ authStore.userName || '사용자' }}</div>
-                  <div class="user-email">{{ authStore.user?.email }}</div>
-                  <div v-if="authStore.userSchool" class="user-school">{{ authStore.userSchool }}</div>
+              <transition name="dropdown-fade">
+                <div v-if="showUserMenu" class="dropdown-menu">
+                  <div class="user-info">
+                    <div class="user-name">{{ authStore.userName || '사용자' }}</div>
+                    <div class="user-email">{{ authStore.user?.email }}</div>
+                    <div v-if="authStore.userSchool" class="user-school">{{ authStore.userSchool }}</div>
+                  </div>
+                  
+                  <div class="menu-divider"></div>
+                  
+                  <button class="menu-item" @click="goToProfileEdit">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>계정 설정</span>
+                  </button>
+                  
+                  <button v-if="authStore.isAdmin" class="menu-item" @click="goToAdmin">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"></path>
+                    </svg>
+                    <span>관리자 페이지</span>
+                  </button>
+                  
+                  <div class="menu-divider"></div>
+                  
+                  <button class="menu-item logout-btn" @click="handleLogout">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                      <polyline points="16,17 21,12 16,7"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>로그아웃</span>
+                  </button>
                 </div>
-                
-                <div class="menu-divider"></div>
-                
-                <button class="menu-item" @click="goToProfile">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                  </svg>
-                  프로필 설정
-                </button>
-                
-                <button v-if="authStore.isAdmin" class="menu-item" @click="goToAdmin">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"></path>
-                  </svg>
-                  관리자 페이지
-                </button>
-                
-                <div class="menu-divider"></div>
-                
-                <button class="menu-item logout-btn" @click="handleLogout">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16,17 21,12 16,7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  로그아웃
-                </button>
-              </div>
+              </transition>
             </div>
           </template>
           
@@ -156,11 +158,16 @@ const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value
 }
 
+// 칠판 미리보기 새 창 열기 함수
+const openChalkboardPreview = () => {
+  window.open('/chalkboard-preview', '_blank', 'noopener,width=1200,height=800')
+}
+
 const getUserInitial = (): string => {
   const name = authStore.userName
   if (name) {
     return name.charAt(0).toUpperCase()
-  }//ㅇㅇ
+  }
   const email = authStore.user?.email
   if (email) {
     return email.charAt(0).toUpperCase()
@@ -181,7 +188,10 @@ const goToAdmin = () => {
 const goToLogin = () => {
   router.push('/login')
 }
-
+// 내 정보 보기(프로필 수정)로 이동
+const goToProfileEdit = () => {
+  router.push('/profile-edit')
+}
 const handleLogout = async () => {
   console.log("로그아웃 시도")
   showUserMenu.value = false
@@ -210,6 +220,7 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
+
 </script>
 
 <style scoped>
@@ -326,6 +337,7 @@ onUnmounted(() => {
   color: #3b82f6;
   font-size: 0.875rem;
   font-weight: 500;
+  cursor: pointer;
 }
 
 .app-main {
@@ -375,17 +387,102 @@ onUnmounted(() => {
     padding: 1rem;
   }
 }
+
+.user-dropdown {
+  position: relative;
+}
+
+/* Dropdown Transition */
+.dropdown-fade-enter-active {
+  transition: opacity 150ms ease-out, transform 150ms ease-out;
+}
+.dropdown-fade-leave-active {
+  transition: opacity 150ms ease-in, transform 150ms ease-in;
+}
+.dropdown-fade-enter-from,
+.dropdown-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.95);
+}
+
 /* 드롭다운 메뉴 스타일 개선 */
 .dropdown-menu {
   background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  padding: 0.5rem 0;
-  min-width: 180px;
+  border: 1px solid #e2e8f0; /* secondary.200 */
+  border-radius: 0.75rem; /* border_radius.lg */
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadows.lg */
+  padding: 0.5rem; /* spacing.2 */
+  min-width: 220px;
   position: absolute;
-  right: 0;
-  top: 48px;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 200;
+  transform-origin: top center;
+}
+
+.user-info {
+  padding: 0.5rem 0.75rem; /* spacing-2, spacing-3 */
+  margin-bottom: 0.5rem; /* spacing-2 */
+}
+
+.user-name {
+  font-weight: 600; /* semibold */
+  color: #1e293b; /* secondary.800 */
+  font-size: 0.875rem; /* sm */
+  line-height: 1.25rem;
+}
+
+.user-email, .user-school {
+  font-size: 0.75rem; /* xs */
+  color: #64748b; /* secondary.500 */
+  margin-top: 0.25rem; /* spacing-1 */
+  line-height: 1rem;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e2e8f0; /* secondary.200 */
+  margin: 0.5rem 0; /* spacing-2 */
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.75rem; /* spacing-3 */
+  padding: 0.625rem 0.75rem;
+  border-radius: 0.5rem; /* border_radius.md */
+  font-size: 0.875rem; /* sm */
+  font-weight: 500; /* medium */
+  color: #334155; /* secondary.700 */
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item svg {
+  color: #94a3b8; /* secondary.400 */
+  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.menu-item:hover {
+  background: #eff6ff; /* primary.50 */
+  color: #2563eb; /* primary.600 */
+}
+
+.menu-item:hover svg {
+  color: #2563eb; /* primary.600 */
+}
+
+.logout-btn:hover {
+  background: #fef2f2; /* from theme tag_colors */
+  color: #dc2626; /* from theme tag_colors */
+}
+
+.logout-btn:hover svg {
+  color: #dc2626; /* from theme tag_colors */
 }
 </style>

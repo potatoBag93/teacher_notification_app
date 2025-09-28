@@ -7,7 +7,7 @@
 2. Settings → Environment Variables 메뉴
 3. 다음 변수들 추가:
    ```
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+  VITE_SUPABASE_URL=https://your-almo.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key-here
    NODE_ENV=production
    ```
@@ -29,7 +29,7 @@ vercel env ls
 1. Site Settings → Environment Variables
 2. 환경변수 추가:
    ```
-   VITE_SUPABASE_URL=https://your-project.supabase.co
+  VITE_SUPABASE_URL=https://your-almo.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key-here
    NODE_ENV=production
    ```
@@ -42,7 +42,7 @@ vercel env ls
 FROM node:18-alpine
 
 # 환경변수 설정
-ENV VITE_SUPABASE_URL=https://your-project.supabase.co
+ENV VITE_SUPABASE_URL=https://your-almo.supabase.co
 ENV VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ENV NODE_ENV=production
 
@@ -60,12 +60,12 @@ HTML 파일에 런타임 설정 추가:
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Teacher Notification App</title>
+  <title>알뭐</title>
   
   <!-- 런타임 환경변수 설정 -->
   <script>
     window.ENV = {
-      VITE_SUPABASE_URL: 'https://your-project.supabase.co',
+  VITE_SUPABASE_URL: 'https://your-almo.supabase.co',
       VITE_SUPABASE_ANON_KEY: 'your-anon-key-here',
       NODE_ENV: 'production'
     }
@@ -87,9 +87,9 @@ HTML 파일에 런타임 설정 추가:
 
 ### ✅ 안전한 환경변수
 ```bash
-VITE_SUPABASE_URL=https://project.supabase.co  # ✅ 공개 가능
+VITE_SUPABASE_URL=https://almo.supabase.co  # ✅ 공개 가능
 VITE_SUPABASE_ANON_KEY=eyJ...                  # ✅ 공개 가능 (RLS로 보호)
-VITE_APP_NAME=Teacher Notification App         # ✅ 공개 가능
+VITE_APP_NAME=알뭐         # ✅ 공개 가능
 ```
 
 ### ❌ 위험한 환경변수 (사용 금지)

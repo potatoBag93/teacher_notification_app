@@ -37,7 +37,7 @@
             <div class="feature-icon">🤖</div>
             <h3 class="feature-title">AI 문구 생성</h3>
             <p class="feature-description">
-              Gemini AI를 활용하여 창의적이고 상황에 맞는 알림장 문구를 자동 생성합니다.
+              Gemini AI를 활용하여 창의적이고 상황에 맞는 알뭐 문구를 자동 생성합니다.
             </p>
             <ul class="feature-details">
               <li>✨ 창의적인 문구 자동 생성</li>
@@ -74,12 +74,12 @@
             </ul>
           </div>
 
-          <!-- 알림장 미리보기 -->
+          <!-- 알뭐 미리보기 -->
           <div class="feature-card">
             <div class="feature-icon">👁️</div>
-            <h3 class="feature-title">알림장 미리보기</h3>
+            <h3 class="feature-title">알뭐 미리보기</h3>
             <p class="feature-description">
-              실제 알림장 형태로 미리보기하고 다양한 형태로 출력할 수 있습니다.
+              실제 알뭐 형태로 미리보기하고 다양한 형태로 출력할 수 있습니다.
             </p>
             <ul class="feature-details">
               <li>📊 그리드 모드: 전체 문구 한눈에 보기</li>
@@ -217,8 +217,8 @@
           <div class="guide-step">
             <div class="step-number">3</div>
             <div class="step-content">
-              <h3 class="step-title">알림장 미리보기</h3>
-              <p class="step-description">선택한 문구들을 알림장 형태로 미리보고, 다양한 모드로 출력하세요.</p>
+              <h3 class="step-title">알뭐 미리보기</h3>
+              <p class="step-description">선택한 문구들을 알뭐 형태로 미리보고, 다양한 모드로 출력하세요.</p>
             </div>
           </div>
 

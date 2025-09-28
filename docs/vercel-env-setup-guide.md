@@ -112,7 +112,7 @@ window.APP_CONFIG = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Notification App</title>
+  <title>알뭐</title>
   
   <!-- 런타임 설정 로드 -->
   <script src="/config.js"></script>

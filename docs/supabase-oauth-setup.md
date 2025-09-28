@@ -15,7 +15,7 @@
 **Settings** → **General** 탭에서:
 
 ```
-Site URL: https://teacher-notification-app.vercel.app
+Site URL: https://almo.vercel.app
 ```
 
 ⚠️ **주의**: `localhost:3000`이나 `localhost:5173`이 설정되어 있으면 안됩니다!
@@ -24,7 +24,7 @@ Site URL: https://teacher-notification-app.vercel.app
 **Settings** → **General** 탭에서 **Redirect URLs** 섹션:
 
 ```
-https://teacher-notification-app.vercel.app/auth/callback
+https://almo.vercel.app/auth/callback
 http://localhost:5173/auth/callback (개발용)
 ```
 
@@ -48,7 +48,7 @@ URL에서 `http://localhost:3000`이 보이는 것은:
 ### Supabase Dashboard에서 확인할 항목:
 
 1. **Authentication** → **Settings** → **General**
-   - Site URL: `https://teacher-notification-app.vercel.app`
+   - Site URL: `https://almo.vercel.app`
    - Redirect URLs에 production URL 추가
 
 2. **Authentication** → **Settings** → **Providers** → **Google**

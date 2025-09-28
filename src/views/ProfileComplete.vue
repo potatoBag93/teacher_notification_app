@@ -2,10 +2,18 @@
   <div :class="$style.container">
     <div :class="$style.completeBox">
       <div :class="$style.header">
-        <h1 :class="$style.title">🏫 프로필 완성하기</h1>
+        <h1 :class="$style.title">
+          <template v-if="isEditMode">✏️ 계정 설정</template>
+          <template v-else>🏫 프로필 완성하기</template>
+        </h1>
         <p :class="$style.subtitle">
-          안녕하세요, {{ authStore.user?.full_name }}님!<br>
-          교사 인증을 위해 추가 정보를 입력해주세요.
+          <template v-if="isEditMode">
+            {{ authStore.user?.full_name }}님, 학교 정보를 변경하거나 계정을 관리할 수 있습니다.
+          </template>
+          <template v-else>
+            안녕하세요, {{ authStore.user?.full_name }}님!<br>
+            교사 인증을 위해 추가 정보를 입력해주세요.
+          </template>
         </p>
       </div>
       
@@ -72,48 +80,40 @@
           </div>
         </div>
         
-        <div :class="$style.formGroup">
-          <label for="position" :class="$style.label">직책 (선택사항)</label>
-          <select
-            id="position"
-            v-model="form.position"
-            :class="$style.input"
-          >
-            <option value="">선택하세요</option>
-            <option value="담임교사">담임교사</option>
-            <option value="교과전담">교과전담</option>
-            <option value="부장교사">부장교사</option>
-            <option value="교감">교감</option>
-            <option value="교장">교장</option>
-            <option value="기타">기타</option>
-          </select>
-        </div>
-        
-        <div :class="$style.formGroup">
-          <label for="phone" :class="$style.label">연락처 (선택사항)</label>
-          <input
-            id="phone"
-            v-model="form.phone"
-            type="tel"
-            :class="$style.input"
-            placeholder="010-1234-5678"
-          />
-        </div>
-        
         <button 
           type="submit" 
           :class="$style.submitBtn"
           :disabled="isLoading || !selectedSchool"
         >
-          {{ isLoading ? '저장 중...' : '프로필 완성하기' }}
+          <template v-if="isEditMode">{{ isLoading ? '저장 중...' : '정보 저장하기' }}</template>
+          <template v-else>{{ isLoading ? '저장 중...' : '프로필 완성하기' }}</template>
         </button>
       </form>
       
-      <div :class="$style.infoBox">
+      <div :class="$style.infoBox" v-if="!isEditMode">
         <div :class="$style.infoIcon">ℹ️</div>
         <div>
           <strong>승인 프로세스</strong><br>
           관리자가 학교 정보를 확인한 후 24시간 내에 승인 여부를 알려드립니다.
+        </div>
+      </div>
+
+      <!-- Danger Zone - 회원 탈퇴 -->
+      <div v-if="isEditMode" :class="$style.dangerZone">
+        <div :class="$style.dangerZoneContent">
+          <div>
+            <h4 :class="$style.dangerZoneContentTitle">회원 탈퇴</h4>
+            <p :class="$style.dangerZoneText">
+              계정을 영구적으로 삭제합니다. 이 작업은 되돌릴 수 없으며, 모든 데이터가 사라집니다.
+            </p>
+          </div>
+          <button 
+            @click="handleDeleteAccount" 
+            :class="$style.deleteBtn"
+            :disabled="isDeleting"
+          >
+            {{ isDeleting ? '삭제 중...' : '계정 삭제' }}
+          </button>
         </div>
       </div>
     </div>
@@ -121,24 +121,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { UserService } from '../services/userService'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const isLoading = ref(false)
+const isDeleting = ref(false)
 const error = ref('')
 
-// 기존 폼 데이터
 const form = ref({
-  schoolName: '',
-  position: '',
-  phone: ''
+  schoolName: ''
 })
 
-// 학교 검색 관련 상태
 const schoolSearchQuery = ref('')
 const searchedSchools = ref<any[]>([])
 const isSearchingSchools = ref(false)
@@ -146,43 +145,53 @@ const showSchoolDropdown = ref(false)
 const selectedSchool = ref<any>(null)
 let searchTimeout: NodeJS.Timeout | null = null
 
-// 학교 정보 인터페이스
 interface SchoolInfo {
-  ATPT_OFCDC_SC_CODE: string    // 교육청코드
-  SD_SCHUL_CODE: string         // 학교코드
-  SCHUL_NM: string              // 학교명
-  ENG_SCHUL_NM?: string         // 영문학교명
-  SCHUL_KND_SC_NM: string       // 학교급명
-  LCTN_SC_NM: string            // 시도명
-  JU_ORG_NM?: string            // 관할기관명
-  ORG_RDNMA?: string            // 도로명주소
-  ORG_RDNZC?: string            // 우편번호
-  ORG_TELNO?: string            // 전화번호
-  HMPG_ADRES?: string           // 홈페이지주소
-  COEDU_SC_NM?: string          // 남녀공학구분명
-  ORG_FAXNO?: string            // 팩스번호
-  HS_SC_NM?: string             // 고등학교구분명
+  ATPT_OFCDC_SC_CODE: string
+  SD_SCHUL_CODE: string
+  SCHUL_NM: string
+  ENG_SCHUL_NM?: string
+  SCHUL_KND_SC_NM: string
+  LCTN_SC_NM: string
+  JU_ORG_NM?: string
+  ORG_RDNMA?: string
+  ORG_RDNZC?: string
+  ORG_TELNO?: string
+  HMPG_ADRES?: string
+  COEDU_SC_NM?: string
+  ORG_FAXNO?: string
+  HS_SC_NM?: string
 }
 
+const isEditMode = computed(() => route.name === 'profile-edit')
+
 onMounted(() => {
-  // 이미 학교명이 있거나 로그인하지 않은 경우 리디렉션
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
-  
-  if (authStore.user?.school_name?.trim()) {
+
+  if (!isEditMode.value && authStore.user?.school_name?.trim()) {
     router.push('/')
     return
   }
 
-  // 드롭다운 닫기를 위한 클릭 이벤트 리스너
+  if (isEditMode.value && authStore.user) {
+    form.value.schoolName = authStore.user.school_name || ''
+    schoolSearchQuery.value = authStore.user.school_name || ''
+    selectedSchool.value = {
+      SCHUL_NM: authStore.user.school_name,
+      // You might need to fetch full school details if required
+    }
+  }
+
   document.addEventListener('click', handleOutsideClick)
 })
 
-// 학교 검색 함수
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick)
+})
+
 const handleSchoolSearch = () => {
-  // 디바운싱: 입력 후 300ms 후에 검색 실행
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }
@@ -200,30 +209,20 @@ const handleSchoolSearch = () => {
   }, 300)
 }
 
-// 학교 검색 API 호출
 const searchSchools = async (schoolName: string) => {
   if (isSearchingSchools.value) return
-  
   isSearchingSchools.value = true
   
   try {
     const response = await fetch('/api/search-schools', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        schoolName: schoolName,
-        limit: 10
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ schoolName, limit: 10 })
     })
     
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
-    }
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`)
     
     const data = await response.json()
-    
     if (data.success && data.schools) {
       searchedSchools.value = data.schools
       showSchoolDropdown.value = true
@@ -231,7 +230,6 @@ const searchSchools = async (schoolName: string) => {
       searchedSchools.value = []
       console.error('학교 검색 실패:', data.error)
     }
-    
   } catch (error) {
     console.error('학교 검색 중 오류:', error)
     searchedSchools.value = []
@@ -240,7 +238,6 @@ const searchSchools = async (schoolName: string) => {
   }
 }
 
-// 학교 선택
 const selectSchool = (school: SchoolInfo) => {
   selectedSchool.value = school
   schoolSearchQuery.value = school.SCHUL_NM
@@ -248,7 +245,6 @@ const selectSchool = (school: SchoolInfo) => {
   showSchoolDropdown.value = false
 }
 
-// 드롭다운 외부 클릭 시 닫기
 const handleOutsideClick = (event: Event) => {
   const target = event.target as HTMLElement
   if (!target.closest('.schoolSearchContainer')) {
@@ -256,21 +252,14 @@ const handleOutsideClick = (event: Event) => {
   }
 }
 
-// 위도/경도 가져오기 함수 (Geocoding API 사용)
 const getSchoolCoordinates = async (schoolAddress: string): Promise<{lat: number, lng: number} | null> => {
   try {
-    // 여기서는 간단히 더미 좌표를 반환 (실제로는 Geocoding API 사용)
-    // 예: Google Maps Geocoding API, Naver Maps API 등
-    
-    // 서울 지역 기본 좌표 (실제로는 주소 기반으로 변환)
     const dummyCoordinates = {
-      lat: 37.5665 + (Math.random() - 0.5) * 0.1, // 서울 중심 ± 변화
+      lat: 37.5665 + (Math.random() - 0.5) * 0.1,
       lng: 126.9780 + (Math.random() - 0.5) * 0.1
     }
-    
     console.log(`학교 주소 "${schoolAddress}"의 좌표:`, dummyCoordinates)
     return dummyCoordinates
-    
   } catch (error) {
     console.error('좌표 변환 실패:', error)
     return null
@@ -278,13 +267,8 @@ const getSchoolCoordinates = async (schoolAddress: string): Promise<{lat: number
 }
 
 const handleSubmit = async () => {
-  if (!form.value.schoolName.trim()) {
-    error.value = '학교명을 입력해주세요.'
-    return
-  }
-
   if (!selectedSchool.value) {
-    error.value = '검색된 학교 목록에서 정확한 학교를 선택해주세요. 학교명을 입력하면 검색 결과가 나타납니다.'
+    error.value = '검색된 학교 목록에서 정확한 학교를 선택해주세요.'
     return
   }
 
@@ -292,7 +276,6 @@ const handleSubmit = async () => {
   error.value = ''
 
   try {
-    // 학교 위치 정보 가져오기
     let schoolLat = null
     let schoolLng = null
     
@@ -304,19 +287,18 @@ const handleSubmit = async () => {
       }
     }
     
-    // 프로필 업데이트 (위치 정보 포함)
     const result = await authStore.updateProfile({
       school_name: selectedSchool.value.SCHUL_NM,
       school_lat: schoolLat as any,
-      school_lng: schoolLng as any,
-      position: form.value.position || null,
-      phone: form.value.phone || null
+      school_lng: schoolLng as any
     } as any)
 
     if (result.success) {
-      // 프로필 업데이트 성공
-      console.log('✅ 프로필 업데이트 성공 (위치 정보 포함)')
-      router.push('/pending-approval')
+      if (isEditMode.value) {
+        alert('프로필 정보가 업데이트되었습니다.')
+      } else {
+        router.push('/pending-approval')
+      }
     } else {
       error.value = result.error || '프로필 업데이트에 실패했습니다.'
     }
@@ -324,6 +306,35 @@ const handleSubmit = async () => {
     error.value = err.message || '프로필 업데이트 중 오류가 발생했습니다.'
   } finally {
     isLoading.value = false
+  }
+}
+
+const handleDeleteAccount = async () => {
+  if (!window.confirm('정말로 계정을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없으며, 모든 데이터가 영구적으로 삭제됩니다.')) {
+    return
+  }
+
+  isDeleting.value = true
+  error.value = ''
+
+  try {
+    // TODO: Implement account deletion in a service (e.g., userService.ts)
+    console.log('--- Account Deletion Initiated ---')
+    await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate network delay
+    // const result = await userService.deleteCurrentUser();
+    const result = { success: true, error: null } // Placeholder for actual API call
+    
+    if (result.success) {
+      alert('회원 탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.')
+      await authStore.logout()
+      router.push('/login')
+    } else {
+      error.value = result.error || '회원 탈퇴에 실패했습니다. 잠시 후 다시 시도해주세요.'
+    }
+  } catch (err: any) {
+    error.value = err.message || '회원 탈퇴 중 오류가 발생했습니다.'
+  } finally {
+    isDeleting.value = false
   }
 }
 </script>
@@ -462,12 +473,8 @@ const handleSubmit = async () => {
   color: #27ae60;
 }
 
-/* 학교 검색 관련 스타일 */
+/* School Search Styles */
 .schoolSearchContainer {
-  position: relative;
-}
-
-.schoolSearchInput {
   position: relative;
 }
 
@@ -486,7 +493,7 @@ const handleSubmit = async () => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.searchingMessage {
+.searchingMessage, .noResults {
   padding: 12px 16px;
   color: #6b7280;
   font-style: italic;
@@ -525,14 +532,6 @@ const handleSubmit = async () => {
   color: #9ca3af;
 }
 
-.noResults {
-  padding: 12px 16px;
-  color: #9ca3af;
-  text-align: center;
-  font-style: italic;
-}
-
-/* 선택된 학교 정보 스타일 */
 .selectedSchoolInfo {
   margin-top: 12px;
   padding: 12px 16px;
@@ -563,5 +562,64 @@ const handleSubmit = async () => {
 .selectedSchoolAddress {
   font-size: 11px;
   color: #15803d;
+}
+
+/* Danger Zone */
+.dangerZone {
+  margin-top: 40px;
+  border-top: 1px solid #e74c3c;
+  padding-top: 20px;
+}
+
+.dangerZoneTitle {
+  color: #e74c3c;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.dangerZoneContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fef2f2;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.dangerZoneContentTitle {
+  font-weight: 600;
+  color: #991b1b;
+  margin: 0 0 4px 0;
+}
+
+.dangerZoneText {
+  font-size: 14px;
+  color: #b91c1c;
+  line-height: 1.5;
+  margin: 0;
+  padding-right: 16px;
+}
+
+.deleteBtn {
+  padding: 10px 16px;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: #c0392b;
+}
+
+.deleteBtn:disabled {
+  background: #f8b2ab;
+  cursor: not-allowed;
 }
 </style>

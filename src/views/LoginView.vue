@@ -2,8 +2,8 @@
   <div :class="$style.container">
     <div :class="$style.loginBox">
       <div :class="$style.logo">
-        <h1 :class="$style.logoTitle">📝 알림장 도우미</h1>
-        <p :class="$style.logoSubtitle">교사를 위한 스마트 알림장 작성 도구</p>
+  <h1 :class="$style.logoTitle">📝 알뭐</h1>
+  <p :class="$style.logoSubtitle">교사를 위한 스마트 알뭐 작성 도구</p>
       </div>
       
       <form :class="$style.form" @submit.prevent="handleGoogleLogin">
@@ -28,7 +28,11 @@
           {{ isLoading ? '로그인 중...' : 'Google로 계속하기' }}
         </button>
       </form>
-      
+      <div :class="$style.termsNotice">
+        <span>
+          계속하면 <a href="/terms" target="_blank" :class="$style.termsLink">서비스 이용약관</a> 및 <a href="/privacy" target="_blank" :class="$style.termsLink">개인정보 처리방침</a>에<br>동의한 것으로 간주합니다.
+        </span>
+      </div>
       <div :class="$style.divider">또는</div>
       
       <div :class="$style.links">
@@ -81,151 +85,60 @@ if (authStore.isAuthenticated) {
 </script>
 
 <style module>
-.container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f5f7fa;
-  padding: 20px;
-}
 
-.loginBox {
-  background: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-}
-
-.logo {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logoTitle {
-  color: #2c3e50;
-  font-size: 24px;
-  margin: 0;
-}
-
-.logoSubtitle {
-  color: #7f8c8d;
-  font-size: 14px;
-  margin: 5px 0 0 0;
-}
-
-.form {
-  margin-bottom: 20px;
-}
-
-.errorMessage {
-  background: #ffebee;
-  color: #c62828;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  border: 1px solid #ffcdd2;
-}
-
-.formGroup {
-  margin-bottom: 20px;
-}
-
-.label {
-  display: block;
-  margin-bottom: 5px;
-  color: #2c3e50;
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.3s ease;
-  font-family: inherit;
-}
-
-.input:focus {
-  outline: none;
-  border-color: #3498db;
-}
-
-.btn {
-  width: 100%;
-  padding: 12px;
-  background: #3498db;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  margin-bottom: 15px;
-  transition: background-color 0.3s ease;
-  font-family: inherit;
-}
-
-.btn:hover:not(:disabled) {
-  background: #2980b9;
-}
-
-.btn:disabled {
-  background: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.btnSecondary {
-  background: #95a5a6;
-}
-
-.btnSecondary:hover:not(:disabled) {
-  background: #7f8c8d;
-}
+/* 미니멀 스타일 */
+.container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f7fa; padding: 20px; }
+.loginBox { background: #fff; padding: 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); width: 100%; max-width: 420px; border: 1px solid #e5e7eb; }
+.logo { text-align: center; margin-bottom: 18px; display: grid; gap: 4px; }
+.logoTitle { margin: 0; font-size: 1.5rem; color: #111827; }
+.logoSubtitle { margin: 0; font-size: 0.95rem; color: #6b7280; }
+.form { margin-bottom: 20px; }
+.errorMessage { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 0.9rem; }
+.btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; background: #fff; color: #111827; border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s ease; }
+.btn:hover:not(:disabled) { background: #f9fafb; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.googleIcon { width: 18px; height: 18px; }
+.links { margin-top: 12px; text-align: center; font-size: 0.85rem; color: #6b7280; }
+.link { color: #2563eb; text-decoration: none; margin: 0 4px; }
+.link:hover { text-decoration: underline; }
+@media (max-width: 480px) { .loginBox { padding: 32px 24px; } .logoTitle { font-size: 1.35rem; } }
 
 .divider {
-  text-align: center;
-  margin: 20px 0;
-  color: #95a5a6;
-  font-size: 14px;
-}
-
-.links {
-  text-align: center;
   display: flex;
-  justify-content: center;
-  gap: 20px;
+  align-items: center;
+  text-align: center;
+  color: #b0b6be;
+  font-size: 0.93rem;
+  margin: 18px 0 10px 0;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1.5px solid #e5e7eb;
+  margin: 0 10px;
+  height: 0;
 }
 
-.link {
-  color: #3498db;
-  text-decoration: none;
-  font-size: 14px;
-  transition: color 0.3s ease;
+.termsNotice {
+  background: #f3f4f6;
+  color: #6b7280;
+  font-size: 0.92rem;
+  text-align: center;
+  border-radius: 8px;
+  padding: 10px 12px 9px 12px;
+  margin: 10px 0 18px 0;
+  line-height: 1.6;
 }
-
-.link:hover {
+.termsLink {
+  color: #2563eb;
   text-decoration: underline;
-  color: #2980b9;
+  font-weight: 500;
+  transition: color 0.2s;
 }
-
-@media (max-width: 480px) {
-  .container {
-    padding: 16px;
-  }
-  
-  .loginBox {
-    padding: 32px 24px;
-  }
-  
-  .links {
-    flex-direction: column;
-    gap: 12px;
-  }
+.termsLink:hover {
+  color: #1d4ed8;
 }
 </style>

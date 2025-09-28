@@ -37,7 +37,7 @@ VITE_USE_DUMMY_WEATHER=false
 ### 방법 1: Vercel Dashboard 웹 인터페이스
 
 1. [Vercel Dashboard](https://vercel.com/dashboard) 접속
-2. 프로젝트 선택: `teacher-notification-app`
+2. 프로젝트 선택: `almo`
 3. **Settings** → **Environment Variables** 메뉴
 4. 다음 환경변수들을 하나씩 추가:
 
@@ -131,7 +131,7 @@ console.log('AI UUID:', getAiSystemUuid())
 VITE_SUPABASE_URL=https://unjxokjoytbwkqmqidni.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_AI_SYSTEM_UUID=your-ai-uuid
-VITE_SITE_URL=https://teacher-notification-app.vercel.app
+VITE_SITE_URL=https://almo.vercel.app
 ```
 
 ### Preview 환경
@@ -139,7 +139,7 @@ VITE_SITE_URL=https://teacher-notification-app.vercel.app
 VITE_SUPABASE_URL=https://unjxokjoytbwkqmqidni.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 VITE_AI_SYSTEM_UUID=your-ai-uuid
-VITE_SITE_URL=https://teacher-notification-app-git-[branch].vercel.app
+VITE_SITE_URL=https://almo-git-[branch].vercel.app
 VITE_USE_DUMMY_WEATHER=false
 ```
 

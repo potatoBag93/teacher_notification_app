@@ -2,6 +2,7 @@
   <!-- 검색 이벤트 임시 비활성화 -->
   <AppLayout @edit-click="goToEdit">
 
+
     <!-- 🔥 추천 섹션 -->
     <section class="recommendations-section scroll-target" id="recommendations">
       <div class="recommendations-header">
@@ -83,14 +84,12 @@
             :like-count="notice.likeCount"
             :sub-items="notice.subItems"
             :created-at="notice.createdAt"
-            :is-recommended="true"
             :is-selected="selectedNotices.some(n => n.id === notice.id)"
             :is-selecting-mode="selectedNotices.length > 0"
             :show-footer="true"
-            :clickable="true"
             @copy="handleCopy(notice)"
             @save="handleSave(notice)"
-            @click="toggleSelection(notice)"
+            @click="()=>toggleSelection(notice)"
           />
           
           <!-- 카테고리 기반 추천 문구들 -->
@@ -105,14 +104,13 @@
             :like-count="notice.likeCount"
             :sub-items="notice.subItems"
             :created-at="notice.createdAt"
-            :is-recommended="true"
             :is-selected="selectedNotices.some(n => n.id === notice.id)"
             :is-selecting-mode="selectedNotices.length > 0"
             :show-footer="true"
-            :clickable="true"
             @copy="handleCopy(notice)"
             @save="handleSave(notice)"
-            @click="toggleSelection(notice)"
+            @click="()=>toggleSelection(notice)"
+            :is-used="usedNoticeIds.includes(notice.id)"
           />
           
           <!-- 일반 추천 문구들 (사용량/인기 기반) -->
@@ -127,14 +125,14 @@
             :like-count="notice.likeCount"
             :sub-items="notice.subItems"
             :created-at="notice.createdAt"
-            :is-recommended="true"
+            :is-recommended="false"
             :is-selected="selectedNotices.some(n => n.id === notice.id)"
             :is-selecting-mode="selectedNotices.length > 0"
             :show-footer="true"
-            :clickable="true"
             @copy="handleCopy(notice)"
             @save="handleSave(notice)"
-            @click="toggleSelection(notice)"
+            @click="()=>toggleSelection(notice)"
+            :is-used="usedNoticeIds.includes(notice.id)"
           />
         </div>
       </div>
@@ -225,11 +223,11 @@
             :created-at="notice.createdAt"
             :is-selected="selectedNotices.some(n => n.id === notice.id)"
             :is-selecting-mode="selectedNotices.length > 0"
-            :clickable="true"
             :show-footer="true"
+            :is-used="usedNoticeIds.includes(notice.id)"
             @copy="handleCopy(notice)"
             @save="handleSave(notice)"
-            @click="toggleSelection(notice)"
+            @click="()=>toggleSelection(notice)"
           />
         </div>
 
@@ -284,6 +282,7 @@ import NoticeCard from '../components/common/NoticeCard.vue'
 import SelectedNoticeCard from '../components/common/SelectedNoticeCard.vue'
 import SelectedNoticePanel from '../components/common/SelectedNoticePanel.vue'
 import FullScreenNoticePreview from '../components/common/FullScreenNoticePreview.vue'
+import RecentNoticesTicker from '../components/RecentNoticesTicker.vue'
 import { 
   categories, 
   type Notice, 
@@ -292,8 +291,8 @@ import {
 // import { AIServiceSimplified } from '../services/aiServiceSimplified'
 // Services are now dynamically imported to prevent circular dependencies
 import { useAuthStore } from '../stores/auth'
-import { supabase } from '../lib/supabase'
 import { getSupabaseUrl, getSupabaseAnonKey } from '../config/environment'
+import { UserUsageService } from '../services/userUsageService'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -336,6 +335,16 @@ const totalBlocksCount = ref<number>(0) // 전체 블록 수 추가
 //언마운트 변수
 let isUnmounted = false
 
+// 사용한 문구 표시 관련 변수
+const usedNoticeIds = ref<string[]>([])
+
+const loadUsedNoticeIds = async () => {
+  try {
+    usedNoticeIds.value = await UserUsageService.getUserUsedNoticeIds()
+  } catch (e) {
+    usedNoticeIds.value = []
+  }
+}
 
 const filteredRecommendedNotices = computed(() => {
   // 날씨 기반 추천 문구와 기존 추천 문구를 합쳐서 반환
@@ -795,6 +804,8 @@ const goToEdit = () => {
   router.push('/edit')
 }
 
+
+
 // 새로운 메서드 - 다중 선택 기능
 const toggleSelection = (notice: Notice) => {
   const index = selectedNotices.value.findIndex(n => n.id === notice.id)
@@ -806,6 +817,8 @@ const toggleSelection = (notice: Notice) => {
     // 선택 추가
     selectedNotices.value.push(notice)
   }
+    console.log("selectedNotices",selectedNotices.value)
+    console.log("notice",notice)
 }
 
 const removeSelection = (noticeId: string) => {
@@ -923,8 +936,10 @@ const saveEditedNotices = (editedNotices: Notice[]) => {
 }
 
 onMounted(async () => {
+  await loadUsedNoticeIds()
+
   // 실제 데이터 로딩
-  loadAllData()
+  await loadAllData()
   })
 
 onUnmounted(() => {
@@ -936,371 +951,5 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* 추천 섹션 스타일 */
-.recommendations-section {
-  background: white;
-  border-radius: 0.75rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.recommendations-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-bottom: 1px solid #e5e7eb;
-  color: #1f2937;
-}
-
-.recommendations-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-.recommendations-title span {
-  font-size: 1.5rem;
-}
-
-.recommendations-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.refresh-btn {
-  background: #2563eb;
-  border: 1px solid #1d4ed8;
-  color: white;
-  padding: 0.375rem 0.75rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.refresh-btn:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.collapse-btn {
-  background: none;
-  border: none;
-  color: #6b7280;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  padding: 0.25rem;
-  border-radius: 0.25rem;
-}
-
-.collapse-btn:hover {
-  color: #374151;
-  background: #f3f4f6;
-}
-
-.collapse-btn.collapsed {
-  transform: rotate(-90deg);
-}
-
-.recommendations-content {
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.recommendations-content.collapsed {
-  max-height: 0;
-  padding: 0 1.5rem;
-}
-
-.recommendation-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 0.5rem;
-  border: 1px solid #e2e8f0;
-}
-
-.quick-filters {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.filter-chip {
-  padding: 0.375rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-chip.active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-
-.navigation-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.nav-btn {
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.nav-btn.primary {
-  background: #2563eb;
-  color: white;
-}
-
-.nav-btn.secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
-}
-
-.nav-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* 전체 문구 섹션 스타일 */
-.all-notices-section {
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-}
-
-.all-notices-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.section-title-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.section-title h2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
-
-.result-count {
-  background: #f3f4f6;
-  color: #6b7280;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  margin-left: 1rem;
-}
-
-.filter-controls {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.category-filters {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.category-tag {
-  padding: 0.375rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.875rem;
-  border: 1px solid #d1d5db;
-  background: white;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.filter-options {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.sort-select {
-  padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
-  background: white;
-  font-size: 0.875rem;
-}
-
-.exclude-recommended {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #374151;
-}
-
-.exclude-recommended input[type="checkbox"] {
-  margin: 0;
-}
-
-.all-notices-content {
-  padding: 1.5rem;
-}
-
-.all-notices-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.load-more-section {
-  text-align: center;
-  padding: 1rem;
-  border-top: 1px solid #f3f4f6;
-}
-
-.load-more-btn {
-  padding: 0.75rem 2rem;
-  background: #f9fafb;
-  border: 1px solid #d1d5db;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  color: #374151;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.load-more-btn:hover {
-  background: #f3f4f6;
-}
-
-.load-progress {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  margin-top: 0.5rem;
-}
-
-.scroll-target {
-  scroll-margin-top: 100px;
-}
-
-.loading-section {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #6b7280;
-}
-
-.loading-spinner {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.error-section {
-  text-align: center;
-  padding: 3rem 1rem;
-  color: #dc2626;
-}
-
-.error-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
-
-/* 반응형 디자인 */
-@media (max-width: 768px) {
-  .recommendations-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-    padding: 1rem;
-  }
-
-  .recommendations-controls {
-    justify-content: space-between;
-    align-self: stretch;
-  }
-
-  .filter-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .all-notices-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .section-title-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-
-  .recommendation-actions {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .quick-filters {
-    flex-wrap: wrap;
-  }
-
-  .navigation-buttons {
-    justify-content: stretch;
-  }
-
-  .nav-btn {
-    flex: 1;
-    justify-content: center;
-  }
-}
-
-
+ @import './MainView.css'
 </style>

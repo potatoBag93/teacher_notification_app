@@ -3,8 +3,8 @@
     <div :class="$style.dashboard">
       <!-- 헤더 섹션 -->
       <header :class="$style.header">
-        <h1 :class="$style.title">📊 내 알림장 사용 분석</h1>
-        <p :class="$style.subtitle">알림장 사용 패턴과 활동 내역을 확인해보세요</p>
+  <h1 :class="$style.title">📊 내 알뭐 사용 분석</h1>
+  <p :class="$style.subtitle">알뭐 사용 패턴과 활동 내역을 확인해보세요</p>
       </header>
 
       <!-- 로딩 상태 -->
@@ -18,40 +18,40 @@
         <div :class="$style.emptyIcon">📝</div>
         <h3 :class="$style.emptyTitle">아직 사용 기록이 없습니다</h3>
         <p :class="$style.emptyDescription">
-          알림장을 작성하고 '📱 알림장 띄우기' 기능을 사용해보세요!<br>
+          알뭐를 작성하고 '📱 알뭐 띄우기' 기능을 사용해보세요!<br>
           사용 기록이 쌓이면 여기에 통계가 표시됩니다.
         </p>
         <RouterLink to="/" :class="$style.emptyButton">
-          알림장 작성하러 가기
+          알뭐 작성하러 가기
         </RouterLink>
       </div>
 
-      <!-- 통계 데이터 표시 -->
-      <template v-else>
+      <div v-else>
         <!-- 통계 요약 카드 -->
         <section :class="$style.statsGrid">
-          <BaseCard 
-            v-for="stat in statCards" 
+          <BaseCard
+            v-for="stat in statCards"
             :key="stat.label"
             :class="$style.statCard"
-            hover
           >
-            <h3 :class="$style.statTitle">{{ stat.icon }} {{ stat.label }}</h3>
+            <div :class="$style.statTitle">
+              <span style="margin-right: 8px;">{{ stat.icon }}</span>
+              <span>{{ stat.label }}</span>
+            </div>
             <div :class="[$style.statNumber, $style[stat.colorClass]]">{{ stat.value }}</div>
-            <div :class="$style.statLabel">{{ stat.description }}</div>
+            <p :class="$style.statLabel">{{ stat.description }}</p>
           </BaseCard>
         </section>
 
-        <!-- 카테고리별 사용 통계 -->
-        <section :class="$style.categorySection" v-if="categoryUsage.length">
+        <!-- 카테고리별 사용 현황 -->
+        <section :class="$style.categorySection">
           <BaseCard :class="$style.categoryCard">
             <div :class="$style.cardHeader">
               <h2 :class="$style.sectionTitle">
-                📈 카테고리별 문구 다양성
+                🎨 영역별 활용 현황
               </h2>
               <p :class="$style.sectionSubtitle">각 영역에서 사용해본 문구 종류를 확인하세요 (문구는 여러 영역에 중복 포함될 수 있습니다)</p>
             </div>
-            
             <div :class="$style.categoryStats">
               <div 
                 v-for="category in categoryUsage" 
@@ -73,54 +73,31 @@
           </BaseCard>
         </section>
 
-        <!-- 최근 활동 내역 -->
-        <section :class="$style.activitySection" v-if="recentActivities.length">
-          <BaseCard :class="$style.activityCard">
-            <h2 :class="$style.sectionTitle">🕒 최근 활동 내역</h2>
-            
-            <div :class="$style.activityList">
-              <div 
-                v-for="activity in recentActivities" 
-                :key="activity.id"
-                :class="$style.activityItem"
-              >
-                <div :class="[$style.activityIcon, $style[activity.type]]">
-                  {{ getActivityIcon(activity.type) }}
+        <!-- 날짜별 사용내역 섹션 -->
+        <section :class="$style.dateUsageSection">
+          <BaseCard :class="$style.dateUsageCard">
+            <h2 :class="$style.sectionTitle">🗓️ 날짜별 사용내역</h2>
+            <div :class="$style.dateUsageList">
+              <div v-for="group in recentActivities" :key="group.date" :class="$style.dateUsageItem">
+                <div :class="$style.dateInfo">
+                  <span :class="$style.date">{{ group.date }}</span>
+                  <span :class="$style.count">{{ group.activities.length }}회</span>
+                  <span :class="$style.representative">
+                    {{
+                      (() => {
+                        const titles = group.activities.map(a => a.title).filter(Boolean);
+                        const joined = titles.join(', ');
+                        return joined.length > 60 ? joined.slice(0, 60) + '...' : joined || '문구';
+                      })()
+                    }}
+                  </span>
                 </div>
-                <div :class="$style.activityContent">
-                  <div :class="$style.activityTitle">{{ activity.title }}</div>
-                  <div :class="$style.activityDescription">{{ activity.description }}</div>
-                </div>
-                <div :class="$style.activityTime">{{ formatTime(activity.timestamp) }}</div>
+                <button :class="$style.detailBtn" @click="showDateDetail(group)">상세보기</button>
               </div>
             </div>
           </BaseCard>
         </section>
-
-        <!-- 추천 섹션 -->
-        <section :class="$style.recommendationsSection" v-if="usageHistory.length > 0">
-          <BaseCard :class="$style.recommendationsCard">
-            <div :class="$style.recommendationTitle">🎯 소통 패턴 분석 & 인사이트</div>
-            <ul :class="$style.recommendationList">
-              <li v-if="categoryStats.length === 1">
-                {{ categoryStats[0].category }} 영역만 사용하고 계시네요. 다른 영역도 활용해보세요!
-              </li>
-              <li v-if="new Set(usageHistory.map(item => item.notice_id)).size < 5">
-                더 다양한 종류의 문구를 시도해보세요. 새로운 표현 방식을 발견할 수 있습니다.
-              </li>
-              <li v-if="new Set(usageHistory.map(item => item.notice_id)).size >= 10">
-                다양한 문구를 활용하며 풍부한 소통을 하고 계시네요! 👏
-              </li>
-              <li v-if="new Set(usageHistory.map(item => item.notice_id)).size > 0 && (usageHistory.length / new Set(usageHistory.map(item => item.notice_id)).size) >= 3">
-                자주 사용하는 문구들이 있으시네요. 반복 사용으로 일관성 있는 소통을 하고 계십니다.
-              </li>
-              <li v-if="categoryStats.length >= 5">
-                {{ categoryStats.length }}개 영역을 고르게 활용하고 계시네요. 균형 잡힌 소통 스타일입니다!
-              </li>
-            </ul>
-          </BaseCard>
-        </section>
-      </template>
+      </div>
     </div>
     
     <!-- 카테고리 상세 모달 -->
@@ -159,7 +136,7 @@
             :class="$style.noticeItem"
           >
             <div :class="$style.noticeHeader">
-              <h4 :class="$style.noticeTitle">{{ notice.title || '알림장 문구' }}</h4>
+              <h4 :class="$style.noticeTitle">{{ notice.title || notice.content || '알뭐 문구' }}</h4>
               <div :class="$style.noticeMetaInfo">
                 <span :class="$style.noticeDate">사용일: {{ formatDate(notice.used_at) }}</span>
                 <span :class="$style.noticeUsage">{{ notice.usage }}회</span>
@@ -177,6 +154,35 @@
         </div>
       </div>
     </div>
+      <!-- 날짜별 활동 상세 모달 -->
+      <div v-if="showDateModal" :class="$style.modal" @click="closeDateModal">
+        <div :class="$style.modalContent" @click.stop>
+          <div :class="$style.modalHeader">
+            <h3 :class="$style.modalTitle">{{ selectedDate }} 활동 내역</h3>
+            <button :class="$style.closeBtn" @click="closeDateModal">&times;</button>
+          </div>
+          <div :class="$style.noticeList">
+            <h4 :class="$style.noticeListTitle">📋 사용한 문구 목록</h4>
+            <div v-if="selectedDatePhrases.length === 0" style="color:#6b7280; padding:16px;">해당 날짜에 사용된 문구가 없습니다.</div>
+            <div v-for="phrase in selectedDatePhrases" :key="phrase.id" :class="$style.noticeItem">
+              <div :class="$style.noticeHeader">
+                <h4 :class="$style.noticeTitle">{{ phrase.notices.title || '알뭐 문구' }}</h4>
+                <div :class="$style.noticeMetaInfo">
+                  <span :class="$style.noticeDate">사용일:{{  }} {{ formatDate(phrase.used_at) }}</span>
+                </div>
+              </div>
+              <div :class="$style.noticeContent">{{ phrase.notices.sub_tags }}</div>
+             <div v-if="phrase.notices.tags && phrase.notices.tags.length" style="margin:8px 0 0 0;">
+                <span v-for="tag in phrase.notices.tags" :key="tag" style="display:inline-block; background:#eff6ff; color:#2563eb; font-size:12px; font-weight:500; border-radius:8px; padding:2px 10px; margin-right:6px;">#{{ tag }}</span>
+              </div>
+
+              <div v-if="phrase.notices.sub_tags && phrase.notices.sub_tags.length" style="margin:4px 0 0 0;">
+                <span v-for="subTag in phrase.snotices.sub_tags" :key="subTag" style="display:inline-block; background:#f3f4f6; color:#6b7280; font-size:12px; border-radius:8px; padding:2px 8px; margin-right:4px;">#{{ subTag }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
   </AppLayout>
 </template>
 
@@ -185,6 +191,8 @@ import { ref, computed, onMounted } from 'vue'
 import AppLayout from '@/components/AppLayout.vue'
 import BaseCard from '@/components/common/BaseCard.vue'
 import { UserUsageService } from '@/services/userUsageService'
+import { getCategoryGradient } from '@/constants/categories'
+import { watch } from 'vue'
 
 // 반응형 상태
 const showModal = ref(false)
@@ -193,6 +201,10 @@ const isLoading = ref(true)
 const usageHistory = ref<any[]>([])
 const categoryStats = ref<any[]>([])
 const subTagStats = ref<any[]>([])
+// 날짜별 활동 모달 상태
+const showDateModal = ref(false)
+const selectedDate = ref('')
+const selectedDatePhrases = ref<any[]>([])
 
 // 서브태그 통계 (선택된 카테고리)
 const selectedCategorySubTags = computed(() => {
@@ -252,6 +264,20 @@ onMounted(async () => {
   }
 })
 
+// 날짜별 활동 상세 모달 열기
+const showDateDetail = (group: { date: string, activities: any[] }) => {
+  selectedDate.value = group.date
+  // Find all phrases used on this date
+  selectedDatePhrases.value = usageHistory.value.filter(item => formatDate(item.used_at) === group.date)
+  showDateModal.value = true
+}
+
+const closeDateModal = () => {
+  showDateModal.value = false
+  selectedDate.value = ''
+  selectedDatePhrases.value = []
+}
+
 // 통계 카드 데이터 - 고유 문구 기준
 const statCards = computed(() => {
   const totalUsedCount = usageHistory.value.length // 총 활용 횟수
@@ -277,7 +303,7 @@ const statCards = computed(() => {
       colorClass: 'primary'
     },
     {
-      icon: '�',
+      icon: '🔁',
       value: `${avgReuseRate}회`,
       label: '평균 재사용률',
       description: '문구당 평균 활용',
@@ -321,35 +347,30 @@ const categoryUsage = computed(() => {
   }).sort((a, b) => b.count - a.count)
 })
 
-// 최근 활동 데이터 - 실제 데이터 기반
+// 최근 활동 데이터 - 날짜별 그룹화
 const recentActivities = computed(() => {
-  return usageHistory.value
+  // 날짜별 그룹화
+  const grouped: Record<string, any[]> = {};
+  usageHistory.value
     .sort((a, b) => new Date(b.used_at).getTime() - new Date(a.used_at).getTime())
-    .slice(0, 10)
-    .map(item => ({
-      id: item.id,
-      type: 'copy' as const,
-      title: '알림장 문구 사용',
-      description: `"${item.notices?.content?.substring(0, 30) || '문구'}..." 를 알림장에 사용했습니다`,
-      timestamp: new Date(item.used_at)
-    }))
+    .forEach(item => {
+      const dateKey = formatDate(item.used_at);
+      if (!grouped[dateKey]) grouped[dateKey] = [];
+      grouped[dateKey].push({
+        id: item.id,
+        type: 'copy' as const,
+        title: item.notices?.title || item.notices?.content || item.title || item.content || '문구',
+        description: `"${item.notices?.content?.substring(0, 30) || item.content?.substring(0, 30) || '문구'}..." 를 알뭐에 사용했습니다`,
+        timestamp: new Date(item.used_at)
+      });
+    });
+  // [{ date: '2025. 9. 28.', activities: [...] }, ...]
+  return Object.entries(grouped).map(([date, activities]) => ({ date, activities }));
 })
 
-// 유틸리티 함수
+// 카테고리 색상/그라디언트는 categories.ts에서 참조
 const getCategoryColor = (categoryKey: string): string => {
-  const colors: Record<string, string> = {
-    안전: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
-    생활지도: 'linear-gradient(135deg, #27ae60 0%, #229954 100%)',
-    학습: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-    건강: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-    행사: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-    알림: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)',
-    상담: 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)',
-    칭찬: 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)',
-    주의: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-    default: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)'
-  }
-  return colors[categoryKey] || colors.default
+  return getCategoryGradient(categoryKey as any)
 }
 
 // 메서드
@@ -415,683 +436,6 @@ const formatDate = (dateString: string) => {
 </script>
 
 <style module>
-.dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
+ @import './StatsView.css'
 
-.header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 12px 0;
-}
-
-.subtitle {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0;
-}
-
-/* 로딩 및 빈 상태 */
-.loading {
-  text-align: center;
-  padding: 60px 20px;
-  color: #6b7280;
-}
-
-.loadingSpinner {
-  font-size: 48px;
-  margin-bottom: 16px;
-  animation: bounce 1s infinite;
-}
-
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-.emptyState {
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.emptyIcon {
-  font-size: 64px;
-  margin-bottom: 16px;
-}
-
-.emptyTitle {
-  font-size: 24px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 12px 0;
-}
-
-.emptyDescription {
-  font-size: 16px;
-  color: #6b7280;
-  line-height: 1.5;
-  margin: 0 0 24px 0;
-}
-
-.emptyButton {
-  display: inline-block;
-  background: #3b82f6;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background-color 0.2s;
-}
-
-.emptyButton:hover {
-  background: #2563eb;
-}
-
-/* 통계 카드 */
-.statsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.statCard {
-  padding: 20px;
-  transition: transform 0.2s ease;
-  border-radius: 12px;
-}
-
-.statCard:hover {
-  transform: translateY(-2px);
-}
-
-.statTitle {
-  color: #1f2937;
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.statNumber {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  line-height: 1;
-}
-
-.statNumber.primary {
-  color: #3b82f6;
-}
-
-.statNumber.success {
-  color: #10b981;
-}
-
-.statNumber.warning {
-  color: #f59e0b;
-}
-
-.statNumber.danger {
-  color: #ef4444;
-}
-
-.statNumber.info {
-  color: #8b5cf6;
-}
-
-.statLabel {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 0;
-}
-
-/* 카테고리 섹션 */
-.categorySection {
-  width: 100%;
-}
-
-.categoryCard {
-  padding: 25px;
-  border-radius: 12px;
-}
-
-.cardHeader {
-  margin-bottom: 20px;
-}
-
-.sectionTitle {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.sectionSubtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0;
-}
-
-.categoryStats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-}
-
-.categoryItem {
-  padding: 16px;
-  border: 2px solid #f1f5f9;
-  border-radius: 8px;
-  text-align: center;
-  transition: all 0.2s ease;
-  cursor: pointer;
-  background: white;
-}
-
-.categoryItem:hover {
-  border-color: #3b82f6;
-  background: #f8fafc;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-}
-
-.categoryName {
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.categoryCount {
-  font-size: 24px;
-  font-weight: bold;
-  color: #3b82f6;
-  margin-bottom: 4px;
-}
-
-.categoryPercentage {
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 8px;
-}
-
-.progressBar {
-  background: #f1f5f9;
-  height: 6px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progressFill {
-  height: 100%;
-  background: #3b82f6;
-  transition: width 0.3s ease;
-  border-radius: 3px;
-}
-
-/* 활동 섹션 */
-.activitySection {
-  width: 100%;
-}
-
-.activityCard {
-  padding: 25px;
-  border-radius: 12px;
-}
-
-.activityList {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.activityItem {
-  display: flex;
-  align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.15s ease;
-}
-
-.activityItem:last-child {
-  border-bottom: none;
-}
-
-.activityItem:hover {
-  background: #f8fafc;
-  border-radius: 8px;
-  margin: 0 -8px;
-  padding: 16px 8px;
-}
-
-.activityIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 16px;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.activityIcon.copy {
-  background: #dbeafe;
-  color: #3b82f6;
-}
-
-.activityIcon.save {
-  background: #d1fae5;
-  color: #10b981;
-}
-
-.activityIcon.share {
-  background: #fef3c7;
-  color: #f59e0b;
-}
-
-.activityContent {
-  flex: 1;
-  min-width: 0;
-}
-
-.activityTitle {
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 4px;
-  font-size: 14px;
-}
-
-.activityDescription {
-  color: #6b7280;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.activityTime {
-  color: #9ca3af;
-  font-size: 12px;
-  flex-shrink: 0;
-  margin-left: 12px;
-}
-
-/* 추천 섹션 */
-.recommendationsSection {
-  width: 100%;
-}
-
-.recommendationsCard {
-  padding: 25px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.recommendationTitle {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 16px;
-}
-
-.recommendationList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.recommendationList li {
-  margin-bottom: 12px;
-  padding-left: 24px;
-  position: relative;
-  line-height: 1.5;
-}
-
-.recommendationList li:last-child {
-  margin-bottom: 0;
-}
-
-.recommendationList li:before {
-  content: '💡';
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-/* 모달 */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-
-.modalContent {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 800px;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
-}
-
-.modalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 24px 16px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.modalTitle {
-  font-size: 20px;
-  font-weight: bold;
-  color: #1f2937;
-  margin: 0;
-}
-
-.closeBtn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #9ca3af;
-  padding: 4px;
-  border-radius: 4px;
-  transition: color 0.15s ease;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.closeBtn:hover {
-  color: #1f2937;
-  background: #f3f4f6;
-}
-
-.categorySummary {
-  background: #3b82f6;
-  color: white;
-  padding: 20px 24px;
-  margin: 0;
-}
-
-.categorySummary h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-}
-
-.categorySummary p {
-  margin: 0;
-  opacity: 0.9;
-  font-size: 14px;
-}
-
-.noticeList {
-  padding: 24px;
-}
-
-.noticeItem {
-  background: #f8fafc;
-  border: 1px solid #f1f5f9;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: all 0.2s ease;
-}
-
-.noticeItem:last-child {
-  margin-bottom: 0;
-}
-
-.noticeItem:hover {
-  border-color: #4f46e5;
-  background: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
-}
-
-.noticeHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  gap: 16px;
-}
-
-.noticeTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0;
-  flex: 1;
-}
-
-.noticeContent {
-  color: #4b5563;
-  line-height: 1.6;
-  font-size: 14px;
-  margin: 0;
-  white-space: pre-wrap;
-}
-
-.noticeSubItems {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #e5e7eb;
-}
-
-
-.subItemsList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.subItem {
-  color: #6b7280;
-  font-size: 13px;
-  line-height: 1.5;
-  margin-bottom: 4px;
-  padding-left: 16px;
-  position: relative;
-}
-
-.subItem:before {
-  content: '•';
-  color: #3b82f6;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.subItem:last-child {
-  margin-bottom: 0;
-}
-
-.noticeMetaInfo {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-.noticeDate {
-  color: #6b7280;
-  font-size: 12px;
-}
-
-.noticeUsage {
-  background: #4f46e5;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-/* 반응형 */
-@media (max-width: 1024px) {
-  .statsGrid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
-  
-  .categoryStats {
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard {
-    padding: 16px;
-    gap: 24px;
-  }
-  
-  .statsGrid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .categoryStats {
-    grid-template-columns: 1fr;
-  }
-  
-  .statCard,
-  .categoryCard,
-  .activityCard,
-  .recommendationsCard {
-    padding: 20px;
-  }
-  
-  .modalContent {
-    margin: 20px;
-    max-height: calc(100vh - 40px);
-  }
-  
-  .modalHeader {
-    padding: 20px 20px 12px;
-  }
-  
-  .categorySummary {
-    padding: 16px 20px;
-  }
-  
-  .noticeList {
-    padding: 20px;
-  }
-  
-  .activityItem {
-    padding: 12px 0;
-  }
-  
-  .activityTime {
-    display: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .dashboard {
-    padding: 12px;
-  }
-  
-  .title {
-    font-size: 24px;
-  }
-  
-  .subtitle {
-    font-size: 14px;
-  }
-  
-  .statNumber {
-    font-size: 28px;
-  }
-  
-  .sectionTitle {
-    font-size: 18px;
-  }
-}
-
-/* 서브태그 스타일 */
-.subTagSection {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-}
-
-.subTagTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 12px;
-}
-
-.subTagList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.subTagItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 16px;
-  font-size: 13px;
-}
-
-.subTagName {
-  color: #4b5563;
-  font-weight: 500;
-}
-
-.subTagCount {
-  color: #6b7280;
-  font-size: 12px;
-  background-color: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 8px;
-}
-
-.noticeListTitle {
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
-  padding: 0 20px;
-}
 </style>

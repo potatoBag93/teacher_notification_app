@@ -22,12 +22,29 @@
               <label class="layout-label">
                 <input 
                   type="radio" 
-              
                   v-model="layoutMode" 
                   value="slide" 
                   class="layout-radio"
                 />
                 📽️ 슬라이드
+              </label>
+              <label class="layout-label">
+                <input 
+                  type="radio" 
+                  v-model="layoutMode" 
+                  value="postit-modern" 
+                  class="layout-radio"
+                />
+                🟨 모던 포스트잇
+              </label>
+              <label class="layout-label">
+                <input 
+                  type="radio" 
+                  v-model="layoutMode" 
+                  value="chalkboard-modern" 
+                  class="layout-radio"
+                />
+                � 모던 칠판
               </label>
             </div>
           </div>
@@ -254,36 +271,65 @@
           </div>
           
           <!-- 알림장 내용 -->
-          <div v-else class="notice-body">
-            <!-- 그리드 모드: 가로 스크롤 컨테이너 -->
-            <div 
-              v-if="layoutMode === 'grid'" 
-              class="notice-items-container"
-              :class="{ 'center-align': shouldCenterAlign, 'uniform-height': true }"
-              @mousedown="startDrag"
-              @mousemove="onDrag"
-              @mouseup="endDrag"
-              @mouseleave="endDrag"
-              @touchstart="startDrag"
-              @touchmove="onDrag"
-              @touchend="endDrag"
-            >
+          <div v-else>
+            <div v-if="layoutMode === 'grid' || layoutMode === 'slide'" class="notice-body">
+              <!-- 그리드/슬라이드 기존 구현 -->
               <div 
-                v-for="(notice, index) in validNotices"
+                v-if="layoutMode === 'grid'" 
+                class="notice-items-container"
+                :class="{ 'center-align': shouldCenterAlign, 'uniform-height': true }"
+                @mousedown="startDrag"
+                @mousemove="onDrag"
+                @mouseup="endDrag"
+                @mouseleave="endDrag"
+                @touchstart="startDrag"
+                @touchmove="onDrag"
+                @touchend="endDrag"
+              >
+                <div 
+                  v-for="(notice, index) in validNotices"
+                  :key="notice.id"
+                  class="notice-item"
+                >
+                  <!-- 제목 -->
+                  <div v-if="showTitle && notice.title && notice.title.trim()" class="item-title">
+                    <span v-if="format === 'numbered'" class="item-number">{{ index + 1 }}</span>
+                    {{ notice.title }}
+                  </div>
+                  <!-- 내용 -->
+                  <div v-if="showContent && notice.content && notice.content.trim()" class="item-content">
+                    {{ notice.content }}
+                  </div>
+                  <!-- 하위 목록 -->
+                  <div v-if="showSubItems && hasValidSubItems(notice.subItems)" class="item-sub-list">
+                    <div 
+                      v-for="subItem in validSubItems(notice.subItems)"
+                      :key="subItem"
+                      class="item-sub-item"
+                    >
+                      <span v-if="format === 'bullet'" class="bullet">•</span>
+                      <span v-else class="dash">-</span>
+                      {{ subItem }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 슬라이드 모드: 기존 방식 -->
+              <div 
+                v-else
+                v-for="(notice, index) in displayNotices"
                 :key="notice.id"
                 class="notice-item"
               >
                 <!-- 제목 -->
                 <div v-if="showTitle && notice.title && notice.title.trim()" class="item-title">
-                  <span v-if="format === 'numbered'" class="item-number">{{ index + 1 }}</span>
+                  <span v-if="format === 'numbered'" class="item-number">{{ currentSlideIndex + 1 }}</span>
                   {{ notice.title }}
                 </div>
-                
                 <!-- 내용 -->
                 <div v-if="showContent && notice.content && notice.content.trim()" class="item-content">
                   {{ notice.content }}
                 </div>
-                
                 <!-- 하위 목록 -->
                 <div v-if="showSubItems && hasValidSubItems(notice.subItems)" class="item-sub-list">
                   <div 
@@ -297,68 +343,35 @@
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- 슬라이드 모드: 기존 방식 -->
-            <div 
-              v-else
-              v-for="(notice, index) in displayNotices"
-              :key="notice.id"
-              class="notice-item"
-            >
-              <!-- 제목 -->
-              <div v-if="showTitle && notice.title && notice.title.trim()" class="item-title">
-                <span v-if="format === 'numbered'" class="item-number">{{ currentSlideIndex + 1 }}</span>
-                {{ notice.title }}
-              </div>
-              
-              <!-- 내용 -->
-              <div v-if="showContent && notice.content && notice.content.trim()" class="item-content">
-                {{ notice.content }}
-              </div>
-              
-              <!-- 하위 목록 -->
-              <div v-if="showSubItems && hasValidSubItems(notice.subItems)" class="item-sub-list">
-                <div 
-                  v-for="subItem in validSubItems(notice.subItems)"
-                  :key="subItem"
-                  class="item-sub-item"
-                >
-                  <span v-if="format === 'bullet'" class="bullet">•</span>
-                  <span v-else class="dash">-</span>
-                  {{ subItem }}
-                </div>
-              </div>
-            </div>
-            
-            <!-- 슬라이드 하단 네비게이션 -->
-            <div v-if="layoutMode === 'slide' && validNotices.length > 1" class="slide-bottom-navigation">
-              <button 
-                @click="prevSlide" 
-                :disabled="currentSlideIndex === 0"
-                class="slide-nav-button prev"
-              >
-                ◀
-              </button>
-              
-              <div class="slide-indicators">
+              <!-- 슬라이드 하단 네비게이션 -->
+              <div v-if="layoutMode === 'slide' && validNotices.length > 1" class="slide-bottom-navigation">
                 <button 
-                  v-for="(_, index) in validNotices"
-                  :key="index"
-                  @click="goToSlide(index)"
-                  class="slide-indicator"
-                  :class="{ active: index === currentSlideIndex }"
-                />
+                  @click="prevSlide" 
+                  :disabled="currentSlideIndex === 0"
+                  class="slide-nav-button prev"
+                >
+                  ◀
+                </button>
+                <div class="slide-indicators">
+                  <button 
+                    v-for="(_, index) in validNotices"
+                    :key="index"
+                    @click="goToSlide(index)"
+                    class="slide-indicator"
+                    :class="{ active: index === currentSlideIndex }"
+                  />
+                </div>
+                <button 
+                  @click="nextSlide" 
+                  :disabled="currentSlideIndex === validNotices.length - 1"
+                  class="slide-nav-button next"
+                >
+                  ▶
+                </button>
               </div>
-              
-              <button 
-                @click="nextSlide" 
-                :disabled="currentSlideIndex === validNotices.length - 1"
-                class="slide-nav-button next"
-              >
-                ▶
-              </button>
             </div>
+            <PostitModernPreview v-else-if="layoutMode === 'postit-modern'" :notices="validNotices" />
+            <ChalkboardModernPreview v-else-if="layoutMode === 'chalkboard-modern'" :notices="validNotices" />
           </div>
         </div>
       </div>
@@ -368,6 +381,9 @@
 
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
+
+import PostitModernPreview from '../preview/PostitModernPreview.vue'
+import ChalkboardModernPreview from '../preview/ChalkboardModernPreview.vue'
 import type { Notice } from '../../data/notices'
 
 interface Props {
@@ -382,7 +398,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
 // 컨트롤 상태
-const layoutMode = ref<'grid' | 'slide'>('grid')
+const layoutMode = ref<'grid' | 'slide' | 'postit-modern' | 'chalkboard-modern'>('grid')
 const format = ref<'simple' | 'numbered' | 'bullet'>('numbered')
 const theme = ref<'light' | 'dark' | 'paper'>('light')
 const isFullscreen = ref(false)
@@ -545,6 +561,10 @@ const getDisplayMode = (mode: string) => {
       return 'presentation'
     case 'grid':
       return 'board'
+    case 'postit-modern':
+      return 'postit-modern'
+    case 'chalkboard-modern':
+      return 'chalkboard-modern'
     default:
       return 'paper'
   }

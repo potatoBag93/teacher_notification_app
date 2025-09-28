@@ -87,9 +87,9 @@ function determineSiteUrl(isDev: boolean): string {
   // SSR 환경에서는 환경변수 사용
   if (!isDev) {
     try {
-      return getEnvironmentVariable('VITE_SITE_URL', 'https://teacher-notification-app.vercel.app')
+  return getEnvironmentVariable('VITE_SITE_URL', 'https://almo.vercel.app')
     } catch {
-      return 'https://teacher-notification-app.vercel.app'
+  return 'https://almo.vercel.app'
     }
   }
   

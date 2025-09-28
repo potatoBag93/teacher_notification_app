@@ -25,8 +25,6 @@ export class UserService {
    * @param userData.email 이메일 주소
    * @param userData.fullName 전체 이름
    * @param userData.schoolName 학교명
-   * @param userData.phone 전화번호 (선택사항)
-   * @param userData.position 직책 (선택사항)
    * @returns 생성된 사용자 프로필
    * @throws 인증되지 않은 사용자일 경우 에러 발생
    */
@@ -35,8 +33,6 @@ export class UserService {
     email: string
     fullName: string
     schoolName: string
-    phone?: string
-    position?: string
   }) {
     console.log('[UserService] createProfile: 시작', userData)
 
@@ -75,8 +71,6 @@ export class UserService {
         email: userData.email,
         full_name: userData.fullName,
         school_name: userData.schoolName,
-        phone: userData.phone || null,
-        position: userData.position || null,
         is_approved: false,
         is_admin: false,
         created_at: new Date().toISOString(),
@@ -200,139 +194,42 @@ export class UserService {
   }
 
   /**
-   * 사용자의 활동 통계를 조회합니다
-   * 
-   * @param userId 조회할 사용자 ID (기본값: 현재 로그인 사용자)
-   * @returns 사용자 통계 객체
-   * - totalBlocks: 생성한 총 블록 수
-   * - totalUsage: 블록 사용 총 횟수
-   * - totalLikes: 받은 총 좋아요 수
-   * - categoryUsage: 카테고리별 사용 통계
-   * - lastActivity: 마지막 활동 시간
+   * 현재 로그인된 사용자의 계정을 삭제합니다.
+   * Supabase Edge Function을 호출하여 안전하게 처리합니다.
+   * @returns 성공 또는 실패 결과
    * @throws 인증되지 않은 사용자일 경우 에러 발생
    */
-  static async getUserStats(userId?: string) {
-    const { data: user } = await supabase.auth.getUser()
-    const targetUserId = userId || user.user?.id
+  static async deleteCurrentUser(): Promise<{ success: boolean; error: any }> {
+    console.log('🗑️ [UserService] deleteCurrentUser: 시작')
     
-    if (!targetUserId) throw new Error('User not authenticated')
-
-    // 여러 통계를 병렬로 조회하여 성능 최적화
-    const [
-      { count: totalBlocks },      // 생성한 블록 수
-      { count: totalUsage },       // 블록 사용 횟수
-      likesResult,                 // 좋아요 계산용 블록 목록
-      { data: categoryStats }      // 카테고리별 사용 통계
-    ] = await Promise.all([
-      // 사용자가 생성한 블록 수 조회
-      supabase
-        .from('blocks')
-        .select('id', { count: 'exact' })
-        .eq('created_by', targetUserId),
-
-      // 사용자의 블록 사용 횟수 조회
-      supabase
-        .from('block_usage')
-        .select('id', { count: 'exact' })
-        .eq('user_id', targetUserId),
-
-      // 사용자가 만든 블록들의 ID 조회 (좋아요 계산용)
-      supabase
-        .from('blocks')
-        .select('id')
-        .eq('created_by', targetUserId),
-
-      // 카테고리별 사용 통계 조회
-      supabase
-        .from('block_usage')
-        .select(`
-          block_id,
-          blocks!inner(tags)
-        `)
-        .eq('user_id', targetUserId)
-    ])
-
-    // 사용자가 만든 블록들의 총 좋아요 수 계산
-    let totalLikes = 0
-    if (likesResult.data && likesResult.data.length > 0) {
-      const blockIds = likesResult.data.map(block => block.id)
-      const { count } = await supabase
-        .from('block_likes')
-        .select('id', { count: 'exact' })
-        .in('block_id', blockIds)
-      totalLikes = count || 0
+    // 1. 현재 사용자 확인
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('🗑️ [UserService] deleteCurrentUser: 인증되지 않은 사용자')
+      throw new Error('User not authenticated')
     }
-
-    // 카테고리별 사용 횟수 집계
-    const categoryUsage: Record<string, number> = {}
-    categoryStats?.forEach(usage => {
-      const tags = (usage.blocks as any)?.tags || []
-      tags.forEach((tag: string) => {
-        categoryUsage[tag] = (categoryUsage[tag] || 0) + 1
+    
+    try {
+      // 2. Supabase Edge Function 호출
+      console.log(`📞 [UserService] deleteCurrentUser: 'delete-user' Edge Function 호출 (사용자: ${user.id})`)
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        method: 'POST',
       })
-    })
 
-    return {
-      totalBlocks: totalBlocks || 0,
-      totalUsage: totalUsage || 0,
-      totalLikes: totalLikes,
-      categoryUsage,
-      lastActivity: new Date().toISOString() // 실제로는 최근 활동 시간 조회 필요
+      if (error) {
+        console.error('🗑️ [UserService] deleteCurrentUser: Edge Function 실행 중 에러 발생', error)
+        throw error
+      }
+
+      console.log('✅ [UserService] deleteCurrentUser: Edge Function 실행 성공', data)
+      return { success: true, error: null }
+
+    } catch (error: any) {
+      console.error('🗑️ [UserService] deleteCurrentUser: 최종 에러', error)
+      // 에러 객체를 좀 더 유용한 정보로 가공
+      const errorMessage = error.message || '알 수 없는 오류가 발생했습니다.'
+      return { success: false, error: { message: errorMessage } }
     }
-  }
-
-  /**
-   * 사용자의 활동 내역을 조회합니다 (블록 사용 기록)
-   * 
-   * @param userId 조회할 사용자 ID (기본값: 현재 로그인 사용자)
-   * @param limit 조회할 최대 개수 (기본값: 20개)
-   * @returns 사용 기록 배열 (블록 정보 포함)
-   * @throws 인증되지 않은 사용자일 경우 에러 발생
-   */
-  static async getUserActivity(userId?: string, limit: number = 20) {
-    const { data: user } = await supabase.auth.getUser()
-    const targetUserId = userId || user.user?.id
-    
-    if (!targetUserId) throw new Error('User not authenticated')
-
-    const { data, error } = await supabase
-      .from('block_usage')
-      .select(`
-        *,
-        blocks(id, title, tags)
-      `)
-      .eq('user_id', targetUserId)
-      .order('used_at', { ascending: false })  // 최근 사용 순
-      .limit(limit)
-
-    if (error) throw error
-    return data
-  }
-
-  /**
-   * 사용자가 좋아요한 블록들을 조회합니다
-   * 
-   * @param userId 조회할 사용자 ID (기본값: 현재 로그인 사용자)
-   * @returns 좋아요한 블록 배열
-   * @throws 인증되지 않은 사용자일 경우 에러 발생
-   */
-  static async getUserLikedBlocks(userId?: string) {
-    const { data: user } = await supabase.auth.getUser()
-    const targetUserId = userId || user.user?.id
-    
-    if (!targetUserId) throw new Error('User not authenticated')
-
-    const { data, error } = await supabase
-      .from('block_likes')
-      .select(`
-        created_at,
-        blocks(*)
-      `)
-      .eq('user_id', targetUserId)
-      .order('created_at', { ascending: false })  // 최근 좋아요 순
-
-    if (error) throw error
-    return data?.map(like => like.blocks)  // 블록 정보만 추출하여 반환
   }
 
   /**
@@ -505,7 +402,6 @@ export class AdminService {
    * - totalUsers: 전체 사용자 수
    * - approvedUsers: 승인된 사용자 수
    * - pendingUsers: 승인 대기 사용자 수
-   * - totalBlocks: 전체 공개 블록 수
    * - pendingReports: 처리 대기 신고 수
    * @throws 관리자 권한이 없을 경우 에러 발생
    */
@@ -517,12 +413,10 @@ export class AdminService {
     const [
       { count: totalUsers },      // 전체 사용자 수
       { count: approvedUsers },   // 승인된 사용자 수
-      { count: totalBlocks },     // 전체 공개 블록 수
       { count: pendingReports }   // 처리 대기 신고 수
     ] = await Promise.all([
       supabase.from('user_profiles').select('id', { count: 'exact' }),
       supabase.from('user_profiles').select('id', { count: 'exact' }).eq('is_approved', true),
-      supabase.from('blocks').select('id', { count: 'exact' }).eq('is_public', true),
       supabase.from('reports').select('id', { count: 'exact' }).eq('status', 'pending')
     ])
 
@@ -530,7 +424,6 @@ export class AdminService {
       totalUsers: totalUsers || 0,
       approvedUsers: approvedUsers || 0,
       pendingUsers: (totalUsers || 0) - (approvedUsers || 0),  // 승인 대기 = 전체 - 승인됨
-      totalBlocks: totalBlocks || 0,
       pendingReports: pendingReports || 0
     }
   }

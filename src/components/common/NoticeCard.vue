@@ -6,11 +6,9 @@
       'selecting-mode': isSelectingMode
     }"
     :hover="true"
-    :clickable="clickable"
-    @click="$emit('click')"
   >
     <!-- 카드 헤더 -->
-    <div class="notice-header">
+    <div class="notice-header" @click="toggleExpand">
       <div class="notice-tags">
         <!-- 메인 카테고리 태그 -->
         <div class="main-tags">
@@ -26,16 +24,17 @@
         
       </div>
       <div class="notice-meta">
-        <span v-if="isRecommended" class="recommended-badge">오늘 추천</span>
-        <span v-if="isPopular" class="popular-badge">인기</span>
-        <span class="like-count">❤️ {{ likeCount }}</span>
+  <span v-if="isPopular" class="popular-badge">인기</span>
+  <span v-if="isUsed" class="used-badge">사용함</span>
+  <span class="like-count">❤️ {{ likeCount }}</span>
+  <span class="expand-indicator">{{ isExpanded ? '▲' : '▼' }}</span>
       </div>
     </div>
 
     <!-- 카드 콘텐츠 -->
     <div class="notice-content">
       <h3 class="notice-title">{{ title }}</h3>
-      <div class="notice-text">
+      <div class="notice-text" v-show="isExpanded">
         {{ content }}
         <ul class="notice-sub-items">
           <li v-for="item in subItems" :key="item">{{ item }}</li>
@@ -44,7 +43,7 @@
     </div>
 
     <!-- 카드 푸터 -->
-    <div v-if="showFooter" class="notice-footer">
+    <div v-if="showFooter" class="notice-footer" v-show="isExpanded">
     
         <div v-if="subTags && subTags.length > 0" class="sub-tags">
           <span 
@@ -61,6 +60,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import BaseCard from './BaseCard.vue'
 import BaseButton from './BaseButton.vue'
 import CategoryTag from './CategoryTag.vue'
@@ -75,22 +75,25 @@ interface Props {
   likeCount: number
   subItems: string[]           // 필수 문자열 배열
   createdAt?: Date
-  isRecommended?: boolean
   isPopular?: boolean
-  clickable?: boolean
   isSelected?: boolean
   isSelectingMode?: boolean
   showFooter?: boolean
+  isUsed?: boolean            // 이미 사용한 문구 여부
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  clickable: false,
-  isRecommended: false,
   isPopular: false,
   isSelected: false,
   isSelectingMode: false,
-  showFooter: true
+  showFooter: true,
+  isUsed: false
 })
+
+const isExpanded = ref(false)
+const toggleExpand = () => {
+  isExpanded.value = !isExpanded.value
+}
 
 
 // 서브 태그 스타일 계산
@@ -165,6 +168,7 @@ const getSubTagStyle = (subTag: string) => {
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 0.5rem;
+  cursor: pointer;
 }
 
 .notice-tags {
@@ -215,14 +219,6 @@ const getSubTagStyle = (subTag: string) => {
   flex-shrink: 0;
 }
 
-.recommended-badge {
-  background: #3b82f6;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
 
 .popular-badge {
   background: #f59e0b;
@@ -237,6 +233,11 @@ const getSubTagStyle = (subTag: string) => {
   color: #ef4444;
   font-size: 0.875rem;
   font-weight: 500;
+}
+
+.expand-indicator {
+  font-size: 0.875rem;
+  color: #9ca3af;
 }
 
 .notice-content {
@@ -308,5 +309,14 @@ const getSubTagStyle = (subTag: string) => {
     align-self: stretch;
     justify-content: flex-end;
   }
+}
+/* 이미 사용한 문구 뱃지 */
+.used-badge {
+  background: #6b7280;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
 }
 </style>

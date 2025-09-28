@@ -15,9 +15,9 @@ export class CategoryRecommendationService {
    */
   static async getRecommendations(count: number = 2): Promise<Notice[]> {
     try {
-      console.log('🎯 [CategoryRecommendation] 카테고리 추천 시작')
-      
-      // 1. 사용자 통계 조회 (메인 카테고리 + 서브태그)
+      console.log('🎯 [CategoryRecommendation] 카테고리 추천 시작 (v2)')
+
+      // 1. 사용자 통계 및 사용 이력 병렬 조회 (기존과 동일, 효율적)
       const [leastUsedStats, usedNoticeIds, subTagStats] = await Promise.all([
         UserUsageService.getLeastUsedCategories(),
         UserUsageService.getUserUsedNoticeIds(),
@@ -25,60 +25,45 @@ export class CategoryRecommendationService {
       ])
 
       if (leastUsedStats.length === 0) {
-        console.log('🎯 [CategoryRecommendation] 사용 통계가 없음')
+        console.log('🎯 [CategoryRecommendation] 사용 통계가 없어 추천 불가')
         return []
       }
 
-      // 2. 서브태그별 사용현황 분석
+      // 2. 추천 대상 카테고리 선정 (기존과 동일)
+      const minUsage = leastUsedStats[0].usageCount
+      const leastUsedCategories = leastUsedStats
+        .filter(stat => stat.usageCount === minUsage)
+        .map(stat => stat.category as Category)
+      console.log('🎯 [CategoryRecommendation] 최소 사용 카테고리:', leastUsedCategories)
+
+      // 3. 후보 문구 일괄 조회 (개선점: DB 호출 1회로 줄임)
+      const candidateNotices = await NoticeService.getNotices({
+        tags: leastUsedCategories,
+        excludeIds: usedNoticeIds,
+        limit: count * 20, // 충분한 후보군 확보 (e.g., 5 * 20 = 100개)
+        randomize: true
+      })
+
+      if (candidateNotices.length === 0) {
+        console.log('🎯 [CategoryRecommendation] 후보 문구 없음')
+        return []
+      }
+
+      // 4. 서브태그 사용 통계 맵 생성 (기존과 동일)
       const subTagUsageMap = new Map<string, number>()
       subTagStats.forEach(stat => {
         subTagUsageMap.set(stat.subTag, stat.usageCount)
       })
 
-      // 3. 최소 사용 카테고리들 찾기 (서브태그 고려)
-      const minUsage = leastUsedStats[0].usageCount
-      const leastUsedCategories = leastUsedStats
-        .filter(stat => stat.usageCount === minUsage)
-        .map(stat => stat.category as Category)
-
-      console.log('🎯 [CategoryRecommendation] 최소 사용 카테고리들:', leastUsedCategories)
-
-      // 4. 추천 문구 생성 (서브태그 다양성 고려)
-      const recommendations: Notice[] = []
-      const maxAttempts = Math.min(leastUsedCategories.length * 3, 15) // 시도 횟수 증가
-      const usedSubTags = new Set<string>()
-
-      for (let attempt = 0; attempt < maxAttempts && recommendations.length < count; attempt++) {
-        const randomCategory = this.getRandomFromArray(leastUsedCategories)
-        
-        try {
-          const categoryRecommendation = await this.getRecommendationFromCategory(
-            randomCategory,
-            usedNoticeIds,
-            recommendations.map(r => r.id), // 이미 선택된 추천 문구도 제외
-            subTagUsageMap,
-            usedSubTags
-          )
-
-          if (categoryRecommendation) {
-            recommendations.push(categoryRecommendation)
-            
-            // 사용된 서브태그 추적
-            const notice = categoryRecommendation as any
-            if (notice.sub_tags) {
-              notice.sub_tags.forEach((subTag: string) => usedSubTags.add(subTag))
-            }
-            
-            console.log(`🎯 [CategoryRecommendation] ${randomCategory} 카테고리에서 추천 추가:`, categoryRecommendation.title)
-          }
-        } catch (error) {
-          console.warn(`🎯 [CategoryRecommendation] ${randomCategory} 카테고리 추천 실패:`, error)
-        }
-      }
+      // 5. 메모리 내에서 최적의 추천 문구 선택 (개선점: 로직을 메모리에서 처리)
+      const recommendations = this.selectBestNoticesFromPool(
+        candidateNotices,
+        count,
+        subTagUsageMap
+      )
 
       console.log(`🎯 [CategoryRecommendation] 최종 추천 수: ${recommendations.length}개`)
       return recommendations
-
     } catch (error) {
       console.error('🎯 [CategoryRecommendation] 추천 생성 실패:', error)
       return []
@@ -86,65 +71,60 @@ export class CategoryRecommendationService {
   }
 
   /**
-   * 특정 카테고리에서 추천 문구 조회 (서브태그 다양성 고려)
-   * @param category 카테고리
-   * @param excludeIds 제외할 문구 ID들
-   * @param alreadySelected 이미 선택된 추천 문구 ID들
-   * @param subTagUsageMap 서브태그별 사용횟수 맵
-   * @param usedSubTags 이미 사용된 서브태그 Set
-   * @returns 추천 문구 또는 null
+   * 후보 목록에서 서브태그 다양성을 고려하여 최적의 문구를 선택
+   * @param candidates 후보 문구 배열
+   * @param count 선택할 개수
+   * @param subTagUsageMap 서브태그 사용 통계
+   * @returns 추천 문구 배열
    */
-  private static async getRecommendationFromCategory(
-    category: Category,
-    excludeIds: string[],
-    alreadySelected: string[] = [],
-    subTagUsageMap?: Map<string, number>,
-    usedSubTags?: Set<string>
-  ): Promise<Notice | null> {
-    try {
-      // 해당 카테고리에서 사용하지 않은 문구들 조회
-      const availableNotices = await NoticeService.getNotices({
-        tags: [category],
-        excludeIds: [...excludeIds, ...alreadySelected],
-        limit: 30, // 후보군 증가
-        randomize: true
-      })
+  private static selectBestNoticesFromPool(
+    candidates: Notice[],
+    count: number,
+    subTagUsageMap: Map<string, number>
+  ): Notice[] {
+    const recommendations: Notice[] = []
+    const availableCandidates = [...candidates]
 
-      if (availableNotices.length === 0) {
-        console.log(`🎯 [CategoryRecommendation] ${category} 카테고리에 사용 가능한 문구 없음`)
-        return null
-      }
+    while (recommendations.length < count && availableCandidates.length > 0) {
+      let bestCandidate: Notice | null = null
+      let bestCandidateIndex = -1
+      let maxScore = -1
 
-      // 서브태그 다양성을 고려한 선택
-      if (subTagUsageMap && usedSubTags) {
-        // 아직 사용하지 않은 서브태그를 가진 문구 우선 선택
-        const noticesWithUnusedSubTags = availableNotices.filter(notice => {
-          const noticeSubTags = (notice as any).sub_tags || []
-          return noticeSubTags.some((subTag: string) => !usedSubTags.has(subTag))
-        })
+      // 현재 추천된 문구들에서 사용된 서브태그 집합을 매번 새로 계산
+      const usedSubTags = new Set<string>(
+        recommendations.flatMap(r => (r as any).sub_tags || [])
+      )
 
-        if (noticesWithUnusedSubTags.length > 0) {
-          // 가장 적게 사용된 서브태그를 가진 문구 선택
-          const sortedBySubTagUsage = noticesWithUnusedSubTags.sort((a, b) => {
-            const getMinSubTagUsage = (notice: Notice) => {
-              const subTags = (notice as any).sub_tags || []
-              if (subTags.length === 0) return 0
-              return Math.min(...subTags.map((subTag: string) => subTagUsageMap.get(subTag) || 0))
-            }
-            return getMinSubTagUsage(a) - getMinSubTagUsage(b)
-          })
-          
-          return sortedBySubTagUsage[0]
+      for (let i = 0; i < availableCandidates.length; i++) {
+        const candidate = availableCandidates[i]
+        const subTags = (candidate as any).sub_tags || []
+
+        // 점수 계산: 새로운 서브태그 > 사용 적은 서브태그 > 기본
+        const hasUnusedSubTag = subTags.some((tag: string) => !usedSubTags.has(tag))
+        const minSubTagUsage =
+          subTags.length > 0
+            ? Math.min(...subTags.map((tag: string) => subTagUsageMap.get(tag) || 0))
+            : 1000 // 서브태그가 없는 경우 후순위로
+
+        const score = (hasUnusedSubTag ? 10000 : 0) + (1000 - minSubTagUsage)
+
+        if (score > maxScore) {
+          maxScore = score
+          bestCandidate = candidate
+          bestCandidateIndex = i
         }
       }
 
-      // 기본적으로 랜덤 선택
-      return this.getRandomFromArray(availableNotices)
-      
-    } catch (error) {
-      console.error(`🎯 [CategoryRecommendation] ${category} 카테고리 문구 조회 실패:`, error)
-      return null
+      if (bestCandidate) {
+        recommendations.push(bestCandidate)
+        availableCandidates.splice(bestCandidateIndex, 1) // 선택된 후보는 목록에서 제거
+      } else {
+        // 더 이상 적합한 후보가 없으면 종료
+        break
+      }
     }
+
+    return recommendations
   }
 
   /**

@@ -1,11 +1,7 @@
 <template>
   <div 
     class="base-card"
-    :class="[
-      cardClass,
-      { 'card-hover': hover, 'card-clickable': clickable }
-    ]"
-    @click="handleClick"
+    :class="[cardClass, { 'card-hover': hover }]"
   >
     <slot />
   </div>
@@ -16,21 +12,15 @@ import { computed } from 'vue'
 
 interface Props {
   hover?: boolean
-  clickable?: boolean
   padding?: 'none' | 'sm' | 'md' | 'lg'
   shadow?: 'none' | 'sm' | 'md' | 'lg'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   hover: true,
-  clickable: false,
   padding: 'md',
   shadow: 'md'
 })
-
-const emit = defineEmits<{
-  click: []
-}>()
 
 const cardClass = computed(() => {
   const classes = []
@@ -46,11 +36,7 @@ const cardClass = computed(() => {
   return classes
 })
 
-const handleClick = () => {
-  if (props.clickable) {
-    emit('click')
-  }
-}
+
 </script>
 
 <style scoped>
@@ -65,13 +51,7 @@ const handleClick = () => {
   box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-.card-clickable {
-  cursor: pointer;
-}
 
-.card-clickable:hover {
-  transform: translateY(-1px);
-}
 
 .card-padding-none {
   padding: 0;

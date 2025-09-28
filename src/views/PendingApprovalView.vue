@@ -130,7 +130,7 @@ const checkApprovalStatus = async () => {
     
     if (authStore.isApproved) {
       // 승인되었으면 메인 페이지로 이동
-      router.push('/main')
+      router.push('/')
     } else {
       // 아직 승인되지 않음
       alert('아직 승인되지 않았습니다. 조금 더 기다려주세요.')
@@ -154,7 +154,7 @@ const logout = async () => {
 onMounted(() => {
   // 이미 승인된 사용자는 메인 페이지로 리다이렉트
   if (authStore.isApproved) {
-    router.push('/main')
+    router.push('/')
   }
 })
 </script>

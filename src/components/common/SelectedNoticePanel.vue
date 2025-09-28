@@ -64,7 +64,7 @@
         닫기
       </BaseButton>
       <BaseButton variant="secondary" @click="$emit('preview')">
-       알림장 띄우기
+  알뭐 띄우기
       </BaseButton>
       </div>
   </div>

@@ -1,10 +1,10 @@
 # GitHub CLI를 사용한 리포지토리 등록 가이드
 
 ## 개요
-이 문서는 Teacher Notification App 프로젝트를 GitHub CLI를 사용하여 GitHub 리포지토리로 등록하는 과정을 단계별로 설명합니다.
+이 문서는 알뭐 프로젝트를 GitHub CLI를 사용하여 GitHub 리포지토리로 등록하는 과정을 단계별로 설명합니다.
 
 ## 프로젝트 정보
-- **프로젝트명**: Teacher Notification App
+- **프로젝트명**: 알뭐
 - **기술 스택**: Vue.js + TypeScript + Supabase
 - **리포지토리 URL**: https://github.com/potatoBag93/teacher_notification_app
 - **설정**: Public Repository
@@ -80,11 +80,11 @@ git add .
 
 #### 5-2. 초기 커밋 생성
 ```powershell
-git commit -m "Initial commit: Teacher Notification App
+git commit -m "Initial commit: 알뭐
 
-- Vue.js + TypeScript 기반 교사용 알림장 웹 애플리케이션
+- Vue.js + TypeScript 기반 알뭐 웹 애플리케이션
 - Supabase 백엔드 및 Edge Functions 
-- 다양한 알림장 스타일 및 편집기 mockup
+- 다양한 알뭐 스타일 및 편집기 mockup
 - 날씨 기반 알림 생성 기능
 - 사용자 피드백 및 통계 시스템
 - 반응형 UI 컴포넌트 라이브러리
@@ -99,7 +99,7 @@ git commit -m "Initial commit: Teacher Notification App
 ### 6. GitHub 리포지토리 생성 및 푸시
 
 ```powershell
-gh repo create teacher_notification_app --public --source=. --description="교사용 알림장 웹 애플리케이션 - Vue.js + TypeScript + Supabase" --push
+gh repo create almo --public --source=. --description="알뭐 웹 애플리케이션 - Vue.js + TypeScript + Supabase" --push
 ```
 
 **실행 결과**:
@@ -198,10 +198,10 @@ git add .gitignore
 ## 참고 링크
 - [GitHub CLI 공식 문서](https://cli.github.com/manual/)
 - [Git 공식 문서](https://git-scm.com/doc)
-- [Teacher Notification App 리포지토리](https://github.com/potatoBag93/teacher_notification_app)
+- [알뭐 리포지토리](https://github.com/potatoBag93/almo)
 
 ---
 
 **작성일**: 2025년 9월 18일  
 **작성자**: GitHub Copilot  
-**프로젝트**: Teacher Notification App
+**프로젝트**: 알뭐

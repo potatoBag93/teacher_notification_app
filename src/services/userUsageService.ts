@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Notice, Category } from '@/data/notices'
+import { categorySubTagsMap } from '@/constants/categories'
 
 export interface UserNoticeUsage {
   id: string
@@ -240,53 +241,6 @@ export class UserUsageService {
    * 서브태그에서 메인 카테고리 찾기 (내부 유틸리티)
    */
   private static getMainCategoryFromSubTag(subTag: string): string | null {
-    // categories.ts의 categorySubTagsMap 사용 (버전 1: 보수적 통합형)
-    const categorySubTagsMap = {
-      '학습관리': [
-        // 기존 '학습'에서
-        '시험안내', '발표수업', '과제제출', '학습습관', '집중력', '복습방법', 
-        '독서활동', '신간도서', '도서관이용',
-        // 기존 '숙제'에서  
-        '일기쓰기', '독서과제', '수학문제', '받아쓰기', '그림그리기', '만들기',
-        // 기존 '준비물'에서
-        '학용품', '체육복', '급식도구', '실험재료', '미술재료', '음악도구'
-      ],
-      '생활지도': ['복장규정', '시간준수', '교실정리', '개인위생', '분실물', '전자기기', '인사예절', '언어예절', '공공예절'],
-      '안전보건': [
-        // 기존 '안전'에서
-        '교통안전', '실험안전', '체육안전', '놀이안전', '급식안전', '화재안전', '대피훈련', '응급상황', '화학안전', '보호장비착용', '폭염대비', '한파대비', '빗길안전', '눈길안전', '강풍대비',
-        // 기존 '건강'에서
-        '감기예방', '영양관리', '운동권장', '시력보호', '구강건강', '정신건강', '개인위생', '건강관리', '수분섭취', '체온조절', '습도관리', '환기'
-      ],
-      '인성교육': [
-        // 기존 '인성'에서
-        '학교폭력예방', '인성교육', '갈등해결', '배려', '존중', '협력정신',
-        // 기존 '칭찬'에서
-        '성실함', '친절함', '협력', '리더십', '창의성', '노력', '성장', '모범',
-        // 기존 '주의'에서
-        '규칙위반', '안전주의', '태도개선', '행동수정', '집중력', '책임감'
-      ],
-      '창의예술': [
-        // 기존 '창의'에서
-        '미술전시', '창작활동', '예술교육', '상상력', '표현력', '작품제작',
-        // 기존 '예술'에서
-        '음악회', '악기연주', '합창활동', '미술감상', '공연관람', '예술체험'
-      ],
-      '체육건강': ['겨울체육', '준비운동', '체육안전', '운동기능', '체력향상', '스포츠정신'],
-      '환경정보': [
-        // 기존 '환경'에서
-        '환경보호', '분리수거', '재활용', '에너지절약', '친환경', '지구사랑',
-        // 기존 '정보'에서
-        '디지털리터러시', '인터넷윤리', '정보보안', 'IT활용', '컴퓨터교육', '사이버안전'
-      ],
-      '행사활동': ['학교행사', '계절행사', '기념일', '공연관람', '운동회', '졸업식', '체험학습', '견학'],
-      '상담지원': ['학부모상담', '개별상담', '진로상담', '학습상담', '교우관계', '고민해결'],
-      '학교알림': ['일정변경', '공지사항', '휴업안내', '등하교', '방과후', '특별수업'],
-      '특별교육': ['방학특강', '계절수업', '특별프로그램', '외부강사', '체험교육'],
-      '가정연계': ['가정통신문', '학부모참여', '가정교육', '가족행사', '부모교육'],
-      '기타사항': ['날씨안내', '특별안내', '임시공지', '기타사항', '기본안내', '평상시', '일반사항', '기본수칙']
-    }
-
     for (const [category, subTags] of Object.entries(categorySubTagsMap)) {
       if (subTags.includes(subTag)) {
         return category
@@ -332,6 +286,42 @@ export class UserUsageService {
       return (data || []) as UserNoticeUsage[]
     } catch (error) {
       console.error('사용 기록 조회 실패:', error)
+      return []
+    }
+  }
+
+  /**
+   * 모든 사용자의 최근 사용 기록 조회 (글로벌 티커용)
+   */
+  static async getGlobalUsageHistory(limit = 50): Promise<UserNoticeUsage[]> {
+    try {
+      const { data, error } = await supabase
+        .from('user_notice_usage')
+        .select(`
+          id,
+          user_id,
+          notice_id,
+          used_at,
+          notices (
+            id,
+            title,
+            content,
+            tags,
+            author,
+            like_count,
+            sub_items,
+            created_at,
+            usage_count
+          )
+        `)
+        // No user filter, so it's global
+        .order('used_at', { ascending: false })
+        .limit(limit)
+
+      if (error) throw error
+      return (data || []) as UserNoticeUsage[]
+    } catch (error) {
+      console.error('전체 사용 기록 조회 실패:', error)
       return []
     }
   }

@@ -7,7 +7,7 @@
         <div :class="$style.logoSection">
           <div :class="$style.logo">📝</div>
           <div>
-            <h1 :class="$style.serviceTitle">알림장 도우미</h1>
+            <h1 :class="$style.serviceTitle">알뭐</h1>
             <span :class="$style.adminBadge">ADMIN</span>
           </div>
         </div>

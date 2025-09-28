@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>추천문구 레인 시스템 목업 (NewMainView 스타일)</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+    :root {
+      --primary-color: #2563eb;
+      --background-color: #f8fafc;
+      --card-background: #ffffff;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --border-color: #e5e7eb;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 2rem;
+    }
+
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .section-title {
+      font-size: 1.875rem; /* 30px */
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .recommend-section {
+      display: flex;
+      flex-direction: column;
+      gap: 3rem;
+    }
+
+    .recommend-lane {
+      width: 100%;
+    }
+
+    .lane-title {
+      font-size: 1.25rem; /* 20px */
+      font-weight: 700;
+      margin: 0 0 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .lane-title .lane-icon {
+      font-size: 1.5rem;
+    }
+    
+    .lane-subtitle {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        margin-left: 0.5rem;
+    }
+
+    .lane-carousel {
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 1rem 0.25rem 1.5rem 0.25rem; /* 스크롤바와 그림자를 위한 여백 */
+      margin: 0 -0.25rem;
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    
+    .lane-carousel::-webkit-scrollbar {
+      height: 8px;
+    }
+    .lane-carousel::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .lane-carousel::-webkit-scrollbar-thumb {
+      background-color: #d1d5db;
+      border-radius: 10px;
+      border: 2px solid var(--background-color);
+    }
+     .lane-carousel::-webkit-scrollbar-thumb:hover {
+      background-color: #9ca3af;
+    }
+
+
+    .lane-items {
+      display: flex;
+      gap: 1.25rem; /* 20px */
+      width: max-content;
+    }
+
+    /* NewMainView.vue에서 가져온 카드 스타일 */
+    .recommend-card {
+      flex: 0 0 320px; /* 가로 스크롤을 위해 너비 고정 */
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 1.2rem;
+      transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .recommend-card:hover {
+      border-color: #2563eb;
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.07), 0 4px 6px -2px rgba(0,0,0,0.05);
+    }
+    .recommend-card.selected {
+      background: #e0e7ff;
+      border-color: #2563eb;
+      color: #3730a3;
+    }
+    .recommend-content {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin: 0 0 0.8rem 0;
+      word-break: keep-all;
+    }
+    .recommend-tags {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: auto; /* 카드를 채우도록 태그를 아래로 밀어냄 */
+    }
+    .recommend-tag.category {
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 9999px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    .recommend-tag.sub-tag {
+      background: #e5e7eb;
+      color: #4b5563;
+      border-radius: 9999px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <h1 class="section-title">추천문구</h1>
+
+    <div class="recommend-section">
+      <!-- Lane 1: Weather Recommendations -->
+      <div class="recommend-lane">
+        <h3 class="lane-title">
+          <span class="lane-icon">🌦️</span>
+          <span>오늘 날씨에 딱 맞는 문구</span>
+          <span class="lane-subtitle">비 오는 날, 이런 문구는 어떠세요?</span>
+        </h3>
+        <div class="lane-carousel">
+          <div class="lane-items">
+            <div class="recommend-card selected">
+              <p class="recommend-content">창밖을 보며 차분한 하루를 보내요. 빗소리가 마음을 편안하게 해줄 거예요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">날씨</span>
+                <span class="recommend-tag sub-tag">감성</span>
+                <span class="recommend-tag sub-tag">비</span>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <p class="recommend-content">우산 꼭 챙기세요! 하교길에 비 맞지 않도록 조심하세요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">날씨</span>
+                <span class="recommend-tag sub-tag">준비물</span>
+                <span class="recommend-tag sub-tag">안전</span>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <p class="recommend-content">미세먼지 '나쁨'. 야외활동을 줄이고 마스크를 착용해주세요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">날씨</span>
+                <span class="recommend-tag sub-tag">미세먼지</span>
+                <span class="recommend-tag sub-tag">건강</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lane 2: Tag Discovery Recommendations -->
+      <div class="recommend-lane">
+        <h3 class="lane-title">
+          <span class="lane-icon">✨</span>
+          <span>새로운 태그를 발견해보세요</span>
+          <span class="lane-subtitle">이런 주제의 문구도 있어요!</span>
+        </h3>
+        <div class="lane-carousel">
+          <div class="lane-items">
+            <div class="recommend-card">
+              <p class="recommend-content">배려의 씨앗을 심어요. 친구의 마음을 헤아리고 먼저 양보하는 작은 행동을 칭찬해주세요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">인성교육</span>
+                <span class="recommend-tag sub-tag">친구관계</span>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <p class="recommend-content">분리수거, 어렵지 않아요! 올바른 분리배출 방법을 함께 알아봅시다.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">환경교육</span>
+                <span class="recommend-tag sub-tag">분리수거</span>
+              </div>
+            </div>
+             <div class="recommend-card">
+              <p class="recommend-content">우리 동네 숨은 영웅, 소방관과 경찰관의 노고에 대해 이야기 나누는 시간을 가져보세요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">진로교육</span>
+                <span class="recommend-tag sub-tag">직업</span>
+                 <span class="recommend-tag sub-tag">감사</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lane 3: Popular/Usage Recommendations -->
+      <div class="recommend-lane">
+        <h3 class="lane-title">
+          <span class="lane-icon">🔥</span>
+          <span>지금 가장 인기있는 문구</span>
+          <span class="lane-subtitle">많은 선생님들이 선택했어요.</span>
+        </h3>
+        <div class="lane-carousel">
+          <div class="lane-items">
+            <div class="recommend-card">
+              <p class="recommend-content">내일 미술 활동에 필요한 색연필과 가위를 잊지 말고 챙겨주세요.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">학습관리</span>
+                <span class="recommend-tag sub-tag">준비물</span>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <p class="recommend-content">이번 주말 숙제는 독서록 작성입니다. 즐거운 독서 시간이 되길 바랍니다.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">학습관리</span>
+                <span class="recommend-tag sub-tag">숙제</span>
+              </div>
+            </div>
+            <div class="recommend-card">
+              <p class="recommend-content">가정통신문을 확인해주세요. 중요한 안내사항이 포함되어 있습니다.</p>
+              <div class="recommend-tags">
+                <span class="recommend-tag category">가정연계</span>
+                <span class="recommend-tag sub-tag">공지</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

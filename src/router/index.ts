@@ -8,17 +8,15 @@ const router = createRouter({
     {
       path: '/',
       name: 'main',
+      component: () => import('../views/NewMainView.vue'),
+    },
+
+    {
+      path: '/main-legacy',
+      name: 'main-legacy',
       component: () => import('../views/MainView.vue'),
     },
-    {
-      path: '/edit',
-      name: 'edit',
-      component: () => import('../views/EditView.vue'),
-      meta: {
-        requiresAuth: true,
-        requiresApproval: true
-      }
-    },
+
     {
       path: '/stats',
       name: 'stats',
@@ -62,6 +60,14 @@ const router = createRouter({
       }
     },
     {
+      path: '/profile-edit',
+      name: 'profile-edit',
+      component: () => import('../views/ProfileComplete.vue'),
+      meta: {
+        requiresAuth: true
+      }
+    },
+    {
       path: '/admin',
       name: 'admin',
       component: () => import('../views/AdminView.vue'),
@@ -85,11 +91,26 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('../views/TermsView.vue'),
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('../views/PrivacyView.vue'),
+    },
+    {
       path: '/components',
       name: 'components',
       component: () => import('../views/ComponentLibrary.vue'),
     },
     // ...기존 라우트들...
+    {
+      path: '/chalkboard-preview',
+      name: 'chalkboard-preview',
+      component: () => import('../components/preview/ChalkboardModernPreview.vue'),
+    },
     {
       path: '/:pathMatch(.*)*',
       redirect: '/'
