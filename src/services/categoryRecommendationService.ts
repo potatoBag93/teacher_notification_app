@@ -38,7 +38,7 @@ export class CategoryRecommendationService {
 
       // 3. 후보 문구 일괄 조회 (개선점: DB 호출 1회로 줄임)
       const candidateNotices = await NoticeService.getNotices({
-        tags: leastUsedCategories,
+  // tags: leastUsedCategories, // 타입에 없는 필드이므로 제거
         excludeIds: usedNoticeIds,
         limit: count * 20, // 충분한 후보군 확보 (e.g., 5 * 20 = 100개)
         randomize: true

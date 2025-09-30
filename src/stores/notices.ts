@@ -68,16 +68,16 @@ export const useNoticeStore = defineStore('notices', () => {
 
     // 태그 필터링
     if (currentTags.value.length > 0) {
-      filtered = filtered.filter((notice: Notice) => 
-        notice.tags.some((tag: Category) => currentTags.value.includes(tag))
-      )
+filtered = filtered.filter((notice: Notice) => 
+  (notice.tags ?? []).some((tag) => currentTags.value.includes(tag as Category))
+)
     }
 
     // 검색어 필터링 (제목과 내용에서 검색)
     if (searchQuery.value) {
       const query = searchQuery.value.toLowerCase()
       filtered = filtered.filter((notice: Notice) =>
-        notice.title.toLowerCase().includes(query) ||
+  notice.content.toLowerCase().includes(query) ||
         notice.content.toLowerCase().includes(query)
       )
     }
