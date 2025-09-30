@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -22,15 +21,7 @@ const router = createRouter({
         requiresApproval: true
       }
     },
-    {
-      path: '/collection',
-      name: 'collection',
-      component: () => import('../views/CollectionView.vue'),
-      meta: {
-        requiresAuth: true,
-        requiresApproval: true
-      }
-    },
+    
     {
       path: '/feedback',
       name: 'feedback',
