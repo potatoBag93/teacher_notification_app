@@ -338,7 +338,7 @@ const toggleMenu = (id: string) => {
 }
 
 const editNotice = (notice: any) => {
-  console.log('Edit notice:', notice.title)
+  // console.log('Edit notice:', notice.title)
   router.push(`/edit?id=${notice.id}`)
 }
 

@@ -392,7 +392,7 @@ const handleFeedbackSubmit = async (data: any) => {
     closeFeedbackForm()
     showMessage('피드백이 성공적으로 전송되었습니다!')
   } catch (error) {
-    console.error('피드백 전송 실패:', error)
+    // console.error('피드백 전송 실패:', error)
     showMessage('피드백 전송에 실패했습니다. 다시 시도해주세요.')
   }
 }

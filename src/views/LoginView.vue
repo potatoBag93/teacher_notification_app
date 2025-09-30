@@ -58,7 +58,7 @@ const handleGoogleLogin = async () => {
   error.value = ''
   
   try {
-    console.log('[LoginView] 구글 로그인 버튼 클릭')
+    // console.log('[LoginView] 구글 로그인 버튼 클릭')
     
     const result = await authStore.loginWithGoogle()
     
@@ -67,7 +67,7 @@ const handleGoogleLogin = async () => {
     }
     // 성공시에는 자동으로 구글 페이지로 리디렉션됨
   } catch (err: any) {
-    console.error('[LoginView] 구글 로그인 에러:', err)
+    // console.error('[LoginView] 구글 로그인 에러:', err)
     error.value = err.message || '로그인 중 오류가 발생했습니다.'
   } finally {
     isLoading.value = false

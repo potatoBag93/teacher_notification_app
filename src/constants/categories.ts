@@ -1,7 +1,7 @@
 /**
- * 카테고리 관련 상수 및 유틸리티 함수
+ * 카테고리 및 태그 관련 상수 및 유틸리티 함수
  * 
- * 모든 카테고리 관련 정의를 중앙화하여 일관성을 보장합니다.
+ * 모든 카테고리 및 태그 관련 정의를 중앙화하여 일관성을 보장합니다。
  */
 
 // 카테고리 타입 정의 (버전 1: 보수적 통합형)
@@ -232,8 +232,8 @@ export const isValidExtendedCategory = (value: string): value is ExtendedCategor
   return value === '전체' || isValidCategory(value)
 }
 
-// 카테고리별 서브태그 매핑 (버전 1: 보수적 통합형)
-export const categorySubTagsMap: Record<Category, string[]> = {
+// 카테고리별 태그 매핑 (버전 1: 보수적 통합형)
+export const categoryTagsMap: Record<Category, string[]> = {
   '학습관리': [
     // 기존 '학습'에서
     '시험안내', '발표수업', '과제제출', '학습습관', '집중력', '복습방법', 
@@ -315,25 +315,25 @@ export const categorySubTagsMap: Record<Category, string[]> = {
   ]
 }
 
-// 서브태그로 메인 카테고리 찾기
-export const getMainCategoryFromSubTag = (subTag: string): Category | null => {
-  for (const [category, subTags] of Object.entries(categorySubTagsMap)) {
-    if (subTags.includes(subTag)) {
+// 태그로 카테고리 찾기
+export const getCategoryByTag = (tag: string): Category | null => {
+  for (const [category, tags] of Object.entries(categoryTagsMap)) {
+    if (tags.includes(tag)) {
       return category as Category
     }
   }
   return null
 }
 
-// 카테고리의 서브태그 목록 가져오기
-export const getSubTagsByCategory = (category: Category): string[] => {
-  return categorySubTagsMap[category] || []
+// 카테고리의 태그 목록 가져오기
+export const getTagsByCategory = (category: Category): string[] => {
+  return categoryTagsMap[category] || []
 }
 
-// 모든 서브태그 목록
-export const allSubTags = Object.values(categorySubTagsMap).flat()
+// 모든 태그 목록
+export const allTags = Object.values(categoryTagsMap).flat()
 
-// 서브태그 유효성 검사
-export const isValidSubTag = (subTag: string): boolean => {
-  return allSubTags.includes(subTag)
+// 태그 유효성 검사
+export const isValidTag = (tag: string): boolean => {
+  return allTags.includes(tag)
 }

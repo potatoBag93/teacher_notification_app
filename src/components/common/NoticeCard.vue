@@ -13,14 +13,14 @@
         <!-- 메인 카테고리 태그 -->
         <div class="main-tags">
           <CategoryTag 
-            v-for="tag in tags" 
-            :key="tag"
-            :category="tag"
+            v-for="category in categories" 
+            :key="category"
+            :category="category"
             :clickable="false"
           />
         </div>
         
-        <!-- 서브 태그 -->
+        <!-- 태그 -->
         
       </div>
       <div class="notice-meta">
@@ -45,14 +45,14 @@
     <!-- 카드 푸터 -->
     <div v-if="showFooter" class="notice-footer" v-show="isExpanded">
     
-        <div v-if="subTags && subTags.length > 0" class="sub-tags">
+        <div v-if="tags && tags.length > 0" class="tags">
           <span 
-            v-for="subTag in subTags" 
-            :key="subTag"
-            class="sub-tag hashtag"
-            :style="getSubTagStyle(subTag)"
+            v-for="tag in tags" 
+            :key="tag"
+            class="tag hashtag"
+            :style="getTagStyle(tag)"
           >
-            #{{ subTag }}
+            #{{ tag }}
           </span>
         </div>
       </div>
@@ -64,13 +64,13 @@ import { ref } from 'vue'
 import BaseCard from './BaseCard.vue'
 import BaseButton from './BaseButton.vue'
 import CategoryTag from './CategoryTag.vue'
-import { getMainCategoryFromSubTag, getCategoryMeta, type Category } from '../../constants/categories'
+import { getCategoryByTag, getCategoryMeta, type Category } from '../../constants/categories'
 
 interface Props {
   title: string
   content: string
-  tags: Category[]
-  subTags?: string[]          // 서브 태그 추가
+  categories: Category[]
+  tags?: string[]          // 태그 추가
   author: string
   likeCount: number
   subItems: string[]           // 필수 문자열 배열
@@ -96,9 +96,9 @@ const toggleExpand = () => {
 }
 
 
-// 서브 태그 스타일 계산
-const getSubTagStyle = (subTag: string) => {
-  const mainCategory = getMainCategoryFromSubTag(subTag)
+// 태그 스타일 계산
+const getTagStyle = (tag: string) => {
+  const mainCategory = getCategoryByTag(tag)
   if (mainCategory) {
     const meta = getCategoryMeta(mainCategory)
     return {
@@ -184,14 +184,14 @@ const getSubTagStyle = (subTag: string) => {
   flex-wrap: wrap;
 }
 
-.sub-tags {
+.tags {
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
   margin-top: 0.25rem;
 }
 
-.sub-tag {
+.tag {
   display: inline-block;
   padding: 0.125rem 0.375rem;
   font-size: 0.75rem;
@@ -203,7 +203,7 @@ const getSubTagStyle = (subTag: string) => {
   white-space: nowrap;
 }
 
-.sub-tag.hashtag {
+.tag.hashtag {
   background: none;
   border: none;
   padding: 0.125rem 0.25rem;

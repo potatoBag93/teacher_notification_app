@@ -245,7 +245,7 @@ onMounted(async () => {
     const [historyData, categoryData, subTagData] = await Promise.all([
       UserUsageService.getUserUsageHistory(),
       UserUsageService.getUserCategoryStats(),
-      UserUsageService.getSubTagStatistics()
+      UserUsageService.getTagStatistics()
     ])
     
     usageHistory.value = historyData

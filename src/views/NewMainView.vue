@@ -4,7 +4,7 @@
 
       <!-- 실시간 사용문구 티커 -->
       <div class="recent-ticker-section flat-section">
-        <h2 class="flat-section-title">실시간 사용 문구</h2>
+        <h2 class="flat-section-content">실시간 사용 문구</h2>
         <template v-if="isLoading && recentPhrases.length === 0">
           <div class="ticker-skeleton">
             <span class="skeleton-icon">🕒</span>
@@ -18,10 +18,10 @@
 
       <!-- 추천문구 섹션 -->
       <div class="recommend-section flat-section">
-        <h2 class="flat-section-title">추천문구</h2>
+        <h2 class="flat-section-content">추천문구</h2>
         <template v-if="isLoading && weatherRecommendations.length + tagDiscoveryRecommendations.length + popularRecommendations.length === 0">
           <div class="recommend-lane">
-            <h3 class="lane-title">
+            <h3 class="lane-content">
               <span class="lane-icon">💬</span>
               <span>추천 문구를 불러오는 중...</span>
             </h3>
@@ -45,7 +45,7 @@
           <div v-if="authStore.user">
             <!-- Lane 1: Weather Recommendations -->
             <div class="recommend-lane">
-              <h3 class="lane-title">
+              <h3 class="lane-content">
                 <span class="lane-icon">🌦️</span>
                 <span>오늘 날씨에 딱 맞는 문구</span>
               </h3>
@@ -59,10 +59,10 @@
                       :class="{ selected: isSelected(notice.id) }"
                       @click="toggleSelection(notice)"
                     >
-                      <p class="recommend-content">{{ notice.title }}</p>
+                      <p class="recommend-content">{{ notice.content }}</p>
                       <div class="recommend-tags">
-                        <span @click.stop="openModalForTag(notice.tags[0], 'category')" class="recommend-tag category">{{ notice.tags[0] }}</span>
-                        <span v-for="tag in notice.subTags" :key="tag" @click.stop="openModalForTag(tag, 'subTag')" class="recommend-tag sub-tag">{{ tag }}</span>
+                        <span @click.stop="openModalForTag(notice.categories[0], 'category')" class="recommend-tag category">{{ notice.categories[0] }}</span>
+                        <span v-for="tag in notice.tags" :key="tag" @click.stop="openModalForTag(tag, 'tag')" class="recommend-tag sub-tag">{{ tag }}</span>
                       </div>
                     </div>
                   </div>
@@ -74,7 +74,7 @@
 
             <!-- Lane 2: Tag Discovery Recommendations -->
             <div class="recommend-lane">
-              <h3 class="lane-title">
+              <h3 class="lane-content">
                 <span class="lane-icon">✨</span>
                 <span>새로운 태그를 발견해보세요</span>
               </h3>
@@ -88,10 +88,10 @@
                       :class="{ selected: isSelected(notice.id) }"
                       @click="toggleSelection(notice)"
                     >
-                      <p class="recommend-content">{{ notice.title }}</p>
+                      <p class="recommend-content">{{ notice.content }}</p>
                       <div class="recommend-tags">
-                        <span @click.stop="openModalForTag(notice.tags[0], 'category')" class="recommend-tag category">{{ notice.tags[0] }}</span>
-                        <span v-for="tag in notice.subTags" :key="tag" @click.stop="openModalForTag(tag, 'subTag')" class="recommend-tag sub-tag">{{ tag }}</span>
+                        <span @click.stop="openModalForTag(notice.categories[0], 'category')" class="recommend-tag category">{{ notice.categories[0] }}</span>
+                        <span v-for="tag in notice.tags" :key="tag" @click.stop="openModalForTag(tag, 'tag')" class="recommend-tag sub-tag">{{ tag }}</span>
                       </div>
                     </div>
                   </div>
@@ -103,7 +103,7 @@
 
             <!-- Lane 3: Popular/Usage Recommendations -->
             <div class="recommend-lane">
-              <h3 class="lane-title">
+              <h3 class="lane-content">
                 <span class="lane-icon">🔥</span>
                 <span>지금 가장 인기있는 문구</span>
               </h3>
@@ -117,10 +117,10 @@
                       :class="{ selected: isSelected(notice.id) }"
                       @click="toggleSelection(notice)"
                     >
-                      <p class="recommend-content">{{ notice.title }}</p>
+                      <p class="recommend-content">{{ notice.content }}</p>
                       <div class="recommend-tags">
-                        <span @click.stop="openModalForTag(notice.tags[0], 'category')" class="recommend-tag category">{{ notice.tags[0] }}</span>
-                        <span v-for="tag in notice.subTags" :key="tag" @click.stop="openModalForTag(tag, 'subTag')" class="recommend-tag sub-tag">{{ tag }}</span>
+                        <span @click.stop="openModalForTag(notice.categories[0], 'category')" class="recommend-tag category">{{ notice.categories[0] }}</span>
+                        <span v-for="tag in notice.tags" :key="tag" @click.stop="openModalForTag(tag, 'tag')" class="recommend-tag sub-tag">{{ tag }}</span>
                       </div>
                     </div>
                   </div>
@@ -151,8 +151,8 @@
       <div class="selected-notices-header">선택된 문구 ({{ selectedNotices.length }}개)</div>
       <ul class="selected-notices-list">
         <li v-for="notice in selectedNotices" :key="notice.id" class="selected-notice-item">
-          <span>{{ notice.title }}</span>
-          <button @click="toggleSelection(notice)" class="remove-btn" title="제거">×</button>
+          <span>{{ notice.content }}</span>
+          <button @click="toggleSelection(notice)" class="remove-btn" content="제거">×</button>
         </li>
       </ul>
       <div class="panel-actions">
@@ -209,14 +209,14 @@ const laneRefs = {
 
 const recentPhrases = computed(() => {
   const uniquePhrases: any[] = [];
-  const seenTitles = new Set();
+  const seencontents = new Set();
 
   for (const usage of recentUsages.value) {
     const notice = usage.notices as any;
-    if (notice && notice.title && !seenTitles.has(notice.title)) {
-      seenTitles.add(notice.title);
+    if (notice && notice.content && !seencontents.has(notice.content)) {
+      seencontents.add(notice.content);
       uniquePhrases.push({
-        content: notice.title,
+        content: notice.content,
         user: notice.author,
         timestamp: usage.used_at,
         category: notice.tags[0],
@@ -330,7 +330,7 @@ const scrollLane = (laneName: 'weather' | 'tag' | 'popular', direction: number) 
   carouselEl.scrollBy({ left: scrollAmount, behavior: 'smooth' });
 };
 
-const openModalForTag = (tag: string, type: 'category' | 'subTag') => {
+const openModalForTag = (tag: string, type: 'category' | 'tag') => {
   if (tagSearch.value) {
     const allAvailableNotices = [
       ...allNotices.value,
@@ -360,17 +360,17 @@ const toggleSelection = (notice: Notice) => {
 // Ticker sends back content string, so we need to find the notice object
 const toggleSelectionByContent = (content: string) => {
     // First, search within the recently used notices, which are the source for the ticker
-    const usage = recentUsages.value.find(u => u.notices?.title === content);
+    const usage = recentUsages.value.find(u => u.notices?.content === content);
     if (usage && usage.notices) {
         toggleSelection(usage.notices as Notice);
         return;
     }
 
     // As a fallback, search in the other notice lists on the page
-    const notice = allNotices.value.find(n => n.title === content) ||
-                   weatherRecommendations.value.find(n => n.title === content) ||
-                   tagDiscoveryRecommendations.value.find(n => n.title === content) ||
-                   popularRecommendations.value.find(n => n.title === content);
+    const notice = allNotices.value.find(n => n.content === content) ||
+                   weatherRecommendations.value.find(n => n.content === content) ||
+                   tagDiscoveryRecommendations.value.find(n => n.content === content) ||
+                   popularRecommendations.value.find(n => n.content === content);
     if (notice) {
         toggleSelection(notice);
     }
@@ -386,7 +386,7 @@ const clearSelection = () => {
 
 const copySelected = () => {
   if (selectedNotices.value.length === 0) return;
-  const textToCopy = selectedNotices.value.map(n => n.title).join('\n');
+  const textToCopy = selectedNotices.value.map(n => n.content).join('\n');
   navigator.clipboard.writeText(textToCopy).then(() => {
     alert('선택한 문구가 클립보드에 복사되었습니다.');
   }).catch(err => {
@@ -413,60 +413,11 @@ const openPreview = async () => {
     return;
   }
   await saveUsageRecords();
-  const content = selectedNotices.value.map(n => `<p>${n.title}</p>`).join('');
+  const content = selectedNotices.value.map(n => `<p>${n.content}</p>`).join('');
   sessionStorage.setItem('chalkboard-preview-content', content);
   const previewUrl = '/chalkboard-preview';
   window.open(previewUrl, 'ChalkboardPreview', 'width=1024,height=768,scrollbars=no,resizable=yes');
 }
 </script>
 
-
-<style scoped>
- @import './NewMainView.css';
-
- .login-prompt-section {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  background-color: #f8f9fa; /* A light background */
-  border-radius: 12px;
-  margin: 1rem 0;
-}
-
-.prompt-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.login-prompt-section h3 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.login-prompt-section p {
-  font-size: 1rem;
-  color: #6c757d; /* A softer text color */
-  margin-bottom: 1.5rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.login-button {
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-}
-
-.login-button:hover {
-  background-color: #357abd;
-  transform: translateY(-2px);
-}
-
-</style>
+<style src="./NewMainView.css"></style>

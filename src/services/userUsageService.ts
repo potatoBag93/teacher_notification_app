@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import type { Notice, Category } from '@/data/notices'
-import { categorySubTagsMap } from '@/constants/categories'
+import { categoryTagsMap, getCategoryByTag } from '@/constants/categories'
 
 export interface UserNoticeUsage {
   id: string
@@ -17,7 +17,6 @@ export interface UserCategoryStats {
   last_used: string
   notices?: Array<{ 
     id: string
-    title?: string
     content: string
     subItems?: string[]
     used_at: string
@@ -147,11 +146,11 @@ export class UserUsageService {
   }
 
   /**
-   * 서브태그별 사용 통계 조회
+   * 태그별 사용 통계 조회
    */
-  static async getSubTagStatistics(userId?: string): Promise<{ 
+  static async getTagStatistics(userId?: string): Promise<{ 
     category: string; 
-    subTag: string; 
+    tag: string; 
     usageCount: number; 
     notices: any[] 
   }[]> {
@@ -172,10 +171,9 @@ export class UserUsageService {
           used_at,
           notices:notice_id (
             id,
-            title,
             content,
             tags,
-            sub_tags
+            categories
           )
         `)
         .eq('user_id', currentUserId)
@@ -183,9 +181,9 @@ export class UserUsageService {
 
       if (error) throw error
 
-      const subTagStats: Record<string, {
+      const tagStats: Record<string, {
         category: string;
-        subTag: string;
+        tag: string;
         usageCount: number;
         notices: any[];
       }> = {}
@@ -195,32 +193,31 @@ export class UserUsageService {
         notices.forEach((notice: any) => {
           if (!notice) return
 
-          // sub_tags 처리
-          const subTags = notice.sub_tags || []
+          // tags 처리
+          const tags = notice.sub_tags || []
 
-          subTags.forEach((subTag: string) => {
-            // 서브태그에서 메인 카테고리 찾기
-            const mainCategory = this.getMainCategoryFromSubTag(subTag)
+          tags.forEach((tag: string) => {
+            // 태그에서 메인 카테고리 찾기
+            const mainCategory = getCategoryByTag(tag)
             if (!mainCategory) return
 
-            const key = `${mainCategory}-${subTag}`
+            const key = `${mainCategory}-${tag}`
             
-            if (!subTagStats[key]) {
-              subTagStats[key] = {
+            if (!tagStats[key]) {
+              tagStats[key] = {
                 category: mainCategory,
-                subTag: subTag,
+                tag: tag,
                 usageCount: 0,
                 notices: []
               }
             }
 
-            subTagStats[key].usageCount++
+            tagStats[key].usageCount++
             
             // 중복 방지
-            if (!subTagStats[key].notices.find(n => n.id === notice.id)) {
-              subTagStats[key].notices.push({
+            if (!tagStats[key].notices.find(n => n.id === notice.id)) {
+              tagStats[key].notices.push({
                 id: notice.id,
-                title: notice.title,
                 content: notice.content,
                 used_at: usage.used_at
               })
@@ -229,24 +226,12 @@ export class UserUsageService {
         })
       })
 
-      return Object.values(subTagStats)
+      return Object.values(tagStats)
         .sort((a, b) => b.usageCount - a.usageCount)
     } catch (error) {
-      console.error('서브태그 통계 조회 실패:', error)
+      console.error('태그 통계 조회 실패:', error)
       return []
     }
-  }
-
-  /**
-   * 서브태그에서 메인 카테고리 찾기 (내부 유틸리티)
-   */
-  private static getMainCategoryFromSubTag(subTag: string): string | null {
-    for (const [category, subTags] of Object.entries(categorySubTagsMap)) {
-      if (subTags.includes(subTag)) {
-        return category
-      }
-    }
-    return null
   }
 
   /**
@@ -268,12 +253,10 @@ export class UserUsageService {
           used_at,
           notices (
             id,
-            title,
             content,
             tags,
             author,
             like_count,
-            sub_items,
             created_at,
             usage_count
           )
@@ -304,12 +287,10 @@ export class UserUsageService {
           used_at,
           notices (
             id,
-            title,
             content,
             tags,
             author,
             like_count,
-            sub_items,
             created_at,
             usage_count
           )
@@ -345,10 +326,8 @@ export class UserUsageService {
           notice_id,
           notices!inner (
             id,
-            title,
             content,
-            tags,
-            sub_items
+            tags
           )
         `)
         .eq('user_id', user.user.id)

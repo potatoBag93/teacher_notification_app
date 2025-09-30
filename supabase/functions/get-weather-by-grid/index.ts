@@ -199,6 +199,15 @@ serve(async (req) => {
     console.log('기상청 초단기실황 API 호출:', apiUrl.toString());
 
     const response = await fetch(apiUrl.toString());
+
+    // Check if the response is JSON before parsing
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const errorText = await response.text();
+      console.error('기상청 API에서 JSON이 아닌 응답 수신:', errorText);
+      throw new Error(`기상청 API에서 예상치 못한 응답 형식 수신 (Content-Type: ${contentType}). 응답 내용: ${errorText.substring(0, 200)}...`);
+    }
+
     const data = await response.json();
 
     console.log('기상청 API 응답 헤더:', data.response?.header);

@@ -37,14 +37,14 @@ const isLoading = ref(true)
 const error = ref('')
 
 onMounted(async () => {
-  console.log('[AuthCallback] OAuth 콜백 페이지 마운트됨')
+  // console.log('[AuthCallback] OAuth 콜백 페이지 마운트됨')
   
   try {
     // OAuth 콜백 처리
     const result = await authStore.handleAuthCallback()
     
     if (result.success) {
-      console.log('[AuthCallback] 콜백 처리 성공')
+      // console.log('[AuthCallback] 콜백 처리 성공')
       
       // 프로필 완성도와 승인 상태에 따라 리디렉션
       setTimeout(() => {
@@ -61,11 +61,11 @@ onMounted(async () => {
       }, 2000)
       
     } else {
-      console.error('[AuthCallback] 콜백 처리 실패:', result.error)
+      // console.error('[AuthCallback] 콜백 처리 실패:', result.error)
       error.value = result.error || '인증 처리 중 오류가 발생했습니다.'
     }
   } catch (err: any) {
-    console.error('[AuthCallback] 예외 발생:', err)
+    // console.error('[AuthCallback] 예외 발생:', err)
     error.value = err.message || '인증 처리 중 오류가 발생했습니다.'
   } finally {
     isLoading.value = false

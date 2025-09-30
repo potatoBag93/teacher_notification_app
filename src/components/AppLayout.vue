@@ -6,7 +6,7 @@
         <!-- Logo -->
         <div class="logo-section">
           <div class="logo-icon">📝</div>
-          <h1 class="logo-text">알뭐</h1>
+          <h1 class="logo-text">알림장 뭐쓰지? 알뭐</h1>
         </div>
         
         <!-- Navigation -->
@@ -14,18 +14,12 @@
           <RouterLink to="/" class="nav-link" :class="{ active: $route.path === '/' }">
             메인
           </RouterLink>
-          <!-- <RouterLink to="/edit" class="nav-link" :class="{ active: $route.path === '/edit' }">
-            편집
-          </RouterLink>
-          <RouterLink to="/collection" class="nav-link" :class="{ active: $route.path === '/collection' }">
-            내 컬렉션
-          </RouterLink> -->
           <RouterLink to="/stats" class="nav-link" :class="{ active: $route.path === '/stats' }">
             통계
           </RouterLink>
-          <!-- <RouterLink to="/feedback" class="nav-link" :class="{ active: $route.path === '/feedback' }">
-            피드백
-          </RouterLink> -->
+          <RouterLink to="/about-theme" class="nav-link" :class="{ active: $route.path === '/about-theme' }">
+            서비스소개
+          </RouterLink>
         </nav>
         
         <!-- Search Bar - 임시 비활성화 -->

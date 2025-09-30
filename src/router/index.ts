@@ -11,11 +11,7 @@ const router = createRouter({
       component: () => import('../views/NewMainView.vue'),
     },
 
-    {
-      path: '/main-legacy',
-      name: 'main-legacy',
-      component: () => import('../views/MainView.vue'),
-    },
+
 
     {
       path: '/stats',
@@ -91,6 +87,11 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
     {
+      path: '/about-theme',
+      name: 'about-theme',
+      component: () => import('../views/AboutThemeView.vue'),
+    },
+    {
       path: '/terms',
       name: 'terms',
       component: () => import('../views/TermsView.vue'),
@@ -100,11 +101,7 @@ const router = createRouter({
       name: 'privacy',
       component: () => import('../views/PrivacyView.vue'),
     },
-    {
-      path: '/components',
-      name: 'components',
-      component: () => import('../views/ComponentLibrary.vue'),
-    },
+
     // ...기존 라우트들...
     {
       path: '/chalkboard-preview',

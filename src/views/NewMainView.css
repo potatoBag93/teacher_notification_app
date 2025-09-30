@@ -1,5 +1,51 @@
 
 /* 메인뷰 스타일과 유사한 섹션 구분 */
+
+.login-prompt-section {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: #f8f9fa; /* A light background */
+  border-radius: 12px;
+  margin: 1rem 0;
+}
+
+.prompt-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.login-prompt-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.login-prompt-section p {
+  font-size: 1rem;
+  color: #6c757d; /* A softer text color */
+  margin-bottom: 1.5rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.login-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.login-button:hover {
+  background-color: #357abd;
+  transform: translateY(-2px);
+}
+
 .flat-section {
   margin-bottom: 2.5rem;
   padding: 0 0 1.5rem 0;
@@ -7,7 +53,7 @@
   border: none;
   box-shadow: none;
 }
-.flat-section-title {
+.flat-section-content {
   font-size: 1.25rem;
   font-weight: 700;
   color: #2563eb;
@@ -149,7 +195,7 @@ h1 {
 .phrase-section {
   margin-bottom: 2.5rem;
 }
-.section-title {
+.section-content {
   font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 1rem;
@@ -258,7 +304,7 @@ h1 {
   position: relative;
 }
 
-.lane-title {
+.lane-content {
   font-size: 1.25rem; /* 20px */
   font-weight: 700;
   margin: 0 0 1rem 0;
@@ -267,7 +313,7 @@ h1 {
   gap: 0.75rem;
 }
 
-.lane-title .lane-icon {
+.lane-content .lane-icon {
   font-size: 1.5rem;
 }
 

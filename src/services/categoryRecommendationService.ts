@@ -18,10 +18,10 @@ export class CategoryRecommendationService {
       console.log('🎯 [CategoryRecommendation] 카테고리 추천 시작 (v2)')
 
       // 1. 사용자 통계 및 사용 이력 병렬 조회 (기존과 동일, 효율적)
-      const [leastUsedStats, usedNoticeIds, subTagStats] = await Promise.all([
+      const [leastUsedStats, usedNoticeIds, tagStats] = await Promise.all([
         UserUsageService.getLeastUsedCategories(),
         UserUsageService.getUserUsedNoticeIds(),
-        UserUsageService.getSubTagStatistics()
+        UserUsageService.getTagStatistics()
       ])
 
       if (leastUsedStats.length === 0) {
@@ -49,17 +49,17 @@ export class CategoryRecommendationService {
         return []
       }
 
-      // 4. 서브태그 사용 통계 맵 생성 (기존과 동일)
-      const subTagUsageMap = new Map<string, number>()
-      subTagStats.forEach(stat => {
-        subTagUsageMap.set(stat.subTag, stat.usageCount)
+      // 4. 태그 사용 통계 맵 생성
+      const tagUsageMap = new Map<string, number>()
+      tagStats.forEach(stat => {
+        tagUsageMap.set(stat.tag, stat.usageCount)
       })
 
       // 5. 메모리 내에서 최적의 추천 문구 선택 (개선점: 로직을 메모리에서 처리)
       const recommendations = this.selectBestNoticesFromPool(
         candidateNotices,
         count,
-        subTagUsageMap
+        tagUsageMap
       )
 
       console.log(`🎯 [CategoryRecommendation] 최종 추천 수: ${recommendations.length}개`)
@@ -71,16 +71,16 @@ export class CategoryRecommendationService {
   }
 
   /**
-   * 후보 목록에서 서브태그 다양성을 고려하여 최적의 문구를 선택
+   * 후보 목록에서 태그 다양성을 고려하여 최적의 문구를 선택
    * @param candidates 후보 문구 배열
    * @param count 선택할 개수
-   * @param subTagUsageMap 서브태그 사용 통계
+   * @param tagUsageMap 태그 사용 통계
    * @returns 추천 문구 배열
    */
   private static selectBestNoticesFromPool(
     candidates: Notice[],
     count: number,
-    subTagUsageMap: Map<string, number>
+    tagUsageMap: Map<string, number>
   ): Notice[] {
     const recommendations: Notice[] = []
     const availableCandidates = [...candidates]
@@ -90,23 +90,23 @@ export class CategoryRecommendationService {
       let bestCandidateIndex = -1
       let maxScore = -1
 
-      // 현재 추천된 문구들에서 사용된 서브태그 집합을 매번 새로 계산
-      const usedSubTags = new Set<string>(
+      // 현재 추천된 문구들에서 사용된 태그 집합을 매번 새로 계산
+      const usedTags = new Set<string>(
         recommendations.flatMap(r => (r as any).sub_tags || [])
       )
 
       for (let i = 0; i < availableCandidates.length; i++) {
         const candidate = availableCandidates[i]
-        const subTags = (candidate as any).sub_tags || []
+        const tags = (candidate as any).sub_tags || []
 
-        // 점수 계산: 새로운 서브태그 > 사용 적은 서브태그 > 기본
-        const hasUnusedSubTag = subTags.some((tag: string) => !usedSubTags.has(tag))
-        const minSubTagUsage =
-          subTags.length > 0
-            ? Math.min(...subTags.map((tag: string) => subTagUsageMap.get(tag) || 0))
-            : 1000 // 서브태그가 없는 경우 후순위로
+        // 점수 계산: 새로운 태그 > 사용 적은 태그 > 기본
+        const hasUnusedTag = tags.some((tag: string) => !usedTags.has(tag))
+        const minTagUsage =
+          tags.length > 0
+            ? Math.min(...tags.map((tag: string) => tagUsageMap.get(tag) || 0))
+            : 1000 // 태그가 없는 경우 후순위로
 
-        const score = (hasUnusedSubTag ? 10000 : 0) + (1000 - minSubTagUsage)
+        const score = (hasUnusedTag ? 10000 : 0) + (1000 - minTagUsage)
 
         if (score > maxScore) {
           maxScore = score

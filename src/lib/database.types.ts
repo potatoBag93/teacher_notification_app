@@ -12,13 +12,11 @@ export interface Database {
       notices: {
         Row: {
           id: string
-          title: string
           content: string
+          categories: string[]
           tags: string[]
-          sub_tags: string[] | null
           author: string
           like_count: number
-          sub_items: string[]
           created_at: string
           is_recommended: boolean | null
           is_popular: boolean | null
@@ -27,13 +25,11 @@ export interface Database {
         }
         Insert: {
           id: string
-          title: string
           content: string
-          tags: string[]
-          sub_tags?: string[] | null
+          categories: string[]
+          tags?: string[] | null
           author: string
           like_count?: number
-          sub_items: string[]
           created_at?: string
           is_recommended?: boolean | null
           is_popular?: boolean | null
@@ -42,16 +38,12 @@ export interface Database {
         }
         Update: {
           id?: string
-          title?: string
           content?: string
-          tags?: string[]
-          sub_tags?: string[] | null
+          categories?: string[]
+          tags?: string[] | null
           author?: string
           like_count?: number
-          sub_items?: string[]
           created_at?: string
-          is_recommended?: boolean | null
-          is_popular?: boolean | null
           usage_count?: number | null
           updated_at?: string
         }
@@ -61,7 +53,7 @@ export interface Database {
           id: string
           title: string
           content: string
-          tags: string[]
+          categories: string[]
           created_by: string
           created_at: string
           updated_at: string
@@ -80,7 +72,7 @@ export interface Database {
           id?: string
           title: string
           content: string
-          tags: string[]
+          categories: string[]
           created_by: string
           created_at?: string
           updated_at?: string
@@ -99,7 +91,7 @@ export interface Database {
           id?: string
           title?: string
           content?: string
-          tags?: string[]
+          categories?: string[]
           created_by?: string
           created_at?: string
           updated_at?: string
@@ -269,7 +261,7 @@ export interface Database {
           generated_by: 'weather' | 'news' | 'custom'
           prompt_data: Json
           generated_content: string
-          tags: string[]
+          categories: string[]
           confidence_score: number
           user_rating: number | null
           usage_count: number
@@ -283,7 +275,7 @@ export interface Database {
           generated_by: 'weather' | 'news' | 'custom'
           prompt_data: Json
           generated_content: string
-          tags: string[]
+          categories: string[]
           confidence_score: number
           user_rating?: number | null
           usage_count?: number
@@ -297,7 +289,7 @@ export interface Database {
           generated_by?: 'weather' | 'news' | 'custom'
           prompt_data?: Json
           generated_content?: string
-          tags?: string[]
+          categories?: string[]
           confidence_score?: number
           user_rating?: number | null
           usage_count?: number

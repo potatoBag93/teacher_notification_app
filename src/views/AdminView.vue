@@ -414,11 +414,11 @@ const filteredUsers = computed(() => {
 
 // 메서드
 const handleSearch = () => {
-  console.log('관리자 기능 검색:', searchQuery.value)
+  // console.log('관리자 기능 검색:', searchQuery.value)
 }
 
 const handleUserSearch = () => {
-  console.log('사용자 검색:', userSearchQuery.value)
+  // console.log('사용자 검색:', userSearchQuery.value)
 }
 
 const generateReport = () => {
@@ -503,7 +503,7 @@ const formatTime = (date: Date): string => {
 onMounted(() => {
   // 30초마다 통계 업데이트
   setInterval(() => {
-    console.log('통계 데이터 업데이트됨')
+    // console.log('통계 데이터 업데이트됨')
   }, 30000)
 })
 </script>
